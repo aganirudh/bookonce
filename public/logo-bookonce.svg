@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="60" viewBox="0 0 200 60" fill="none">
+  <!-- BookOnce Logo -->
+  <g fill="currentColor">
+    <!-- "BookOnce" Text -->
+    <text x="10" y="40" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#2563eb">
+      Book<tspan fill="#1d4ed8">Once</tspan>
+    </text>
+    
+    <!-- Tagline -->
+    <text x="10" y="55" font-family="Arial, sans-serif" font-size="10" fill="#64748b">
+      Book your perfect journey in one place
+    </text>
+    
+    <!-- Travel icon accent -->
+    <g transform="translate(170, 15)">
+      <circle cx="10" cy="10" r="8" fill="none" stroke="#2563eb" stroke-width="2"/>
+      <path d="M6 10l3 3 6-6" stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

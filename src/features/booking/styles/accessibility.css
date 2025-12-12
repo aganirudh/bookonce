@@ -1,0 +1,223 @@
+/**
+ * Accessibility Styles
+ * Ensures visual accessibility compliance across booking components
+ */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible styles - enhanced focus indicators */
+.focus-visible:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Ensure all interactive elements have visible focus */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    border-width: 2px;
+  }
+  
+  .border {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ensure minimum touch target size (44x44px) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Text resizing support - use relative units */
+html {
+  font-size: 16px;
+}
+
+body {
+  font-size: 1rem;
+}
+
+/* Ensure text can be resized up to 200% */
+@media (min-width: 1px) {
+  .text-xs { font-size: 0.75rem; }
+  .text-sm { font-size: 0.875rem; }
+  .text-base { font-size: 1rem; }
+  .text-lg { font-size: 1.125rem; }
+  .text-xl { font-size: 1.25rem; }
+  .text-2xl { font-size: 1.5rem; }
+  .text-3xl { font-size: 1.875rem; }
+}
+
+/* Color contrast - ensure minimum 4.5:1 ratio */
+.text-muted-foreground {
+  /* Ensure this meets WCAG AA standards */
+  color: hsl(var(--muted-foreground));
+}
+
+/* Status indicators - don't rely on color alone */
+.status-success::before {
+  content: "✓ ";
+  font-weight: bold;
+}
+
+.status-error::before {
+  content: "✕ ";
+  font-weight: bold;
+}
+
+.status-warning::before {
+  content: "⚠ ";
+  font-weight: bold;
+}
+
+.status-info::before {
+  content: "ℹ ";
+  font-weight: bold;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+  border: 2px solid hsl(var(--ring));
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Ensure links are distinguishable */
+a:not(.button) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:not(.button):hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Loading states should be announced */
+[aria-busy="true"] {
+  cursor: wait;
+}
+
+/* Disabled states should be clear */
+[disabled],
+[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Required fields indicator */
+[aria-required="true"]::after,
+.required::after {
+  content: " *";
+  color: hsl(var(--destructive));
+}
+
+/* Error states */
+[aria-invalid="true"] {
+  border-color: hsl(var(--destructive));
+  border-width: 2px;
+}
+
+/* Live regions for screen readers */
+[aria-live] {
+  position: relative;
+}
+
+/* Ensure proper spacing for readability */
+p {
+  line-height: 1.6;
+}
+
+/* Ensure proper heading hierarchy */
+h1 { font-size: 2rem; font-weight: 700; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+h3 { font-size: 1.25rem; font-weight: 600; }
+h4 { font-size: 1.125rem; font-weight: 600; }
+h5 { font-size: 1rem; font-weight: 600; }
+h6 { font-size: 0.875rem; font-weight: 600; }
+
+/* Ensure sufficient spacing between interactive elements */
+button + button,
+a + a,
+input + input {
+  margin-left: 0.5rem;
+}
+
+/* Dark mode adjustments for contrast */
+@media (prefers-color-scheme: dark) {
+  /* Ensure text has sufficient contrast in dark mode */
+  .text-muted-foreground {
+    /* Lighter shade for dark mode */
+    opacity: 0.8;
+  }
+}
+
+/* Print styles - ensure content is accessible when printed */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+  
+  /* Ensure sufficient contrast for printing */
+  * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}

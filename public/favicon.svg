@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#2563eb"/>
+  
+  <!-- BookOnce "BO" monogram -->
+  <g fill="white" font-family="Arial, sans-serif" font-weight="bold">
+    <!-- Letter "B" -->
+    <text x="6" y="22" font-size="18">B</text>
+    <!-- Letter "O" -->
+    <text x="18" y="22" font-size="18">O</text>
+  </g>
+  
+  <!-- Small travel/booking accent -->
+  <circle cx="25" cy="8" r="2" fill="white" opacity="0.8"/>
+  <path d="M23 6l4 4" stroke="white" stroke-width="1" opacity="0.6"/>
+</svg>

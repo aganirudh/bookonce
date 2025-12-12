@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <!-- Background with rounded corners for iOS -->
+  <rect width="180" height="180" rx="40" fill="#2563eb"/>
+  
+  <!-- BookOnce branding -->
+  <g fill="white">
+    <!-- Main "BO" monogram -->
+    <text x="30" y="120" font-family="Arial, sans-serif" font-size="80" font-weight="bold">BO</text>
+    
+    <!-- Subtitle -->
+    <text x="30" y="145" font-family="Arial, sans-serif" font-size="16" opacity="0.9">BookOnce</text>
+    
+    <!-- Travel accent elements -->
+    <circle cx="140" cy="50" r="8" fill="white" opacity="0.8"/>
+    <path d="M130 40l20 20" stroke="white" stroke-width="3" opacity="0.6"/>
+    <circle cx="150" cy="70" r="4" fill="white" opacity="0.6"/>
+  </g>
+</svg>

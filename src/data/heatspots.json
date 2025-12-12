@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "coordinates": [35.6812, 139.7671],
+    "intensity": 0.9,
+    "title": "High Twitter Activity",
+    "description": "Jazz Street Performance happening NOW at Shibuya Crossing",
+    "type": "event"
+  },
+  {
+    "id": 2,
+    "coordinates": [35.6595, 139.7004],
+    "intensity": 0.7,
+    "title": "Instagram Trending",
+    "description": "Pop-up Art Installation - Limited 2 hours remaining",
+    "type": "art"
+  },
+  {
+    "id": 3,
+    "coordinates": [35.7101, 139.8107],
+    "intensity": 0.85,
+    "title": "Local Buzz",
+    "description": "Secret Ramen Tasting Event - Only 20 spots left",
+    "type": "food"
+  },
+  {
+    "id": 4,
+    "coordinates": [35.6284, 139.7387],
+    "intensity": 0.6,
+    "title": "TikTok Viral",
+    "description": "Flash Mob Dance Practice - Join in!",
+    "type": "event"
+  },
+  {
+    "id": 5,
+    "coordinates": [35.6938, 139.7034],
+    "intensity": 0.75,
+    "title": "Reddit Meetup",
+    "description": "Travelers' Sunset Rooftop Gathering",
+    "type": "social"
+  }
+]

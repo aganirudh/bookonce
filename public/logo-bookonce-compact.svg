@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40" fill="none">
+  <!-- Compact BookOnce Logo -->
+  <g fill="currentColor">
+    <!-- "BO" Monogram -->
+    <rect x="5" y="5" width="30" height="30" rx="8" fill="#2563eb"/>
+    <text x="20" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">BO</text>
+    
+    <!-- "BookOnce" Text -->
+    <text x="45" y="25" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2563eb">BookOnce</text>
+    
+    <!-- Small travel accent -->
+    <circle cx="105" cy="15" r="4" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+    <path d="M102 15l2 2 4-4" stroke="#2563eb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

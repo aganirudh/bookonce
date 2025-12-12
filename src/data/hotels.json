@@ -1,0 +1,259 @@
+[
+  {
+    "id": 1,
+    "title": "The Serene Lakehouse",
+    "location": "Lake Como, Italy",
+    "price": 420,
+    "rating": 4.9,
+    "reviews": 234,
+    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
+    "amenities": ["Spa", "Lake View", "Private Dock", "Fine Dining"],
+    "tags": ["chill", "luxury", "romantic"],
+    "energy": 2,
+    "social": 2,
+    "budget": 9,
+    "coordinates": [45.9833, 9.2667],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_lakecomo_001"
+  },
+  {
+    "id": 2,
+    "title": "Urban Pulse Loft",
+    "location": "Tokyo, Japan",
+    "price": 180,
+    "rating": 4.7,
+    "reviews": 512,
+    "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
+    "amenities": ["City View", "Smart Home", "Rooftop Bar", "Gym"],
+    "tags": ["party", "adventure", "urban"],
+    "energy": 9,
+    "social": 8,
+    "budget": 5,
+    "coordinates": [35.6762, 139.6503],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 5 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 5,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 2,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_tokyo_002"
+  },
+  {
+    "id": 3,
+    "title": "Mountain Zen Retreat",
+    "location": "Kyoto, Japan",
+    "price": 280,
+    "rating": 4.95,
+    "reviews": 189,
+    "image": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&auto=format&fit=crop",
+    "amenities": ["Hot Spring", "Meditation Garden", "Tea Ceremony", "Mountain View"],
+    "tags": ["chill", "solo", "spiritual"],
+    "energy": 1,
+    "social": 1,
+    "budget": 7,
+    "coordinates": [35.0116, 135.7681],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 14 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 14,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "16:00",
+    "checkOutTime": "10:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_kyoto_003"
+  },
+  {
+    "id": 4,
+    "title": "Beachfront Paradise Villa",
+    "location": "Maldives",
+    "price": 890,
+    "rating": 4.98,
+    "reviews": 156,
+    "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+    "amenities": ["Private Beach", "Water Villa", "Diving Center", "Butler Service"],
+    "tags": ["luxury", "romantic", "chill"],
+    "energy": 3,
+    "social": 2,
+    "budget": 10,
+    "coordinates": [3.2028, 73.2207],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 7 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_maldives_004"
+  },
+  {
+    "id": 5,
+    "title": "Adventure Base Camp",
+    "location": "Queenstown, New Zealand",
+    "price": 120,
+    "rating": 4.6,
+    "reviews": 423,
+    "image": "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800&auto=format&fit=crop",
+    "amenities": ["Gear Storage", "Guide Services", "Communal Kitchen", "Firepit"],
+    "tags": ["adventure", "party", "budget"],
+    "energy": 10,
+    "social": 9,
+    "budget": 3,
+    "coordinates": [-45.0312, 168.6626],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 48 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 2,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "10:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_queenstown_005"
+  },
+  {
+    "id": 6,
+    "title": "Boutique Art Hotel",
+    "location": "Barcelona, Spain",
+    "price": 220,
+    "rating": 4.8,
+    "reviews": 678,
+    "image": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&auto=format&fit=crop",
+    "amenities": ["Art Gallery", "Rooftop Pool", "Tapas Bar", "Design Suites"],
+    "tags": ["urban", "party", "creative"],
+    "energy": 7,
+    "social": 7,
+    "budget": 6,
+    "coordinates": [41.3851, 2.1734]
+  },
+  {
+    "id": 7,
+    "title": "Nordic Cabin Escape",
+    "location": "Tromsø, Norway",
+    "price": 340,
+    "rating": 4.85,
+    "reviews": 145,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop",
+    "amenities": ["Northern Lights View", "Sauna", "Husky Tours", "Private Chef"],
+    "tags": ["chill", "romantic", "adventure"],
+    "energy": 4,
+    "social": 2,
+    "budget": 8,
+    "coordinates": [69.6492, 18.9553]
+  },
+  {
+    "id": 8,
+    "title": "Hostel Social Hub",
+    "location": "Berlin, Germany",
+    "price": 45,
+    "rating": 4.5,
+    "reviews": 1234,
+    "image": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&auto=format&fit=crop",
+    "amenities": ["Co-working", "Bar", "Events", "Bike Rental"],
+    "tags": ["budget", "party", "social"],
+    "energy": 8,
+    "social": 10,
+    "budget": 1,
+    "coordinates": [52.5200, 13.4050]
+  },
+  {
+    "id": 9,
+    "title": "Desert Glamping Oasis",
+    "location": "Marrakech, Morocco",
+    "price": 310,
+    "rating": 4.75,
+    "reviews": 267,
+    "image": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop",
+    "amenities": ["Stargazing", "Camel Rides", "Traditional Spa", "Fire Shows"],
+    "tags": ["adventure", "romantic", "unique"],
+    "energy": 5,
+    "social": 4,
+    "budget": 7,
+    "coordinates": [31.6295, -7.9811]
+  },
+  {
+    "id": 10,
+    "title": "Treehouse Canopy Lodge",
+    "location": "Costa Rica",
+    "price": 195,
+    "rating": 4.88,
+    "reviews": 398,
+    "image": "https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800&auto=format&fit=crop",
+    "amenities": ["Wildlife Tours", "Zip Line", "Organic Restaurant", "Yoga Deck"],
+    "tags": ["adventure", "chill", "eco"],
+    "energy": 6,
+    "social": 5,
+    "budget": 5,
+    "coordinates": [9.7489, -83.7534]
+  }
+]

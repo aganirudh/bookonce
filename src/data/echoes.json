@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "coordinates": [35.6762, 139.6503],
+    "title": "Hidden Gem Alert",
+    "author": "Sarah M.",
+    "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop",
+    "duration": "0:42",
+    "transcript": "The secret menu at this cafe is amazing. Ask for the 'Traveler's Brew' - they only make it for people who know. Trust me on this one!",
+    "timestamp": "2 days ago"
+  },
+  {
+    "id": 2,
+    "coordinates": [35.6595, 139.7004],
+    "title": "Local Story",
+    "author": "Kenji T.",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop",
+    "duration": "1:15",
+    "transcript": "This corner has the best sunset view in all of Tokyo. Come here at 6pm, grab a konbini beer, and just... breathe. Pure magic.",
+    "timestamp": "1 week ago"
+  },
+  {
+    "id": 3,
+    "coordinates": [35.7101, 139.8107],
+    "title": "Safety Tip",
+    "author": "Maya R.",
+    "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop",
+    "duration": "0:28",
+    "transcript": "Heads up - the alley behind this building looks sketchy but it's actually a shortcut to the best izakaya. Totally safe!",
+    "timestamp": "3 days ago"
+  },
+  {
+    "id": 4,
+    "coordinates": [35.6284, 139.7387],
+    "title": "Photo Spot",
+    "author": "Alex K.",
+    "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop",
+    "duration": "0:35",
+    "transcript": "Pro tip for photographers - come here at 4am. You'll have the whole place to yourself and the light is absolutely incredible.",
+    "timestamp": "5 days ago"
+  }
+]

@@ -1,0 +1,134 @@
+{
+  "alerts": [
+    {
+      "id": "alert-1",
+      "hotelId": 1,
+      "type": "disruption",
+      "severity": "high",
+      "icon": "🚧",
+      "title": "Road Closure",
+      "message": "Main access road closed due to landslide. Alternative route adds 45 mins.",
+      "validUntil": "2024-12-20",
+      "alternatives": ["Book water taxi from Menaggio pier", "Request helicopter transfer"]
+    },
+    {
+      "id": "alert-2",
+      "hotelId": 2,
+      "type": "event",
+      "severity": "info",
+      "icon": "🎉",
+      "title": "Fashion Week Surge",
+      "message": "Milan Fashion Week in progress. Expect 3x traffic, restaurant waits 2+ hours.",
+      "validUntil": "2024-12-22",
+      "alternatives": ["Book restaurants 48hrs ahead", "Use hotel concierge"]
+    },
+    {
+      "id": "alert-3",
+      "hotelId": 3,
+      "type": "safety",
+      "severity": "moderate",
+      "icon": "🌡️",
+      "title": "Extreme Heat Advisory",
+      "message": "45°C expected. Outdoor activities suspended 11AM-4PM.",
+      "validUntil": "2024-12-18",
+      "alternatives": ["Book early morning hot springs", "Indoor spa recommended"]
+    },
+    {
+      "id": "alert-4",
+      "hotelId": 4,
+      "type": "disruption",
+      "severity": "low",
+      "icon": "🔊",
+      "title": "Beach Festival Nearby",
+      "message": "Annual music festival 500m away. Expect noise until midnight.",
+      "validUntil": "2024-12-19",
+      "alternatives": ["Request ocean-side room", "Complimentary earplugs available"]
+    },
+    {
+      "id": "alert-5",
+      "hotelId": 5,
+      "type": "safety",
+      "severity": "moderate",
+      "icon": "⚠️",
+      "title": "Trail Conditions",
+      "message": "Recent avalanche closed Route 3. Technical gear required for alternatives.",
+      "validUntil": "2024-12-25",
+      "alternatives": ["Hire certified guide", "Helicopter scenic tour available"]
+    },
+    {
+      "id": "alert-6",
+      "hotelId": 6,
+      "type": "opportunity",
+      "severity": "positive",
+      "icon": "✨",
+      "title": "Art Exhibition Opening",
+      "message": "Exclusive Picasso exhibit at nearby gallery. Hotel guests get priority access.",
+      "validUntil": "2024-12-30",
+      "alternatives": ["Book tickets through concierge", "Private viewing available"]
+    },
+    {
+      "id": "alert-7",
+      "hotelId": 7,
+      "type": "weather",
+      "severity": "moderate",
+      "icon": "🌌",
+      "title": "Aurora Peak Tonight",
+      "message": "Solar activity at 9/10. Best viewing 11PM-2AM. Cloud cover 15%.",
+      "validUntil": "2024-12-17",
+      "alternatives": ["Wake-up call service", "Heated outdoor pods available"]
+    },
+    {
+      "id": "alert-8",
+      "hotelId": 8,
+      "type": "crowd",
+      "severity": "high",
+      "icon": "👥",
+      "title": "Digital Nomad Influx",
+      "message": "Co-working at 95% capacity. WiFi speeds degraded during peak hours.",
+      "validUntil": "2024-12-28",
+      "alternatives": ["Book private office", "Early morning slots available"]
+    },
+    {
+      "id": "alert-9",
+      "hotelId": 9,
+      "type": "health",
+      "severity": "moderate",
+      "icon": "🏥",
+      "title": "Air Quality Alert",
+      "message": "AQI at 156 (Unhealthy). Outdoor activities not recommended.",
+      "validUntil": "2024-12-19",
+      "alternatives": ["Indoor safari vehicle", "N95 masks provided"]
+    },
+    {
+      "id": "alert-10",
+      "hotelId": 10,
+      "type": "infrastructure",
+      "severity": "low",
+      "icon": "🔌",
+      "title": "Power Maintenance",
+      "message": "Scheduled outage 2-4AM for generator upgrade. Backup available.",
+      "validUntil": "2024-12-17",
+      "alternatives": ["Mobile charging stations", "Evening activities unaffected"]
+    }
+  ],
+  "globalAlerts": [
+    {
+      "id": "global-1",
+      "region": "Southeast Asia",
+      "type": "health",
+      "severity": "moderate",
+      "icon": "🦟",
+      "title": "Dengue Season",
+      "message": "Elevated mosquito activity. Use repellent, especially dawn/dusk."
+    },
+    {
+      "id": "global-2",
+      "region": "Europe",
+      "type": "travel",
+      "severity": "info",
+      "icon": "🛂",
+      "title": "ETIAS Coming Soon",
+      "message": "New EU travel authorization required from May 2025. Register early."
+    }
+  ]
+}

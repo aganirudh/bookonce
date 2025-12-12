@@ -1,0 +1,32 @@
+{
+  "name": "BookOnce - Complete Travel Booking Platform",
+  "short_name": "BookOnce",
+  "description": "Book your perfect journey in one place with BookOnce. AI-powered travel planning, comprehensive booking, and seamless travel experiences.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#hsl(0, 0%, 98%)",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "lifestyle", "productivity"],
+  "lang": "en",
+  "scope": "/",
+  "id": "bookonce-travel-app"
+}
