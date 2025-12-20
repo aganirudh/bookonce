@@ -54,6 +54,7 @@ export interface JourneyRequest {
     pace?: 'relaxed' | 'moderate' | 'fast';
     interests?: string[];
   };
+  isRoundTrip?: boolean;
 }
 
 export interface Trip {
@@ -65,12 +66,14 @@ export interface Trip {
   returnDate?: Date;
   mode: TravelMode;
   route: MultiModalRoute;
+  returnRoute?: MultiModalRoute;
   bookings: Booking[];
   status: TripStatus;
   safetyCheckIns: SafetyCheckIn[];
   expenses: Expense[];
   createdAt: Date;
   updatedAt: Date;
+  isRoundTrip?: boolean;
 }
 
 export interface Booking {

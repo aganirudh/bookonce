@@ -8,7 +8,7 @@
  * Based on WCAG 2.1 formula
  */
 function getRelativeLuminance(r: number, g: number, b: number): number {
-  const [rs, gs, bs] = [r, g, b].map((c) => {
+  const [rs, gs, bs] = [r, g, b].map(c => {
     const sRGB = c / 255;
     return sRGB <= 0.03928 ? sRGB / 12.92 : Math.pow((sRGB + 0.055) / 1.055, 2.4);
   });
@@ -101,7 +101,7 @@ export function getAccessibleColor(
   const bgLuminance = getRelativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
   const shouldDarken = bgLuminance > 0.5;
 
-  let step = shouldDarken ? -10 : 10;
+  const step = shouldDarken ? -10 : 10;
   let attempts = 0;
   const maxAttempts = 25;
 
@@ -126,13 +126,14 @@ export function getAccessibleColor(
 export const focusStyles = {
   // Standard focus ring
   ring: 'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-  
+
   // Focus ring for dark backgrounds
-  ringDark: 'focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900',
-  
+  ringDark:
+    'focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900',
+
   // Visible focus indicator (always visible, not just on keyboard focus)
   visible: 'outline-none ring-2 ring-ring ring-offset-2',
-  
+
   // Focus within (for containers)
   within: 'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
 };
@@ -161,13 +162,13 @@ export function meetsTouchTargetSize(element: HTMLElement): boolean {
 export const textSizes = {
   // Minimum readable text size
   minimum: 'text-sm', // 14px
-  
+
   // Standard body text
   body: 'text-base', // 16px
-  
+
   // Large text (for better readability)
   large: 'text-lg', // 18px
-  
+
   // Extra large (for headings)
   xl: 'text-xl', // 20px
 };
@@ -182,12 +183,12 @@ export const colorBlindSafePalette = {
   orange: '#EE7733',
   green: '#009988',
   red: '#CC3311',
-  
+
   // Secondary colors
   purple: '#AA3377',
   yellow: '#EECC66',
   cyan: '#33BBEE',
-  
+
   // Neutral colors
   gray: '#BBBBBB',
   darkGray: '#333333',
@@ -235,7 +236,7 @@ export const statusIndicators = {
 export function isTextResizable(element: HTMLElement): boolean {
   const computedStyle = window.getComputedStyle(element);
   const fontSize = computedStyle.fontSize;
-  
+
   // Check if font size is in relative units (em, rem, %)
   return fontSize.includes('em') || fontSize.includes('rem') || fontSize.includes('%');
 }
@@ -247,18 +248,18 @@ export function isTextResizable(element: HTMLElement): boolean {
 export function validateHeadingHierarchy(container: HTMLElement): boolean {
   const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
   let previousLevel = 0;
-  
+
   for (const heading of headings) {
     const level = parseInt(heading.tagName.substring(1));
-    
+
     // Check if we skipped a level
     if (level > previousLevel + 1) {
       console.warn(`Heading hierarchy issue: ${heading.tagName} follows h${previousLevel}`);
       return false;
     }
-    
+
     previousLevel = level;
   }
-  
+
   return true;
 }

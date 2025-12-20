@@ -1,6 +1,6 @@
 /**
  * Free Transit Service
- * 
+ *
  * Gets real-time transit data using 100% FREE methods:
  * 1. Google Maps Embed (no API key!)
  * 2. Public GTFS data
@@ -33,10 +33,14 @@ class FreeTransitService {
    * Get Google Maps directions link (FREE - no API key!)
    * Opens in Google Maps app with real-time transit
    */
-  getGoogleMapsLink(from: string, to: string, mode: 'transit' | 'driving' | 'walking' = 'transit'): string {
+  getGoogleMapsLink(
+    from: string,
+    to: string,
+    mode: 'transit' | 'driving' | 'walking' = 'transit'
+  ): string {
     const origin = encodeURIComponent(from);
     const dest = encodeURIComponent(to);
-    
+
     // This opens Google Maps with real-time data - completely FREE!
     return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${mode}`;
   }
@@ -94,7 +98,7 @@ class FreeTransitService {
   getRealTimeMetroInfo(city: string, line: string): RealTimeTransit {
     // This would integrate with city-specific free APIs
     const metroInfo: Record<string, any> = {
-      'Bengaluru': {
+      Bengaluru: {
         'Green Line': {
           nextArrival: '4 minutes',
           frequency: 'Every 5-10 minutes',
@@ -110,7 +114,7 @@ class FreeTransitService {
           platform: 'Platform 2',
         },
       },
-      'Mumbai': {
+      Mumbai: {
         'Blue Line': {
           nextArrival: '2 minutes',
           frequency: 'Every 3-5 minutes',
@@ -118,7 +122,7 @@ class FreeTransitService {
           direction: 'Towards Ghatkopar',
         },
       },
-      'Delhi': {
+      Delhi: {
         'Yellow Line': {
           nextArrival: '3 minutes',
           frequency: 'Every 4-6 minutes',
@@ -128,12 +132,14 @@ class FreeTransitService {
       },
     };
 
-    return metroInfo[city]?.[line] || {
-      nextArrival: 'Check app',
-      frequency: 'Every 5-15 minutes',
-      line,
-      direction: 'Check station board',
-    };
+    return (
+      metroInfo[city]?.[line] || {
+        nextArrival: 'Check app',
+        frequency: 'Every 5-15 minutes',
+        line,
+        direction: 'Check station board',
+      }
+    );
   }
 
   /**
@@ -146,7 +152,7 @@ class FreeTransitService {
     free: boolean;
   }[] {
     const apps: Record<string, any[]> = {
-      'Bengaluru': [
+      Bengaluru: [
         {
           name: 'Namma Metro Official',
           url: 'https://english.bmrc.co.in/',
@@ -172,7 +178,7 @@ class FreeTransitService {
           free: true,
         },
       ],
-      'Mumbai': [
+      Mumbai: [
         {
           name: 'Mumbai Metro',
           url: 'https://www.reliancemumbaimetro.com/',
@@ -192,7 +198,7 @@ class FreeTransitService {
           free: true,
         },
       ],
-      'Delhi': [
+      Delhi: [
         {
           name: 'Delhi Metro Rail',
           url: 'https://www.delhimetrorail.com/',
@@ -214,20 +220,26 @@ class FreeTransitService {
       ],
     };
 
-    return apps[city] || [
-      {
-        name: 'Google Maps',
-        url: this.getGoogleMapsLink('Current Location', 'Destination', 'transit'),
-        description: 'Real-time transit directions',
-        free: true,
-      },
-    ];
+    return (
+      apps[city] || [
+        {
+          name: 'Google Maps',
+          url: this.getGoogleMapsLink('Current Location', 'Destination', 'transit'),
+          description: 'Real-time transit directions',
+          free: true,
+        },
+      ]
+    );
   }
 
   /**
    * Generate transit instructions with real-time links
    */
-  generateTransitInstructions(from: string, to: string, city: string = 'Bengaluru'): {
+  generateTransitInstructions(
+    from: string,
+    to: string,
+    city: string = 'Bengaluru'
+  ): {
     steps: TransitStep[];
     realTimeApps: any[];
     googleMapsLink: string;
@@ -273,23 +285,26 @@ class FreeTransitService {
   /**
    * Get metro fare information
    */
-  getMetroFare(city: string, distance: number): {
+  getMetroFare(
+    city: string,
+    distance: number
+  ): {
     fare: number;
     currency: string;
     cardDiscount?: string;
   } {
     const fares: Record<string, any> = {
-      'Bengaluru': {
+      Bengaluru: {
         fare: distance < 5000 ? 10 : distance < 15000 ? 20 : 30,
         currency: 'INR',
         cardDiscount: '5% off with Namma Metro card',
       },
-      'Mumbai': {
+      Mumbai: {
         fare: distance < 5000 ? 10 : distance < 15000 ? 20 : 40,
         currency: 'INR',
         cardDiscount: '10% off with Metro card',
       },
-      'Delhi': {
+      Delhi: {
         fare: distance < 5000 ? 10 : distance < 15000 ? 20 : 30,
         currency: 'INR',
         cardDiscount: '10% off with Metro card',

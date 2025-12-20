@@ -28,9 +28,9 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
-[role="button"]:focus-visible,
-[role="link"]:focus-visible,
-[tabindex]:not([tabindex="-1"]):focus-visible {
+[role='button']:focus-visible,
+[role='link']:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
@@ -44,7 +44,7 @@ textarea:focus-visible,
   textarea {
     border-width: 2px;
   }
-  
+
   .border {
     border-width: 2px;
   }
@@ -82,13 +82,27 @@ body {
 
 /* Ensure text can be resized up to 200% */
 @media (min-width: 1px) {
-  .text-xs { font-size: 0.75rem; }
-  .text-sm { font-size: 0.875rem; }
-  .text-base { font-size: 1rem; }
-  .text-lg { font-size: 1.125rem; }
-  .text-xl { font-size: 1.25rem; }
-  .text-2xl { font-size: 1.5rem; }
-  .text-3xl { font-size: 1.875rem; }
+  .text-xs {
+    font-size: 0.75rem;
+  }
+  .text-sm {
+    font-size: 0.875rem;
+  }
+  .text-base {
+    font-size: 1rem;
+  }
+  .text-lg {
+    font-size: 1.125rem;
+  }
+  .text-xl {
+    font-size: 1.25rem;
+  }
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  .text-3xl {
+    font-size: 1.875rem;
+  }
 }
 
 /* Color contrast - ensure minimum 4.5:1 ratio */
@@ -99,22 +113,22 @@ body {
 
 /* Status indicators - don't rely on color alone */
 .status-success::before {
-  content: "✓ ";
+  content: '✓ ';
   font-weight: bold;
 }
 
 .status-error::before {
-  content: "✕ ";
+  content: '✕ ';
   font-weight: bold;
 }
 
 .status-warning::before {
-  content: "⚠ ";
+  content: '⚠ ';
   font-weight: bold;
 }
 
 .status-info::before {
-  content: "ℹ ";
+  content: 'ℹ ';
   font-weight: bold;
 }
 
@@ -147,26 +161,26 @@ a:not(.button):hover {
 }
 
 /* Loading states should be announced */
-[aria-busy="true"] {
+[aria-busy='true'] {
   cursor: wait;
 }
 
 /* Disabled states should be clear */
 [disabled],
-[aria-disabled="true"] {
+[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Required fields indicator */
-[aria-required="true"]::after,
+[aria-required='true']::after,
 .required::after {
-  content: " *";
+  content: ' *';
   color: hsl(var(--destructive));
 }
 
 /* Error states */
-[aria-invalid="true"] {
+[aria-invalid='true'] {
   border-color: hsl(var(--destructive));
   border-width: 2px;
 }
@@ -182,12 +196,30 @@ p {
 }
 
 /* Ensure proper heading hierarchy */
-h1 { font-size: 2rem; font-weight: 700; }
-h2 { font-size: 1.5rem; font-weight: 600; }
-h3 { font-size: 1.25rem; font-weight: 600; }
-h4 { font-size: 1.125rem; font-weight: 600; }
-h5 { font-size: 1rem; font-weight: 600; }
-h6 { font-size: 0.875rem; font-weight: 600; }
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+h5 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
 
 /* Ensure sufficient spacing between interactive elements */
 button + button,
@@ -210,11 +242,11 @@ input + input {
   .no-print {
     display: none !important;
   }
-  
+
   a[href]::after {
-    content: " (" attr(href) ")";
+    content: ' (' attr(href) ')';
   }
-  
+
   /* Ensure sufficient contrast for printing */
   * {
     color: #000 !important;

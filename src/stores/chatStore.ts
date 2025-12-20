@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { ChatMessage, ChatStore } from '@/types/chat';
-import { geminiAIService } from '@/services/GeminiAIService';
+import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
 
 // ============================================================================
 // Initial State
@@ -97,15 +97,28 @@ export const useChatStore = create<ChatStore>()(
         setLoading(true);
 
         try {
-          // Initialize service if not already done
-          if (!geminiAIService.isConfigured()) {
-            geminiAIService.initialize();
-          }
+          // Create a simple journey context for general chat
+          const context = {
+            origin: 'Current Location',
+            destination: 'Travel Destination',
+            departureDate: new Date().toISOString().split('T')[0],
+            travelers: 1,
+            intent: 'leisure' as const,
+            visitor: 'first-time' as const,
+            departureTime: '09:00',
+          };
 
-          // Send message to Gemini API with conversation history
-          const response = await geminiAIService.sendMessage(
+          // Prepare conversation history (last 10 messages for context)
+          const conversationHistory = messages.slice(-10).map(msg => ({
+            role: msg.role,
+            content: msg.content,
+          }));
+
+          // Send message to BookOnce AI (Groq) with conversation history
+          const response = await bookOnceAIService.answerQuestionWithHistory(
             trimmedContent,
-            messages
+            context,
+            conversationHistory
           );
 
           // Create AI response message
@@ -120,7 +133,9 @@ export const useChatStore = create<ChatStore>()(
           addMessage(aiMessage);
         } catch (error: any) {
           // Handle errors
-          const errorMessage = error?.message || 'Something went wrong. Please try again.';
+          const errorMessage =
+            error?.message ||
+            'Unable to connect to Groq API. Please check your internet connection or try again later.';
           setError(errorMessage);
           console.error('Error sending message:', error);
         } finally {
@@ -144,5 +159,5 @@ export const selectMessages = (state: ChatStore) => state.messages;
 export const selectIsLoading = (state: ChatStore) => state.isLoading;
 export const selectError = (state: ChatStore) => state.error;
 export const selectIsOpen = (state: ChatStore) => state.isOpen;
-export const selectLastMessage = (state: ChatStore) => 
+export const selectLastMessage = (state: ChatStore) =>
   state.messages.length > 0 ? state.messages[state.messages.length - 1] : null;

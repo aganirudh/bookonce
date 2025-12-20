@@ -78,11 +78,7 @@ describe('Mobile Optimizations', () => {
       });
 
       const { container } = render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />
       );
 
       // Check that modal renders (Dialog may not have role="dialog" in test environment)
@@ -100,13 +96,7 @@ describe('Mobile Optimizations', () => {
       // Trigger resize event
       window.dispatchEvent(new Event('resize'));
 
-      render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={vi.fn()}
-        />
-      );
+      render(<DateSelector checkInDate={null} checkOutDate={null} onDateChange={vi.fn()} />);
 
       // Wait for mobile detection
       waitFor(() => {
@@ -117,23 +107,17 @@ describe('Mobile Optimizations', () => {
 
     it('should have minimum touch target size of 44px on all buttons', () => {
       const { container } = render(
-        <RoomSelector
-          rooms={mockRooms}
-          selectedRoomId={null}
-          onRoomSelect={vi.fn()}
-        />
+        <RoomSelector rooms={mockRooms} selectedRoomId={null} onRoomSelect={vi.fn()} />
       );
 
       const buttons = container.querySelectorAll('button');
-      buttons.forEach((button) => {
+      buttons.forEach(button => {
         const styles = window.getComputedStyle(button);
         const minHeight = styles.getPropertyValue('min-height');
-        
+
         // Check if button has min-height of 44px or is using the class
-        const hasMinHeight = 
-          minHeight === '44px' || 
-          button.className.includes('min-h-[44px]');
-        
+        const hasMinHeight = minHeight === '44px' || button.className.includes('min-h-[44px]');
+
         expect(hasMinHeight).toBe(true);
       });
     });
@@ -153,11 +137,7 @@ describe('Mobile Optimizations', () => {
         });
 
         const { container } = render(
-          <BookingModal
-            hotel={mockHotel}
-            isOpen={true}
-            onClose={vi.fn()}
-          />
+          <BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />
         );
 
         // Check that modal renders at each breakpoint
@@ -170,18 +150,15 @@ describe('Mobile Optimizations', () => {
     it('should handle touch events on BookingModal', () => {
       const onClose = vi.fn();
       const { container } = render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={onClose}
-        />
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={onClose} />
       );
 
       // Check that modal renders
       expect(container.firstChild).toBeInTheDocument();
 
       // Find any touchable element
-      const touchableElement = container.querySelector('[data-radix-dialog-content]') || container.firstChild;
+      const touchableElement =
+        container.querySelector('[data-radix-dialog-content]') || container.firstChild;
 
       if (touchableElement) {
         // Simulate touch start
@@ -204,15 +181,11 @@ describe('Mobile Optimizations', () => {
 
     it('should handle swipe right gesture to go back', () => {
       const { container } = render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />
       );
 
       const dialogContent = container.querySelector('[role="dialog"]');
-      
+
       if (dialogContent) {
         // Simulate swipe right (back gesture)
         fireEvent.touchStart(dialogContent, {
@@ -232,15 +205,11 @@ describe('Mobile Optimizations', () => {
 
     it('should handle swipe left gesture to go forward', () => {
       const { container } = render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />
       );
 
       const dialogContent = container.querySelector('[role="dialog"]');
-      
+
       if (dialogContent) {
         // Simulate swipe left (forward gesture)
         fireEvent.touchStart(dialogContent, {
@@ -260,15 +229,11 @@ describe('Mobile Optimizations', () => {
 
     it('should ignore short swipes', () => {
       const { container } = render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />
       );
 
       const dialogContent = container.querySelector('[role="dialog"]');
-      
+
       if (dialogContent) {
         // Simulate short swipe (less than minimum distance)
         fireEvent.touchStart(dialogContent, {
@@ -290,11 +255,7 @@ describe('Mobile Optimizations', () => {
   describe('Mobile Input Types', () => {
     it('should use tel input type for phone field', () => {
       const { container } = render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />
       );
 
       // Navigate to guest info step would be needed in real test
@@ -304,11 +265,7 @@ describe('Mobile Optimizations', () => {
 
     it('should use email input type for email field', () => {
       const { container } = render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />
       );
 
       // Navigate to guest info step would be needed in real test
@@ -325,13 +282,7 @@ describe('Mobile Optimizations', () => {
 
       window.dispatchEvent(new Event('resize'));
 
-      render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={vi.fn()}
-        />
-      );
+      render(<DateSelector checkInDate={null} checkOutDate={null} onDateChange={vi.fn()} />);
 
       // Native date inputs should be rendered on mobile
       waitFor(() => {
@@ -344,14 +295,8 @@ describe('Mobile Optimizations', () => {
   describe('Mobile Performance', () => {
     it('should debounce availability checks', async () => {
       const onDateChange = vi.fn();
-      
-      render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={onDateChange}
-        />
-      );
+
+      render(<DateSelector checkInDate={null} checkOutDate={null} onDateChange={onDateChange} />);
 
       // Multiple rapid changes should be debounced
       // This would need actual date selection in a real test
@@ -366,17 +311,11 @@ describe('Mobile Optimizations', () => {
         value: 375,
       });
 
-      render(
-        <RoomSelector
-          rooms={mockRooms}
-          selectedRoomId={null}
-          onRoomSelect={vi.fn()}
-        />
-      );
+      render(<RoomSelector rooms={mockRooms} selectedRoomId={null} onRoomSelect={vi.fn()} />);
 
       // Images should have loading="lazy" attribute
       const images = screen.queryAllByRole('img');
-      images.forEach((img) => {
+      images.forEach(img => {
         // In a real implementation, check for lazy loading
         expect(img).toBeInTheDocument();
       });

@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,16 +24,8 @@ import { cn } from '@/lib/utils';
 // ============================================================================
 
 export const BookOnceAIChatModal: React.FC = () => {
-  const {
-    messages,
-    isLoading,
-    error,
-    isOpen,
-    setOpen,
-    clearMessages,
-    sendMessage,
-    setError,
-  } = useChatStore();
+  const { messages, isLoading, error, isOpen, setOpen, clearMessages, sendMessage, setError } =
+    useChatStore();
 
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const announcementRef = useRef<HTMLDivElement>(null);
@@ -52,9 +39,7 @@ export const BookOnceAIChatModal: React.FC = () => {
       // Focus the input when modal opens
       // Small delay to ensure the modal is fully rendered
       const timer = setTimeout(() => {
-        const input = document.querySelector<HTMLTextAreaElement>(
-          '[aria-label="Message input"]'
-        );
+        const input = document.querySelector<HTMLTextAreaElement>('[aria-label="Message input"]');
         if (input) {
           input.focus();
         }
@@ -72,10 +57,11 @@ export const BookOnceAIChatModal: React.FC = () => {
     // Announce new messages to screen readers
     if (messages.length > 0 && announcementRef.current) {
       const lastMessage = messages[messages.length - 1];
-      const announcement = lastMessage.role === 'user' 
-        ? `You said: ${lastMessage.content}`
-        : `BookOnce AI replied: ${lastMessage.content}`;
-      
+      const announcement =
+        lastMessage.role === 'user'
+          ? `You said: ${lastMessage.content}`
+          : `BookOnce AI replied: ${lastMessage.content}`;
+
       announcementRef.current.textContent = announcement;
     }
   }, [messages]);
@@ -231,14 +217,23 @@ export const BookOnceAIChatModal: React.FC = () => {
             <div className="px-6 pt-4 pb-2 shrink-0" role="status" aria-label="AI is thinking">
               <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary mr-8 animate-in slide-in-from-bottom-2 fade-in duration-300">
                 <div className="shrink-0 h-8 w-8 rounded-full bg-gradient-accent flex items-center justify-center">
-                  <Loader2 className="h-4 w-4 text-primary-foreground animate-spin" aria-hidden="true" />
+                  <Loader2
+                    className="h-4 w-4 text-primary-foreground animate-spin"
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">Thinking</span>
                   <span className="flex gap-1" aria-hidden="true">
-                    <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
-                    <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
-                    <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+                    <span className="animate-bounce" style={{ animationDelay: '0ms' }}>
+                      .
+                    </span>
+                    <span className="animate-bounce" style={{ animationDelay: '150ms' }}>
+                      .
+                    </span>
+                    <span className="animate-bounce" style={{ animationDelay: '300ms' }}>
+                      .
+                    </span>
                   </span>
                 </div>
               </div>
@@ -262,16 +257,17 @@ export const BookOnceAIChatModal: React.FC = () => {
       </Dialog>
 
       {/* Clear Chat Confirmation Dialog */}
-      <AlertDialog
-        open={showClearConfirmation}
-        onOpenChange={setShowClearConfirmation}
-      >
-        <AlertDialogContent role="alertdialog" aria-labelledby="clear-dialog-title" aria-describedby="clear-dialog-description">
+      <AlertDialog open={showClearConfirmation} onOpenChange={setShowClearConfirmation}>
+        <AlertDialogContent
+          role="alertdialog"
+          aria-labelledby="clear-dialog-title"
+          aria-describedby="clear-dialog-description"
+        >
           <AlertDialogHeader>
             <AlertDialogTitle id="clear-dialog-title">Clear chat history?</AlertDialogTitle>
             <AlertDialogDescription id="clear-dialog-description">
-              This will delete all messages in your current conversation. This
-              action cannot be undone.
+              This will delete all messages in your current conversation. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

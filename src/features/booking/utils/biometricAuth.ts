@@ -119,7 +119,7 @@ export async function registerBiometricCredential(
 export function isTouchIDAvailable(): boolean {
   const userAgent = navigator.userAgent.toLowerCase();
   const isIOS = /iphone|ipad|ipod/.test(userAgent);
-  
+
   return isIOS && isBiometricAvailable();
 }
 
@@ -129,7 +129,7 @@ export function isTouchIDAvailable(): boolean {
 export function isFaceIDAvailable(): boolean {
   const userAgent = navigator.userAgent.toLowerCase();
   const isIOS = /iphone|ipad|ipod/.test(userAgent);
-  
+
   // Face ID is available on iPhone X and later
   // This is a simplified check
   return isIOS && isBiometricAvailable();
@@ -141,7 +141,7 @@ export function isFaceIDAvailable(): boolean {
 export function isFingerprintAvailable(): boolean {
   const userAgent = navigator.userAgent.toLowerCase();
   const isAndroid = /android/.test(userAgent);
-  
+
   return isAndroid && isBiometricAvailable();
 }
 

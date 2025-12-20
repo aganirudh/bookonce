@@ -1,15 +1,16 @@
 /**
- * Service Worker for Vagabond AI Navigator
+ * Service Worker for BookOnce Travel Platform
  * Provides offline support and caching for mobile networks
  */
 
-const CACHE_NAME = 'vagabond-v1';
-const RUNTIME_CACHE = 'vagabond-runtime-v1';
+const CACHE_NAME = 'bookonce-v1';
+const RUNTIME_CACHE = 'bookonce-runtime-v1';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
+  '/manifest.json',
   '/placeholder.svg',
   '/favicon.ico',
 ];

@@ -178,7 +178,9 @@ describe('GuestInfoForm Component', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText(/phone number must be at least 10 characters/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/phone number must be at least 10 characters/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -192,7 +194,9 @@ describe('GuestInfoForm Component', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText(/special requests must be less than 500 characters/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/special requests must be less than 500 characters/i)
+        ).toBeInTheDocument();
       });
     });
   });
@@ -309,7 +313,7 @@ describe('GuestInfoForm Component', () => {
       await user.type(screen.getByLabelText(/last name/i), 'Doe');
       await user.type(screen.getByLabelText(/email address/i), 'john.doe@example.com');
       await user.type(screen.getByLabelText(/phone number/i), '+1234567890');
-      
+
       // Select country
       const countrySelect = screen.getByRole('combobox');
       await user.click(countrySelect);
@@ -333,7 +337,7 @@ describe('GuestInfoForm Component', () => {
       await user.type(screen.getByLabelText(/last name/i), 'Doe');
       await user.type(screen.getByLabelText(/email address/i), 'john.doe@example.com');
       await user.type(screen.getByLabelText(/phone number/i), '+1234567890');
-      
+
       // Select country
       const countrySelect = screen.getByRole('combobox');
       await user.click(countrySelect);
@@ -371,7 +375,7 @@ describe('GuestInfoForm Component', () => {
       await user.type(screen.getByLabelText(/last name/i), 'Doe');
       await user.type(screen.getByLabelText(/email address/i), 'john.doe@example.com');
       await user.type(screen.getByLabelText(/phone number/i), '+1234567890');
-      
+
       // Select country
       const countrySelect = screen.getByRole('combobox');
       await user.click(countrySelect);

@@ -1,0 +1,36 @@
+.text-type {
+  display: inline-block;
+}
+.text-type-text {
+  display: inline-block;
+  white-space: nowrap;
+}
+.text-type-cursor {
+  display: inline-block;
+  margin-left: 0.5rem;
+  width: 2px; /* thin vertical bar */
+  height: 1em;
+  background: currentColor;
+  border-radius: 1px;
+  vertical-align: middle;
+  animation: blink 1s steps(1) infinite;
+  opacity: 0.95;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-type-cursor {
+    animation: none;
+  }
+}

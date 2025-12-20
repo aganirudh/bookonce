@@ -147,7 +147,7 @@ export class RateLimiter {
   getCount(userId: string): number {
     const key = `${this.config.identifier}:${userId}`;
     const entry = this.limitMap.get(key);
-    
+
     if (!entry) {
       return 0;
     }

@@ -16,19 +16,19 @@ export function sanitizeString(input: string): string {
 
   // Remove HTML tags
   let sanitized = input.replace(/<[^>]*>/g, '');
-  
+
   // Remove script tags and their content
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  
+
   // Remove event handlers
   sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
-  
+
   // Remove javascript: protocol
   sanitized = sanitized.replace(/javascript:/gi, '');
-  
+
   // Trim whitespace
   sanitized = sanitized.trim();
-  
+
   return sanitized;
 }
 
@@ -45,22 +45,22 @@ export function sanitizeHTML(html: string): string {
 
   // Allowed tags for rich text
   const allowedTags = ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li'];
-  
+
   // Remove all tags except allowed ones
   let sanitized = html;
-  
+
   // Remove script tags
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  
+
   // Remove event handlers
   sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
-  
+
   // Remove javascript: protocol
   sanitized = sanitized.replace(/javascript:/gi, '');
-  
+
   // Remove style attributes
   sanitized = sanitized.replace(/style\s*=\s*["'][^"']*["']/gi, '');
-  
+
   return sanitized;
 }
 
@@ -76,17 +76,17 @@ export function sanitizeEmail(email: string): string {
 
   // Remove whitespace and convert to lowercase
   let sanitized = email.trim().toLowerCase();
-  
+
   // Remove any HTML tags
   sanitized = sanitized.replace(/<[^>]*>/g, '');
-  
+
   // Basic email validation pattern
   const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
-  
+
   if (!emailPattern.test(sanitized)) {
     return '';
   }
-  
+
   return sanitized;
 }
 
@@ -102,13 +102,13 @@ export function sanitizePhone(phone: string): string {
 
   // Remove HTML tags
   let sanitized = phone.replace(/<[^>]*>/g, '');
-  
+
   // Keep only digits, spaces, +, -, (, )
-  sanitized = sanitized.replace(/[^\d\s\+\-\(\)]/g, '');
-  
+  sanitized = sanitized.replace(/[^\d\s+\-()]/g, '');
+
   // Trim whitespace
   sanitized = sanitized.trim();
-  
+
   return sanitized;
 }
 
@@ -124,16 +124,16 @@ export function sanitizeName(name: string): string {
 
   // Remove HTML tags
   let sanitized = name.replace(/<[^>]*>/g, '');
-  
+
   // Remove numbers and special characters (except spaces, hyphens, apostrophes)
   sanitized = sanitized.replace(/[^a-zA-Z\s\-']/g, '');
-  
+
   // Trim whitespace
   sanitized = sanitized.trim();
-  
+
   // Capitalize first letter of each word
-  sanitized = sanitized.replace(/\b\w/g, (char) => char.toUpperCase());
-  
+  sanitized = sanitized.replace(/\b\w/g, char => char.toUpperCase());
+
   return sanitized;
 }
 
@@ -150,18 +150,18 @@ export function sanitizeText(text: string, maxLength: number = 500): string {
 
   // Remove HTML tags
   let sanitized = text.replace(/<[^>]*>/g, '');
-  
+
   // Remove script content
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  
+
   // Trim whitespace
   sanitized = sanitized.trim();
-  
+
   // Limit length
   if (sanitized.length > maxLength) {
     sanitized = sanitized.substring(0, maxLength);
   }
-  
+
   return sanitized;
 }
 
@@ -172,25 +172,21 @@ export function sanitizeText(text: string, maxLength: number = 500): string {
  * @param max - Maximum allowed value
  * @returns Sanitized number or null if invalid
  */
-export function sanitizeNumber(
-  value: any,
-  min?: number,
-  max?: number
-): number | null {
+export function sanitizeNumber(value: any, min?: number, max?: number): number | null {
   const num = Number(value);
-  
+
   if (isNaN(num) || !isFinite(num)) {
     return null;
   }
-  
+
   if (min !== undefined && num < min) {
     return min;
   }
-  
+
   if (max !== undefined && num > max) {
     return max;
   }
-  
+
   return num;
 }
 
@@ -205,15 +201,15 @@ export function sanitizeDate(dateString: string): string {
   }
 
   // Remove HTML tags
-  let sanitized = dateString.replace(/<[^>]*>/g, '').trim();
-  
+  const sanitized = dateString.replace(/<[^>]*>/g, '').trim();
+
   // Try to parse as date
   const date = new Date(sanitized);
-  
+
   if (isNaN(date.getTime())) {
     return '';
   }
-  
+
   // Return ISO string
   return date.toISOString();
 }
@@ -229,25 +225,25 @@ export function sanitizeURL(url: string): string {
   }
 
   // Remove HTML tags
-  let sanitized = url.replace(/<[^>]*>/g, '').trim();
-  
+  const sanitized = url.replace(/<[^>]*>/g, '').trim();
+
   // Remove javascript: protocol
   if (sanitized.toLowerCase().startsWith('javascript:')) {
     return '';
   }
-  
+
   // Remove data: protocol (can be used for XSS)
   if (sanitized.toLowerCase().startsWith('data:')) {
     return '';
   }
-  
+
   // Only allow http, https, and relative URLs
   const urlPattern = /^(https?:\/\/|\/)/i;
-  
+
   if (!urlPattern.test(sanitized)) {
     return '';
   }
-  
+
   return sanitized;
 }
 
@@ -259,27 +255,29 @@ export function sanitizeURL(url: string): string {
  */
 export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
   const sanitized: any = {};
-  
+
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.hasOwn(obj, key)) {
       const value = obj[key];
-      
+
       if (typeof value === 'string') {
         sanitized[key] = sanitizeString(value);
       } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         sanitized[key] = sanitizeObject(value);
       } else if (Array.isArray(value)) {
-        sanitized[key] = value.map(item => 
-          typeof item === 'string' ? sanitizeString(item) :
-          typeof item === 'object' && item !== null ? sanitizeObject(item) :
-          item
+        sanitized[key] = value.map(item =>
+          typeof item === 'string'
+            ? sanitizeString(item)
+            : typeof item === 'object' && item !== null
+              ? sanitizeObject(item)
+              : item
         );
       } else {
         sanitized[key] = value;
       }
     }
   }
-  
+
   return sanitized as T;
 }
 
@@ -313,7 +311,9 @@ export function sanitizeBookingRequest(request: any): any {
     checkOutDate: sanitizeDate(request.checkOutDate),
     guestInfo: sanitizeGuestInfo(request.guestInfo || {}),
     paymentMethodId: sanitizeString(request.paymentMethodId),
-    specialRequests: request.specialRequests ? sanitizeText(request.specialRequests, 500) : undefined,
+    specialRequests: request.specialRequests
+      ? sanitizeText(request.specialRequests, 500)
+      : undefined,
     userId: request.userId ? sanitizeString(request.userId) : undefined,
   };
 }
@@ -335,8 +335,8 @@ export function escapeSQLString(input: string): string {
     .replace(/"/g, '\\"')
     .replace(/\n/g, '\\n')
     .replace(/\r/g, '\\r')
-    .replace(/\x00/g, '\\0')
-    .replace(/\x1a/g, '\\Z');
+    .replace(new RegExp(String.fromCharCode(0), 'g'), '\\0')
+    .replace(new RegExp(String.fromCharCode(26), 'g'), '\\Z');
 }
 
 /**
@@ -346,15 +346,11 @@ export function escapeSQLString(input: string): string {
  * @param maxLength - Maximum length
  * @returns true if valid
  */
-export function validateLength(
-  input: string,
-  minLength: number,
-  maxLength: number
-): boolean {
+export function validateLength(input: string, minLength: number, maxLength: number): boolean {
   if (typeof input !== 'string') {
     return false;
   }
-  
+
   const length = input.trim().length;
   return length >= minLength && length <= maxLength;
 }
@@ -379,7 +375,7 @@ export function detectXSS(input: string): boolean {
     /eval\(/i,
     /expression\(/i,
   ];
-  
+
   return xssPatterns.some(pattern => pattern.test(input));
 }
 
@@ -397,9 +393,9 @@ export function detectSQLInjection(input: string): boolean {
     /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/i,
     /(UNION\s+SELECT)/i,
     /('|")\s*(OR|AND)\s*('|")/i,
-    /(--|\#|\/\*)/,
+    /(--|#|\/\*)/,
     /(\bOR\b\s+\d+\s*=\s*\d+)/i,
   ];
-  
+
   return sqlPatterns.some(pattern => pattern.test(input));
 }

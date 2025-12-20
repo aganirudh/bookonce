@@ -59,9 +59,7 @@ describe('App Integration - Navigation Flow', () => {
   const renderWithProviders = (ui: React.ReactElement, initialEntries = ['/']) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={initialEntries}>
-          {ui}
-        </MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
       </QueryClientProvider>
     );
   };
@@ -135,14 +133,9 @@ describe('App Integration - Navigation Flow', () => {
   });
 
   it('verifies all routes are properly configured', () => {
-    const routes = [
-      '/',
-      '/booking-confirmation/test-123',
-      '/profile',
-      '/profile/bookings',
-    ];
+    const routes = ['/', '/booking-confirmation/test-123', '/profile', '/profile/bookings'];
 
-    routes.forEach((route) => {
+    routes.forEach(route => {
       expect(route).toBeTruthy();
     });
   });

@@ -224,7 +224,7 @@
     "energy": 8,
     "social": 10,
     "budget": 1,
-    "coordinates": [52.5200, 13.4050]
+    "coordinates": [52.52, 13.405]
   },
   {
     "id": 9,
@@ -255,5 +255,1143 @@
     "social": 5,
     "budget": 5,
     "coordinates": [9.7489, -83.7534]
+  },
+  {
+    "id": 11,
+    "title": "Manhattan Sky Suites",
+    "location": "New York City, USA",
+    "price": 450,
+    "rating": 4.7,
+    "reviews": 892,
+    "image": "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?w=800&auto=format&fit=crop",
+    "amenities": ["City View", "Concierge", "Fitness Center", "Business Center"],
+    "tags": ["urban", "luxury", "business"],
+    "energy": 8,
+    "social": 6,
+    "budget": 8,
+    "coordinates": [40.7128, -74.006],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_nyc_011"
+  },
+  {
+    "id": 12,
+    "title": "Brooklyn Loft Hotel",
+    "location": "New York City, USA",
+    "price": 280,
+    "rating": 4.5,
+    "reviews": 567,
+    "image": "https://images.unsplash.com/photo-1566195992011-5f6b21e539aa?w=800&auto=format&fit=crop",
+    "amenities": ["Industrial Design", "Rooftop Bar", "Art Gallery", "Co-working Space"],
+    "tags": ["urban", "creative", "party"],
+    "energy": 7,
+    "social": 8,
+    "budget": 6,
+    "coordinates": [40.6782, -73.9442],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_brooklyn_012"
+  },
+  {
+    "id": 13,
+    "title": "Central Park Boutique",
+    "location": "New York City, USA",
+    "price": 380,
+    "rating": 4.8,
+    "reviews": 445,
+    "image": "https://images.unsplash.com/photo-1520637836862-4d197d17c90a?w=800&auto=format&fit=crop",
+    "amenities": ["Park View", "Spa", "Fine Dining", "Concierge"],
+    "tags": ["luxury", "romantic", "urban"],
+    "energy": 5,
+    "social": 4,
+    "budget": 8,
+    "coordinates": [40.7829, -73.9654],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_nyc_013"
+  },
+  {
+    "id": 14,
+    "title": "Times Square Energy Hub",
+    "location": "New York City, USA",
+    "price": 320,
+    "rating": 4.6,
+    "reviews": 789,
+    "image": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop",
+    "amenities": ["City View", "Rooftop Bar", "Fitness Center", "24/7 Room Service"],
+    "tags": ["party", "urban", "adventure"],
+    "energy": 9,
+    "social": 8,
+    "budget": 7,
+    "coordinates": [40.758, -73.9855],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_nyc_014"
+  },
+  {
+    "id": 15,
+    "title": "Thames View Luxury",
+    "location": "London, UK",
+    "price": 520,
+    "rating": 4.9,
+    "reviews": 356,
+    "image": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&auto=format&fit=crop",
+    "amenities": ["River View", "Afternoon Tea", "Spa", "Butler Service"],
+    "tags": ["luxury", "romantic", "cultural"],
+    "energy": 3,
+    "social": 3,
+    "budget": 9,
+    "coordinates": [51.5074, -0.1278],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 7 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_london_015"
+  },
+  {
+    "id": 16,
+    "title": "Shoreditch Creative Loft",
+    "location": "London, UK",
+    "price": 280,
+    "rating": 4.7,
+    "reviews": 623,
+    "image": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&auto=format&fit=crop",
+    "amenities": ["Art Gallery", "Rooftop Bar", "Co-working", "Bike Rental"],
+    "tags": ["creative", "party", "urban"],
+    "energy": 8,
+    "social": 9,
+    "budget": 6,
+    "coordinates": [51.5287, -0.0824],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "11:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_london_016"
+  },
+  {
+    "id": 17,
+    "title": "Covent Garden Boutique",
+    "location": "London, UK",
+    "price": 350,
+    "rating": 4.8,
+    "reviews": 412,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop",
+    "amenities": ["Theater District", "Fine Dining", "Concierge", "Fitness Center"],
+    "tags": ["cultural", "luxury", "urban"],
+    "energy": 6,
+    "social": 5,
+    "budget": 7,
+    "coordinates": [51.5118, -0.1226],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_london_017"
+  },
+  {
+    "id": 18,
+    "title": "Shibuya Neon Nights",
+    "location": "Tokyo, Japan",
+    "price": 220,
+    "rating": 4.6,
+    "reviews": 678,
+    "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
+    "amenities": ["City View", "Karaoke", "Rooftop Bar", "Gaming Lounge"],
+    "tags": ["party", "urban", "adventure"],
+    "energy": 10,
+    "social": 9,
+    "budget": 5,
+    "coordinates": [35.6598, 139.7006],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_tokyo_018"
+  },
+  {
+    "id": 19,
+    "title": "Ginza Luxury Suites",
+    "location": "Tokyo, Japan",
+    "price": 480,
+    "rating": 4.9,
+    "reviews": 234,
+    "image": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&auto=format&fit=crop",
+    "amenities": ["Luxury Shopping", "Michelin Dining", "Spa", "Personal Butler"],
+    "tags": ["luxury", "business", "urban"],
+    "energy": 4,
+    "social": 3,
+    "budget": 9,
+    "coordinates": [35.6717, 139.7669],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 7 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_tokyo_019"
+  },
+  {
+    "id": 20,
+    "title": "Eiffel Tower View Palace",
+    "location": "Paris, France",
+    "price": 650,
+    "rating": 4.95,
+    "reviews": 189,
+    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
+    "amenities": ["Eiffel Tower View", "Michelin Restaurant", "Spa", "Concierge"],
+    "tags": ["luxury", "romantic", "cultural"],
+    "energy": 2,
+    "social": 2,
+    "budget": 10,
+    "coordinates": [48.8566, 2.2944],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 14 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 14,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_paris_020"
+  },
+  {
+    "id": 21,
+    "title": "Montmartre Artist Loft",
+    "location": "Paris, France",
+    "price": 280,
+    "rating": 4.7,
+    "reviews": 445,
+    "image": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&auto=format&fit=crop",
+    "amenities": ["Artist Studio", "Rooftop Terrace", "Wine Bar", "Gallery"],
+    "tags": ["creative", "romantic", "cultural"],
+    "energy": 5,
+    "social": 6,
+    "budget": 6,
+    "coordinates": [48.8867, 2.3431],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "11:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_paris_021"
+  },
+  {
+    "id": 22,
+    "title": "Le Marais Boutique",
+    "location": "Paris, France",
+    "price": 320,
+    "rating": 4.8,
+    "reviews": 356,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop",
+    "amenities": ["Historic District", "Courtyard Garden", "Wine Cellar", "Library"],
+    "tags": ["cultural", "chill", "luxury"],
+    "energy": 3,
+    "social": 4,
+    "budget": 7,
+    "coordinates": [48.8566, 2.3522],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_paris_022"
+  },
+  {
+    "id": 23,
+    "title": "Sydney Harbour Luxury",
+    "location": "Sydney, Australia",
+    "price": 580,
+    "rating": 4.9,
+    "reviews": 267,
+    "image": "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?w=800&auto=format&fit=crop",
+    "amenities": ["Harbour View", "Opera House View", "Infinity Pool", "Fine Dining"],
+    "tags": ["luxury", "romantic", "urban"],
+    "energy": 4,
+    "social": 3,
+    "budget": 9,
+    "coordinates": [-33.8688, 151.2093],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 7 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_sydney_023"
+  },
+  {
+    "id": 24,
+    "title": "Bondi Beach Surf Lodge",
+    "location": "Sydney, Australia",
+    "price": 180,
+    "rating": 4.6,
+    "reviews": 523,
+    "image": "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800&auto=format&fit=crop",
+    "amenities": ["Beach Access", "Surf Lessons", "Beach Bar", "Yoga Deck"],
+    "tags": ["adventure", "party", "beach"],
+    "energy": 8,
+    "social": 9,
+    "budget": 4,
+    "coordinates": [-33.8915, 151.2767],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "11:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_sydney_024"
+  },
+  {
+    "id": 25,
+    "title": "Darling Harbour Modern",
+    "location": "Sydney, Australia",
+    "price": 320,
+    "rating": 4.7,
+    "reviews": 398,
+    "image": "https://images.unsplash.com/photo-1566195992011-5f6b21e539aa?w=800&auto=format&fit=crop",
+    "amenities": ["City View", "Rooftop Pool", "Business Center", "Spa"],
+    "tags": ["business", "urban", "luxury"],
+    "energy": 6,
+    "social": 5,
+    "budget": 7,
+    "coordinates": [-33.8737, 151.2006],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_sydney_025"
+  },
+  {
+    "id": 26,
+    "title": "Santorini Sunset Villa",
+    "location": "Santorini, Greece",
+    "price": 750,
+    "rating": 4.95,
+    "reviews": 156,
+    "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+    "amenities": ["Infinity Pool", "Caldera View", "Private Terrace", "Wine Tasting"],
+    "tags": ["luxury", "romantic", "chill"],
+    "energy": 2,
+    "social": 2,
+    "budget": 10,
+    "coordinates": [36.3932, 25.4615],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 14 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 14,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_santorini_026"
+  },
+  {
+    "id": 27,
+    "title": "Oia Cliffside Retreat",
+    "location": "Santorini, Greece",
+    "price": 420,
+    "rating": 4.8,
+    "reviews": 289,
+    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
+    "amenities": ["Sunset View", "Cave Pool", "Traditional Architecture", "Spa"],
+    "tags": ["romantic", "chill", "unique"],
+    "energy": 3,
+    "social": 3,
+    "budget": 8,
+    "coordinates": [36.4618, 25.3753],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 5 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 5,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 2,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "11:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_santorini_027"
+  },
+  {
+    "id": 28,
+    "title": "Bali Jungle Eco Resort",
+    "location": "Bali, Indonesia",
+    "price": 280,
+    "rating": 4.85,
+    "reviews": 445,
+    "image": "https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800&auto=format&fit=crop",
+    "amenities": ["Jungle View", "Infinity Pool", "Yoga Studio", "Organic Spa"],
+    "tags": ["chill", "eco", "spiritual"],
+    "energy": 2,
+    "social": 3,
+    "budget": 6,
+    "coordinates": [-8.3405, 115.092],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_bali_028"
+  },
+  {
+    "id": 29,
+    "title": "Seminyak Beach Club Hotel",
+    "location": "Bali, Indonesia",
+    "price": 350,
+    "rating": 4.7,
+    "reviews": 567,
+    "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+    "amenities": ["Beach Club", "Rooftop Pool", "Nightlife", "Surf Lessons"],
+    "tags": ["party", "beach", "adventure"],
+    "energy": 9,
+    "social": 8,
+    "budget": 7,
+    "coordinates": [-8.6905, 115.1656],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_bali_029"
+  },
+  {
+    "id": 30,
+    "title": "Miami Beach Art Deco",
+    "location": "Miami, USA",
+    "price": 420,
+    "rating": 4.8,
+    "reviews": 678,
+    "image": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&auto=format&fit=crop",
+    "amenities": ["Beach Access", "Art Deco Design", "Rooftop Pool", "Nightclub"],
+    "tags": ["party", "beach", "luxury"],
+    "energy": 9,
+    "social": 9,
+    "budget": 8,
+    "coordinates": [25.7617, -80.1918],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "16:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_miami_030"
+  },
+  {
+    "id": 31,
+    "title": "South Beach Luxury Resort",
+    "location": "Miami, USA",
+    "price": 580,
+    "rating": 4.9,
+    "reviews": 345,
+    "image": "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?w=800&auto=format&fit=crop",
+    "amenities": ["Private Beach", "Spa", "Fine Dining", "Butler Service"],
+    "tags": ["luxury", "romantic", "beach"],
+    "energy": 5,
+    "social": 4,
+    "budget": 9,
+    "coordinates": [25.7814, -80.13],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 7 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_miami_031"
+  },
+  {
+    "id": 32,
+    "title": "Cancun All-Inclusive Paradise",
+    "location": "Cancun, Mexico",
+    "price": 380,
+    "rating": 4.7,
+    "reviews": 789,
+    "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+    "amenities": ["All-Inclusive", "Beach Access", "Water Sports", "Multiple Pools"],
+    "tags": ["party", "beach", "adventure"],
+    "energy": 8,
+    "social": 9,
+    "budget": 7,
+    "coordinates": [21.1619, -86.8515],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 5 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 5,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 2,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_cancun_032"
+  },
+  {
+    "id": 33,
+    "title": "Aspen Ski Lodge Luxury",
+    "location": "Aspen, USA",
+    "price": 850,
+    "rating": 4.95,
+    "reviews": 234,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop",
+    "amenities": ["Ski-in/Ski-out", "Mountain View", "Spa", "Fine Dining"],
+    "tags": ["luxury", "adventure", "chill"],
+    "energy": 6,
+    "social": 4,
+    "budget": 10,
+    "coordinates": [39.1911, -106.8175],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 14 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 14,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "16:00",
+    "checkOutTime": "11:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_aspen_033"
+  },
+  {
+    "id": 34,
+    "title": "Chamonix Alpine Chalet",
+    "location": "Chamonix, France",
+    "price": 480,
+    "rating": 4.8,
+    "reviews": 356,
+    "image": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&auto=format&fit=crop",
+    "amenities": ["Mountain View", "Fireplace", "Ski Storage", "Traditional Sauna"],
+    "tags": ["adventure", "chill", "romantic"],
+    "energy": 5,
+    "social": 3,
+    "budget": 8,
+    "coordinates": [45.9237, 6.8694],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 5 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 5,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 2,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_chamonix_034"
+  },
+  {
+    "id": 35,
+    "title": "Banff Mountain Lodge",
+    "location": "Banff, Canada",
+    "price": 320,
+    "rating": 4.7,
+    "reviews": 445,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop",
+    "amenities": ["Mountain View", "Hot Springs", "Wildlife Tours", "Hiking Trails"],
+    "tags": ["adventure", "chill", "eco"],
+    "energy": 6,
+    "social": 5,
+    "budget": 6,
+    "coordinates": [51.1784, -115.5708],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_banff_035"
+  },
+  {
+    "id": 36,
+    "title": "Zermatt Matterhorn View",
+    "location": "Zermatt, Switzerland",
+    "price": 680,
+    "rating": 4.9,
+    "reviews": 189,
+    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
+    "amenities": ["Matterhorn View", "Ski Access", "Alpine Spa", "Gourmet Restaurant"],
+    "tags": ["luxury", "adventure", "romantic"],
+    "energy": 4,
+    "social": 3,
+    "budget": 9,
+    "coordinates": [46.0207, 7.7491],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "strict",
+      "description": "Free cancellation up to 7 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 7,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_zermatt_036"
+  },
+  {
+    "id": 37,
+    "title": "Rome Colosseum Luxury",
+    "location": "Rome, Italy",
+    "price": 520,
+    "rating": 4.85,
+    "reviews": 567,
+    "image": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&auto=format&fit=crop",
+    "amenities": ["Historic View", "Rooftop Terrace", "Fine Dining", "Concierge"],
+    "tags": ["luxury", "cultural", "romantic"],
+    "energy": 4,
+    "social": 4,
+    "budget": 9,
+    "coordinates": [41.9028, 12.4964],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_rome_037"
+  },
+  {
+    "id": 38,
+    "title": "Trastevere Boutique Inn",
+    "location": "Rome, Italy",
+    "price": 280,
+    "rating": 4.7,
+    "reviews": 423,
+    "image": "https://images.unsplash.com/photo-1566195992011-5f6b21e539aa?w=800&auto=format&fit=crop",
+    "amenities": ["Historic District", "Courtyard Garden", "Wine Bar", "Walking Tours"],
+    "tags": ["cultural", "romantic", "chill"],
+    "energy": 5,
+    "social": 6,
+    "budget": 6,
+    "coordinates": [41.8896, 12.4695],
+    "instantBooking": false,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "11:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_rome_038"
+  },
+  {
+    "id": 39,
+    "title": "Istanbul Bosphorus Palace",
+    "location": "Istanbul, Turkey",
+    "price": 450,
+    "rating": 4.8,
+    "reviews": 345,
+    "image": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop",
+    "amenities": ["Bosphorus View", "Turkish Bath", "Rooftop Restaurant", "Historic Tours"],
+    "tags": ["luxury", "cultural", "unique"],
+    "energy": 6,
+    "social": 5,
+    "budget": 8,
+    "coordinates": [41.0082, 28.9784],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_istanbul_039"
+  },
+  {
+    "id": 40,
+    "title": "Reykjavik Northern Lights Hotel",
+    "location": "Reykjavik, Iceland",
+    "price": 380,
+    "rating": 4.7,
+    "reviews": 267,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop",
+    "amenities": ["Northern Lights View", "Geothermal Spa", "Adventure Tours", "Nordic Cuisine"],
+    "tags": ["adventure", "unique", "chill"],
+    "energy": 7,
+    "social": 6,
+    "budget": 7,
+    "coordinates": [64.1466, -21.9426],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "flexible",
+      "description": "Free cancellation up to 24 hours before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "providerId": "expedia",
+    "providerHotelId": "hotel_reykjavik_040"
+  },
+  {
+    "id": 41,
+    "title": "Cape Town Waterfront Lodge",
+    "location": "Cape Town, South Africa",
+    "price": 320,
+    "rating": 4.8,
+    "reviews": 456,
+    "image": "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800&auto=format&fit=crop",
+    "amenities": ["Table Mountain View", "Wine Tours", "Safari Trips", "Waterfront Access"],
+    "tags": ["adventure", "unique", "cultural"],
+    "energy": 8,
+    "social": 7,
+    "budget": 6,
+    "coordinates": [-33.9249, 18.4241],
+    "instantBooking": true,
+    "cancellationPolicy": {
+      "type": "moderate",
+      "description": "Free cancellation up to 3 days before check-in",
+      "rules": [
+        {
+          "daysBeforeCheckIn": 3,
+          "refundPercentage": 100
+        },
+        {
+          "daysBeforeCheckIn": 1,
+          "refundPercentage": 50
+        },
+        {
+          "daysBeforeCheckIn": 0,
+          "refundPercentage": 0
+        }
+      ]
+    },
+    "checkInTime": "14:00",
+    "checkOutTime": "11:00",
+    "providerId": "booking_com",
+    "providerHotelId": "hotel_capetown_041"
   }
 ]

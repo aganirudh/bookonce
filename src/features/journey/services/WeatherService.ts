@@ -1,6 +1,6 @@
 /**
  * Weather Service
- * 
+ *
  * Uses Open-Meteo API - completely FREE, no API key required!
  * Unlimited requests, no rate limits
  */
@@ -63,7 +63,7 @@ export interface WeatherRecommendation {
 class WeatherService {
   // Open-Meteo API - completely free, no API key needed!
   private readonly BASE_URL = 'https://api.open-meteo.com/v1';
-  
+
   // Cache duration: 30 minutes (weather doesn't change that fast)
   private readonly CACHE_DURATION = 30 * 60 * 1000;
 
@@ -76,7 +76,7 @@ class WeatherService {
    */
   async getCurrentWeather(lat: number, lng: number): Promise<WeatherData> {
     const cacheKey = `weather_current_${lat}_${lng}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -86,7 +86,7 @@ class WeatherService {
     try {
       // Open-Meteo API - no key required!
       const url = `${this.BASE_URL}/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m&timezone=auto`;
-      
+
       const data = await this.fetchWithRetry(url);
 
       const weather = this.parseCurrentWeather(data, lat, lng);
@@ -106,7 +106,7 @@ class WeatherService {
    */
   async getForecast(lat: number, lng: number): Promise<ForecastData> {
     const cacheKey = `weather_forecast_${lat}_${lng}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -116,7 +116,7 @@ class WeatherService {
     try {
       // Open-Meteo API - no key required!
       const url = `${this.BASE_URL}/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,weather_code,precipitation_probability_max&timezone=auto&forecast_days=7`;
-      
+
       const data = await this.fetchWithRetry(url);
 
       const forecast = this.parseForecast(data);
@@ -164,34 +164,38 @@ class WeatherService {
         recommendations.suggestions.push('Consider indoor activities');
         recommendations.suitable = weather.condition.toLowerCase() !== 'thunderstorm';
         break;
-      
+
       case 'snow':
         recommendations.warnings.push('Snowy conditions - travel may be affected');
         recommendations.suggestions.push('Wear warm, waterproof clothing');
         recommendations.suggestions.push('Check road conditions before traveling');
         break;
-      
+
       case 'clear':
         recommendations.message = 'Clear skies - great for sightseeing!';
         recommendations.suggestions.push('Perfect for outdoor activities and photography');
         break;
-      
+
       case 'clouds':
         recommendations.message = 'Cloudy but comfortable weather';
         recommendations.suggestions.push('Good for walking tours and outdoor exploration');
         break;
-      
+
       case 'mist':
       case 'fog':
       case 'haze':
-        recommendations.warnings.push('Reduced visibility due to ' + weather.condition.toLowerCase());
+        recommendations.warnings.push(
+          'Reduced visibility due to ' + weather.condition.toLowerCase()
+        );
         recommendations.suggestions.push('Drive carefully if traveling by road');
         break;
     }
 
     // Humidity checks
     if (weather.humidity > 80) {
-      recommendations.suggestions.push('High humidity - stay in air-conditioned spaces when possible');
+      recommendations.suggestions.push(
+        'High humidity - stay in air-conditioned spaces when possible'
+      );
     }
 
     // Wind checks
@@ -231,7 +235,7 @@ class WeatherService {
    */
   getTimeBasedRecommendation(weather: WeatherData, hour: number): string {
     const isDay = hour >= 6 && hour < 18;
-    
+
     if (weather.condition.toLowerCase() === 'clear') {
       if (isDay) {
         if (weather.temp > 30) {
@@ -241,15 +245,19 @@ class WeatherService {
       }
       return 'Clear night - great for evening walks';
     }
-    
+
     if (weather.condition.toLowerCase() === 'rain') {
-      return isDay ? 'Rainy day - consider indoor attractions' : 'Rainy evening - stay indoors or carry umbrella';
+      return isDay
+        ? 'Rainy day - consider indoor attractions'
+        : 'Rainy evening - stay indoors or carry umbrella';
     }
-    
+
     if (weather.condition.toLowerCase() === 'clouds') {
-      return isDay ? 'Cloudy day - comfortable for sightseeing' : 'Cloudy evening - good for city exploration';
+      return isDay
+        ? 'Cloudy day - comfortable for sightseeing'
+        : 'Cloudy evening - good for city exploration';
     }
-    
+
     return 'Check current conditions before heading out';
   }
 
@@ -260,7 +268,7 @@ class WeatherService {
     const current = data.current;
     const weatherCode = current.weather_code;
     const { condition, description, icon } = this.getWeatherFromCode(weatherCode);
-    
+
     return {
       temp: current.temperature_2m,
       feelsLike: current.apparent_temperature,
@@ -289,16 +297,17 @@ class WeatherService {
    */
   private parseForecast(data: any): ForecastData {
     const daily = data.daily;
-    
+
     return {
       list: daily.time.map((time: string, index: number) => {
         const weatherCode = daily.weather_code[index];
         const { condition, description, icon } = this.getWeatherFromCode(weatherCode);
-        
+
         return {
           dt: new Date(time),
           temp: (daily.temperature_2m_max[index] + daily.temperature_2m_min[index]) / 2,
-          feelsLike: (daily.apparent_temperature_max[index] + daily.apparent_temperature_min[index]) / 2,
+          feelsLike:
+            (daily.apparent_temperature_max[index] + daily.apparent_temperature_min[index]) / 2,
           tempMin: daily.temperature_2m_min[index],
           tempMax: daily.temperature_2m_max[index],
           condition,
@@ -323,7 +332,11 @@ class WeatherService {
    * Convert WMO weather code to condition/description/icon
    * WMO Weather interpretation codes (WW)
    */
-  private getWeatherFromCode(code: number): { condition: string; description: string; icon: string } {
+  private getWeatherFromCode(code: number): {
+    condition: string;
+    description: string;
+    icon: string;
+  } {
     const codeMap: Record<number, { condition: string; description: string; icon: string }> = {
       0: { condition: 'Clear', description: 'clear sky', icon: '01d' },
       1: { condition: 'Clear', description: 'mainly clear', icon: '01d' },
@@ -391,7 +404,7 @@ class WeatherService {
    * Delay helper for retry logic
    */
   private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -399,24 +412,28 @@ class WeatherService {
    */
   private handleError(error: any, defaultMessage: string): Error {
     const errorMessage = error instanceof Error ? error.message : defaultMessage;
-    
+
     // Check for specific error types
     if (errorMessage.includes('401')) {
       return new Error('Invalid API key. Please check your OpenWeather API key configuration.');
     }
-    
+
     if (errorMessage.includes('429')) {
       return new Error('API rate limit exceeded. Please try again later.');
     }
-    
+
     if (errorMessage.includes('404')) {
       return new Error('Location not found. Please check your coordinates.');
     }
-    
-    if (errorMessage.includes('500') || errorMessage.includes('502') || errorMessage.includes('503')) {
+
+    if (
+      errorMessage.includes('500') ||
+      errorMessage.includes('502') ||
+      errorMessage.includes('503')
+    ) {
       return new Error('Weather service temporarily unavailable. Please try again later.');
     }
-    
+
     return new Error(errorMessage);
   }
 }

@@ -54,15 +54,9 @@ export const PERFORMANCE_CONFIG = {
 
   // Resource Hints
   RESOURCE_HINTS: {
-    PRELOAD: [
-      '/fonts/main.woff2',
-    ],
-    PREFETCH: [
-      '/api/hotels',
-    ],
-    PRECONNECT: [
-      'https://api.stripe.com',
-    ],
+    PRELOAD: ['/fonts/main.woff2'],
+    PREFETCH: ['/api/hotels'],
+    PRECONNECT: ['https://api.stripe.com'],
   },
 
   // Performance Budgets
@@ -98,14 +92,18 @@ export const isPerformanceOptimizationEnabled = (): boolean => {
  * Get cache strategy for resource type
  */
 export const getCacheStrategy = (resourceType: 'static' | 'api' | 'images'): string => {
-  return PERFORMANCE_CONFIG.CACHE.STRATEGIES[resourceType.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.STRATEGIES];
+  return PERFORMANCE_CONFIG.CACHE.STRATEGIES[
+    resourceType.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.STRATEGIES
+  ];
 };
 
 /**
  * Get cache max age for resource type
  */
 export const getCacheMaxAge = (resourceType: 'static' | 'api' | 'images'): number => {
-  return PERFORMANCE_CONFIG.CACHE.MAX_AGE[resourceType.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.MAX_AGE];
+  return PERFORMANCE_CONFIG.CACHE.MAX_AGE[
+    resourceType.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.MAX_AGE
+  ];
 };
 
 /**
@@ -134,7 +132,7 @@ export const collectPerformanceMetrics = (): PerformanceMetrics => {
 
     // Get paint timing
     const paintEntries = performance.getEntriesByType('paint');
-    const fcp = paintEntries.find((entry) => entry.name === 'first-contentful-paint');
+    const fcp = paintEntries.find(entry => entry.name === 'first-contentful-paint');
     if (fcp) {
       metrics.fcp = fcp.startTime;
     }

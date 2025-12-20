@@ -12,3 +12,4 @@ export { GuestInfoForm } from './GuestInfoForm';
 export { PricingSummary } from './PricingSummary';
 export { BookingCard } from './BookingCard';
 export { BookingDetails } from './BookingDetails';
+export { DisruptionRecovery } from './DisruptionRecovery';

@@ -27,13 +27,7 @@ describe('ChatInput Component', () => {
     });
 
     it('should render with custom placeholder', () => {
-      render(
-        <ChatInput
-          onSend={mockOnSend}
-          isLoading={false}
-          placeholder="Custom placeholder"
-        />
-      );
+      render(<ChatInput onSend={mockOnSend} isLoading={false} placeholder="Custom placeholder" />);
 
       const textarea = screen.getByPlaceholderText('Custom placeholder');
       expect(textarea).toBeInTheDocument();
@@ -133,8 +127,10 @@ describe('ChatInput Component', () => {
     it('should show character count when approaching limit', () => {
       render(<ChatInput onSend={mockOnSend} isLoading={false} />);
 
-      const textarea = screen.getByRole('textbox', { name: /message input/i }) as HTMLTextAreaElement;
-      
+      const textarea = screen.getByRole('textbox', {
+        name: /message input/i,
+      }) as HTMLTextAreaElement;
+
       // Use fireEvent to properly trigger React's onChange
       // Use 1601 to be above the 80% threshold (1600)
       const longMessage = 'a'.repeat(1601);
@@ -146,9 +142,11 @@ describe('ChatInput Component', () => {
     it('should disable send button when over character limit', () => {
       render(<ChatInput onSend={mockOnSend} isLoading={false} />);
 
-      const textarea = screen.getByRole('textbox', { name: /message input/i }) as HTMLTextAreaElement;
+      const textarea = screen.getByRole('textbox', {
+        name: /message input/i,
+      }) as HTMLTextAreaElement;
       const sendButton = screen.getByRole('button', { name: /send message/i });
-      
+
       // Use fireEvent to properly trigger React's onChange
       const tooLongMessage = 'a'.repeat(2001);
       fireEvent.change(textarea, { target: { value: tooLongMessage } });
@@ -170,7 +168,9 @@ describe('ChatInput Component', () => {
       const user = userEvent.setup();
       render(<ChatInput onSend={mockOnSend} isLoading={false} />);
 
-      const textarea = screen.getByRole('textbox', { name: /message input/i }) as HTMLTextAreaElement;
+      const textarea = screen.getByRole('textbox', {
+        name: /message input/i,
+      }) as HTMLTextAreaElement;
       const sendButton = screen.getByRole('button', { name: /send message/i });
 
       // Use paste instead of type for whitespace

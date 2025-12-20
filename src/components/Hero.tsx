@@ -1,15 +1,15 @@
-import { motion } from "framer-motion";
-import { Search, MapPin, Calendar, Users, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { motion } from 'framer-motion';
+import { Search, MapPin, Calendar, Users, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 
 interface HeroProps {
   onSearch: (destination: string) => void;
 }
 
 const Hero = ({ onSearch }: HeroProps) => {
-  const [destination, setDestination] = useState("");
-  const [dates, setDates] = useState("");
-  const [guests, setGuests] = useState("2 Guests");
+  const [destination, setDestination] = useState('');
+  const [dates, setDates] = useState('');
+  const [guests, setGuests] = useState('2 Guests');
 
   const handleExplore = () => {
     onSearch(destination);
@@ -17,13 +17,9 @@ const Hero = ({ onSearch }: HeroProps) => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+      {/* Background (image removed) */}
       <div className="absolute inset-0">
-        <img
-          src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1920&auto=format&fit=crop"
-          alt="Travel destination"
-          className="w-full h-full object-cover"
-        />
+        {/* Static photo removed to avoid loading external images. Gradients remain for visual depth. */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/20 to-background" />
         <div className="absolute inset-0 bg-gradient-hero" />
       </div>
@@ -52,7 +48,8 @@ const Hero = ({ onSearch }: HeroProps) => {
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
-            The world's first bio-adaptive travel platform. Your journey evolves with your mood, energy, and desires.
+            The world's first bio-adaptive travel platform. Your journey evolves with your mood,
+            energy, and desires.
           </p>
         </motion.div>
 
@@ -73,7 +70,7 @@ const Hero = ({ onSearch }: HeroProps) => {
                 type="text"
                 placeholder="Where to?"
                 value={destination}
-                onChange={(e) => setDestination(e.target.value)}
+                onChange={e => setDestination(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 bg-secondary/50 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               />
             </div>
@@ -87,7 +84,7 @@ const Hero = ({ onSearch }: HeroProps) => {
                 type="text"
                 placeholder="Add dates"
                 value={dates}
-                onChange={(e) => setDates(e.target.value)}
+                onChange={e => setDates(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 bg-secondary/50 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               />
             </div>
@@ -99,7 +96,7 @@ const Hero = ({ onSearch }: HeroProps) => {
               </div>
               <select
                 value={guests}
-                onChange={(e) => setGuests(e.target.value)}
+                onChange={e => setGuests(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 bg-secondary/50 rounded-2xl text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
               >
                 <option>1 Guest</option>
@@ -122,24 +119,7 @@ const Hero = ({ onSearch }: HeroProps) => {
           </div>
         </motion.div>
 
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-8 md:gap-16 mt-12"
-        >
-          {[
-            { value: "50K+", label: "Destinations" },
-            { value: "2M+", label: "Happy Travelers" },
-            { value: "4.9", label: "App Rating" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-foreground">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
+        {/* Stats removed per request */}
       </div>
 
       {/* Scroll Indicator */}

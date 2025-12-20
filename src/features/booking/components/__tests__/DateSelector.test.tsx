@@ -20,11 +20,7 @@ describe('DateSelector Component', () => {
   describe('Initial Rendering', () => {
     it('should render with default "Select dates" text when no dates selected', () => {
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       expect(screen.getByText('Select dates')).toBeInTheDocument();
@@ -50,11 +46,7 @@ describe('DateSelector Component', () => {
       const checkIn = addDays(today, 1);
 
       render(
-        <DateSelector
-          checkInDate={checkIn}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={checkIn} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       // Should show only check-in date
@@ -66,13 +58,9 @@ describe('DateSelector Component', () => {
   describe('Date Range Selection', () => {
     it('should open calendar popover when button is clicked', async () => {
       const user = userEvent.setup();
-      
+
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       const button = screen.getByRole('button', { name: /select dates/i });
@@ -86,13 +74,9 @@ describe('DateSelector Component', () => {
 
     it('should show appropriate instruction text based on selection state', async () => {
       const user = userEvent.setup();
-      
+
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       const button = screen.getByRole('button', { name: /select dates/i });
@@ -106,13 +90,9 @@ describe('DateSelector Component', () => {
 
     it('should call onDateChange with both dates when Apply is clicked', async () => {
       const user = userEvent.setup();
-      
+
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       const button = screen.getByRole('button', { name: /select dates/i });
@@ -132,7 +112,7 @@ describe('DateSelector Component', () => {
   describe('Date Validation', () => {
     it('should respect minStay constraint', () => {
       const checkIn = addDays(today, 1);
-      
+
       render(
         <DateSelector
           checkInDate={checkIn}
@@ -148,7 +128,7 @@ describe('DateSelector Component', () => {
 
     it('should respect maxStay constraint', () => {
       const checkIn = addDays(today, 1);
-      
+
       render(
         <DateSelector
           checkInDate={checkIn}
@@ -163,10 +143,7 @@ describe('DateSelector Component', () => {
     });
 
     it('should handle unavailable dates', () => {
-      const unavailableDates = [
-        addDays(today, 3),
-        addDays(today, 4),
-      ];
+      const unavailableDates = [addDays(today, 3), addDays(today, 4)];
 
       render(
         <DateSelector
@@ -210,11 +187,7 @@ describe('DateSelector Component', () => {
 
     it('should not show clear button when no dates are selected', () => {
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       const button = screen.getByRole('button');
@@ -243,11 +216,7 @@ describe('DateSelector Component', () => {
 
     it('should not show date details when dates are not selected', () => {
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       expect(screen.queryByText(/Check-in:/)).not.toBeInTheDocument();
@@ -287,16 +256,12 @@ describe('DateSelector Component', () => {
   describe('Accessibility', () => {
     it('should have accessible button with calendar icon', () => {
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       const button = screen.getByRole('button');
       expect(button).toBeInTheDocument();
-      
+
       // Should have calendar icon
       const calendarIcon = button.querySelector('svg');
       expect(calendarIcon).toBeInTheDocument();
@@ -304,17 +269,13 @@ describe('DateSelector Component', () => {
 
     it('should support keyboard navigation', async () => {
       const user = userEvent.setup();
-      
+
       render(
-        <DateSelector
-          checkInDate={null}
-          checkOutDate={null}
-          onDateChange={mockOnDateChange}
-        />
+        <DateSelector checkInDate={null} checkOutDate={null} onDateChange={mockOnDateChange} />
       );
 
       const button = screen.getByRole('button');
-      
+
       // Should be focusable
       await user.tab();
       expect(button).toHaveFocus();

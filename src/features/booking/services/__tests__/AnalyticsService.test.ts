@@ -105,11 +105,19 @@ describe('AnalyticsService', () => {
     it('should track complete booking funnel', () => {
       // Simulate complete booking flow
       analyticsService.trackBookingStarted({ hotelId: 1, source: 'hotel_card' });
-      analyticsService.trackDatesSelected({ checkIn: '2024-12-20', checkOut: '2024-12-25', nights: 5 });
+      analyticsService.trackDatesSelected({
+        checkIn: '2024-12-20',
+        checkOut: '2024-12-25',
+        nights: 5,
+      });
       analyticsService.trackRoomSelected({ roomId: 'deluxe-suite', price: 250 });
       analyticsService.trackGuestInfoCompleted({ hasAccount: false });
       analyticsService.trackPaymentSubmitted({ paymentMethod: 'card' });
-      analyticsService.trackBookingCompleted({ bookingId: 'BK123456', totalPrice: 1250, currency: 'USD' });
+      analyticsService.trackBookingCompleted({
+        bookingId: 'BK123456',
+        totalPrice: 1250,
+        currency: 'USD',
+      });
 
       const events = analyticsService.getEvents();
       expect(events).toHaveLength(6);
@@ -226,9 +234,13 @@ describe('AnalyticsService', () => {
     it('should resume tracking when re-enabled', () => {
       analyticsService.setEnabled(false);
       analyticsService.trackBookingStarted({ hotelId: 1, source: 'hotel_card' });
-      
+
       analyticsService.setEnabled(true);
-      analyticsService.trackDatesSelected({ checkIn: '2024-12-20', checkOut: '2024-12-25', nights: 5 });
+      analyticsService.trackDatesSelected({
+        checkIn: '2024-12-20',
+        checkOut: '2024-12-25',
+        nights: 5,
+      });
 
       const events = analyticsService.getEvents();
       expect(events).toHaveLength(1);
@@ -247,10 +259,14 @@ describe('AnalyticsService', () => {
 
     it('should clear all events', () => {
       analyticsService.trackBookingStarted({ hotelId: 1, source: 'hotel_card' });
-      analyticsService.trackDatesSelected({ checkIn: '2024-12-20', checkOut: '2024-12-25', nights: 5 });
-      
+      analyticsService.trackDatesSelected({
+        checkIn: '2024-12-20',
+        checkOut: '2024-12-25',
+        nights: 5,
+      });
+
       expect(analyticsService.getEvents()).toHaveLength(2);
-      
+
       analyticsService.clearEvents();
       expect(analyticsService.getEvents()).toHaveLength(0);
     });

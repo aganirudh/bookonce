@@ -123,13 +123,7 @@ describe('BookingModal Accessibility', () => {
   describe('Keyboard Navigation', () => {
     it('should close modal when Escape key is pressed', async () => {
       const onClose = vi.fn();
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={onClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={onClose} />);
 
       fireEvent.keyDown(window, { key: 'Escape' });
 
@@ -139,13 +133,7 @@ describe('BookingModal Accessibility', () => {
     });
 
     it('should have focusable close button', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       const closeButton = screen.getByLabelText('Close');
       expect(closeButton).toBeInTheDocument();
@@ -153,13 +141,7 @@ describe('BookingModal Accessibility', () => {
     });
 
     it('should have focusable back button when available', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       // Back button should not be visible on first step
       const backButton = screen.queryByLabelText('Go back');
@@ -169,13 +151,7 @@ describe('BookingModal Accessibility', () => {
 
   describe('ARIA Labels', () => {
     it('should have proper ARIA labels on modal', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('aria-labelledby', 'booking-modal-title');
@@ -183,13 +159,7 @@ describe('BookingModal Accessibility', () => {
     });
 
     it('should have descriptive title', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       const title = document.getElementById('booking-modal-title');
       expect(title).toBeInTheDocument();
@@ -197,13 +167,7 @@ describe('BookingModal Accessibility', () => {
     });
 
     it('should have descriptive subtitle', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       const description = screen.getByText('Choose your check-in and check-out dates');
       expect(description).toBeInTheDocument();
@@ -213,26 +177,14 @@ describe('BookingModal Accessibility', () => {
 
   describe('Screen Reader Support', () => {
     it('should announce step progress', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       const progress = screen.getByText(/Step 1 of 5/);
       expect(progress).toBeInTheDocument();
     });
 
     it('should support live region announcements', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       // The component uses screen reader announcer utility which creates live regions dynamically
       // Just verify the component renders without errors
@@ -242,29 +194,17 @@ describe('BookingModal Accessibility', () => {
 
   describe('Visual Accessibility', () => {
     it('should have minimum touch target size for buttons', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       const closeButton = screen.getByLabelText('Close');
       const styles = window.getComputedStyle(closeButton);
-      
+
       // Check for min-height class
       expect(closeButton.className).toContain('h-8');
     });
 
     it('should have visible focus indicators', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       const closeButton = screen.getByLabelText('Close');
       closeButton.focus();
@@ -274,13 +214,7 @@ describe('BookingModal Accessibility', () => {
     });
 
     it('should not convey information by color alone', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       // Instant booking badge should have both icon and text
       const instantBadge = screen.queryByText(/Instant/);
@@ -292,13 +226,7 @@ describe('BookingModal Accessibility', () => {
 
   describe('Form Accessibility', () => {
     it('should have proper labels for form fields', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       // Date selector should have accessible labels
       const dateButton = screen.getByRole('button', { name: /Select dates/i });
@@ -306,13 +234,7 @@ describe('BookingModal Accessibility', () => {
     });
 
     it('should indicate required fields', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={vi.fn()}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={vi.fn()} />);
 
       // Check for aria-required attributes when on guest info step
       // This would be tested more thoroughly in GuestInfoForm tests

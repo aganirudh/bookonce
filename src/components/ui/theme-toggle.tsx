@@ -3,18 +3,18 @@
  * Provides UI for switching between light, dark, and system themes
  */
 
-import * as React from "react";
-import { Moon, Sun, Monitor, Check, Contrast } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useTheme, type Theme } from "@/contexts/ThemeContext";
-import { Button } from "@/components/ui/button";
+import * as React from 'react';
+import { Moon, Sun, Monitor, Check, Contrast } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme, type Theme } from '@/contexts/ThemeContext';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 /**
  * Theme option configuration
@@ -95,7 +95,7 @@ function getThemeIcon(theme: Theme, resolvedTheme: 'light' | 'dark' | 'high-cont
 function getThemeInfo(theme: Theme, resolvedTheme: 'light' | 'dark' | 'high-contrast') {
   const option = themeOptions.find(opt => opt.value === theme);
   if (!option) return themeOptions[0];
-  
+
   return {
     ...option,
     icon: getThemeIcon(theme, resolvedTheme),
@@ -105,15 +105,15 @@ function getThemeInfo(theme: Theme, resolvedTheme: 'light' | 'dark' | 'high-cont
 /**
  * Icon-only theme toggle button
  */
-function IconToggle({ 
-  size = 'md', 
-  className, 
-  enablePreview = false, 
-  showLoadingState = true 
+function IconToggle({
+  size = 'md',
+  className,
+  enablePreview = false,
+  showLoadingState = true,
 }: Pick<ThemeToggleProps, 'size' | 'className' | 'enablePreview' | 'showLoadingState'>) {
   const { theme, resolvedTheme, setTheme, isThemeSwitching, previewTheme } = useTheme();
   const currentTheme = getThemeInfo(theme, resolvedTheme);
-  
+
   const handleToggle = () => {
     // Cycle through themes: light -> dark -> high-contrast -> system -> light
     const currentIndex = themeOptions.findIndex(opt => opt.value === theme);
@@ -132,31 +132,34 @@ function IconToggle({
       previewTheme(null);
     }
   };
-  
+
   const sizeClasses = {
     sm: 'h-8 w-8',
     md: 'h-9 w-9',
     lg: 'h-10 w-10',
   };
-  
+
   const iconSizes = {
     sm: 'h-4 w-4',
     md: 'h-4 w-4',
     lg: 'h-5 w-5',
   };
-  
+
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={handleToggle}
-      onMouseEnter={() => enablePreview && handlePreview(themeOptions[(themeOptions.findIndex(opt => opt.value === theme) + 1) % themeOptions.length].value)}
+      onMouseEnter={() =>
+        enablePreview &&
+        handlePreview(
+          themeOptions[
+            (themeOptions.findIndex(opt => opt.value === theme) + 1) % themeOptions.length
+          ].value
+        )
+      }
       onMouseLeave={handlePreviewEnd}
-      className={cn(
-        sizeClasses[size], 
-        'focus-ring interactive-hover touch-target',
-        className
-      )}
+      className={cn(sizeClasses[size], 'focus-ring interactive-hover touch-target', className)}
       aria-label={`Switch theme. Current: ${currentTheme.label}`}
       title={`Current theme: ${currentTheme.label}. Click to cycle themes.`}
     >
@@ -166,7 +169,7 @@ function IconToggle({
           initial={{ scale: 0.8, opacity: 0, rotate: -90 }}
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
           exit={{ scale: 0.8, opacity: 0, rotate: 90 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
         >
           <currentTheme.icon className={iconSizes[size]} />
         </motion.div>
@@ -178,20 +181,21 @@ function IconToggle({
 /**
  * Theme preview component with all options
  */
-function PreviewToggle({ 
-  size = 'md', 
-  className, 
-  align = 'end' 
+function PreviewToggle({
+  size = 'md',
+  className,
+  align = 'end',
 }: Pick<ThemeToggleProps, 'size' | 'className' | 'align'>) {
-  const { theme, resolvedTheme, setTheme, previewTheme, previewedTheme, isThemeSwitching } = useTheme();
+  const { theme, resolvedTheme, setTheme, previewTheme, previewedTheme, isThemeSwitching } =
+    useTheme();
   const currentTheme = getThemeInfo(theme, resolvedTheme);
-  
+
   const sizeClasses = {
     sm: 'h-8 px-3 text-xs',
     md: 'h-9 px-4 text-sm',
     lg: 'h-10 px-6 text-base',
   };
-  
+
   const iconSizes = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
@@ -212,14 +216,14 @@ function PreviewToggle({
       previewTheme(null);
     }
   };
-  
+
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1 p-1 bg-secondary rounded-lg">
-        {themeOptions.map((option) => (
+        {themeOptions.map(option => (
           <Button
             key={option.value}
-            variant={theme === option.value ? "default" : "ghost"}
+            variant={theme === option.value ? 'default' : 'ghost'}
             size="sm"
             onMouseEnter={() => handlePreview(option.value)}
             onMouseLeave={handlePreviewEnd}
@@ -237,7 +241,7 @@ function PreviewToggle({
           </Button>
         ))}
       </div>
-      
+
       {previewedTheme && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -245,11 +249,7 @@ function PreviewToggle({
           exit={{ opacity: 0, scale: 0.9 }}
           className="flex items-center gap-2"
         >
-          <Button
-            size="sm"
-            onClick={handleApplyPreview}
-            className="h-8 px-3 text-xs"
-          >
+          <Button size="sm" onClick={handleApplyPreview} className="h-8 px-3 text-xs">
             Apply
           </Button>
           <Button
@@ -269,16 +269,19 @@ function PreviewToggle({
 /**
  * Button with label theme toggle
  */
-function ButtonToggle({ 
-  size = 'md', 
-  showLabel = true, 
+function ButtonToggle({
+  size = 'md',
+  showLabel = true,
   className,
   enablePreview = false,
-  showLoadingState = true
-}: Pick<ThemeToggleProps, 'size' | 'showLabel' | 'className' | 'enablePreview' | 'showLoadingState'>) {
+  showLoadingState = true,
+}: Pick<
+  ThemeToggleProps,
+  'size' | 'showLabel' | 'className' | 'enablePreview' | 'showLoadingState'
+>) {
   const { theme, resolvedTheme, setTheme, isThemeSwitching, previewTheme } = useTheme();
   const currentTheme = getThemeInfo(theme, resolvedTheme);
-  
+
   const handleToggle = () => {
     // Cycle through themes: light -> dark -> high-contrast -> system -> light
     const currentIndex = themeOptions.findIndex(opt => opt.value === theme);
@@ -297,30 +300,33 @@ function ButtonToggle({
       previewTheme(null);
     }
   };
-  
+
   const sizeClasses = {
     sm: 'h-8 px-3 text-xs',
     md: 'h-9 px-4 text-sm',
     lg: 'h-10 px-6 text-base',
   };
-  
+
   const iconSizes = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
     lg: 'h-4 w-4',
   };
-  
+
   return (
     <Button
       variant="outline"
       onClick={handleToggle}
-      onMouseEnter={() => enablePreview && handlePreview(themeOptions[(themeOptions.findIndex(opt => opt.value === theme) + 1) % themeOptions.length].value)}
+      onMouseEnter={() =>
+        enablePreview &&
+        handlePreview(
+          themeOptions[
+            (themeOptions.findIndex(opt => opt.value === theme) + 1) % themeOptions.length
+          ].value
+        )
+      }
       onMouseLeave={handlePreviewEnd}
-      className={cn(
-        sizeClasses[size],
-        'focus-ring interactive-hover gap-2',
-        className
-      )}
+      className={cn(sizeClasses[size], 'focus-ring interactive-hover gap-2', className)}
       aria-label={`Switch theme. Current: ${currentTheme.label}`}
       title={currentTheme.description}
     >
@@ -330,14 +336,12 @@ function ButtonToggle({
           initial={{ scale: 0.8, opacity: 0, rotate: -90 }}
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
           exit={{ scale: 0.8, opacity: 0, rotate: 90 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
         >
           <currentTheme.icon className={iconSizes[size]} />
         </motion.div>
       </AnimatePresence>
-      {showLabel && (
-        <span className="font-medium">{currentTheme.label}</span>
-      )}
+      {showLabel && <span className="font-medium">{currentTheme.label}</span>}
     </Button>
   );
 }
@@ -345,22 +349,22 @@ function ButtonToggle({
 /**
  * Dropdown theme selector with preview functionality
  */
-function DropdownToggle({ 
-  size = 'md', 
-  className, 
+function DropdownToggle({
+  size = 'md',
+  className,
   align = 'end',
   enablePreview = false,
-  showLoadingState = true
+  showLoadingState = true,
 }: Pick<ThemeToggleProps, 'size' | 'className' | 'align' | 'enablePreview' | 'showLoadingState'>) {
   const { theme, resolvedTheme, setTheme, isThemeSwitching, previewTheme } = useTheme();
   const currentTheme = getThemeInfo(theme, resolvedTheme);
-  
+
   const sizeClasses = {
     sm: 'h-8 w-8',
     md: 'h-9 w-9',
     lg: 'h-10 w-10',
   };
-  
+
   const iconSizes = {
     sm: 'h-4 w-4',
     md: 'h-4 w-4',
@@ -378,18 +382,14 @@ function DropdownToggle({
       previewTheme(null);
     }
   };
-  
+
   return (
-    <DropdownMenu onOpenChange={(open) => !open && handlePreviewEnd()}>
+    <DropdownMenu onOpenChange={open => !open && handlePreviewEnd()}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
-          className={cn(
-            sizeClasses[size], 
-            'focus-ring interactive-hover touch-target',
-            className
-          )}
+          className={cn(sizeClasses[size], 'focus-ring interactive-hover touch-target', className)}
           aria-label={`Theme selector. Current: ${currentTheme.label}`}
           title="Select theme"
         >
@@ -399,19 +399,15 @@ function DropdownToggle({
               initial={{ scale: 0.8, opacity: 0, rotate: -90 }}
               animate={{ scale: 1, opacity: 1, rotate: 0 }}
               exit={{ scale: 0.8, opacity: 0, rotate: 90 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
             >
               <currentTheme.icon className={iconSizes[size]} />
             </motion.div>
           </AnimatePresence>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align={align} 
-        className="dropdown min-w-[180px]"
-        sideOffset={8}
-      >
-        {themeOptions.map((option) => (
+      <DropdownMenuContent align={align} className="dropdown min-w-[180px]" sideOffset={8}>
+        {themeOptions.map(option => (
           <DropdownMenuItem
             key={option.value}
             onClick={() => {
@@ -430,9 +426,7 @@ function DropdownToggle({
               <option.icon className="h-4 w-4 shrink-0" />
               <div className="flex flex-col gap-0.5">
                 <span className="font-medium text-sm">{option.label}</span>
-                <span className="text-xs text-muted-foreground">
-                  {option.description}
-                </span>
+                <span className="text-xs text-muted-foreground">{option.description}</span>
               </div>
             </div>
             {theme === option.value && (
@@ -444,7 +438,6 @@ function DropdownToggle({
                 <Check className="h-4 w-4 text-primary" />
               </motion.div>
             )}
-
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -466,14 +459,37 @@ export function ThemeToggle({
 }: ThemeToggleProps) {
   switch (variant) {
     case 'icon':
-      return <IconToggle size={size} className={className} enablePreview={enablePreview} showLoadingState={showLoadingState} />;
+      return (
+        <IconToggle
+          size={size}
+          className={className}
+          enablePreview={enablePreview}
+          showLoadingState={showLoadingState}
+        />
+      );
     case 'button':
-      return <ButtonToggle size={size} showLabel={showLabel} className={className} enablePreview={enablePreview} showLoadingState={showLoadingState} />;
+      return (
+        <ButtonToggle
+          size={size}
+          showLabel={showLabel}
+          className={className}
+          enablePreview={enablePreview}
+          showLoadingState={showLoadingState}
+        />
+      );
     case 'preview':
       return <PreviewToggle size={size} className={className} align={align} />;
     case 'dropdown':
     default:
-      return <DropdownToggle size={size} className={className} align={align} enablePreview={enablePreview} showLoadingState={showLoadingState} />;
+      return (
+        <DropdownToggle
+          size={size}
+          className={className}
+          align={align}
+          enablePreview={enablePreview}
+          showLoadingState={showLoadingState}
+        />
+      );
   }
 }
 

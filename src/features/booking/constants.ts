@@ -36,14 +36,15 @@ export const DEBOUNCE_DELAYS = {
 export const ERROR_MESSAGES = {
   AVAILABILITY_CHECK_FAILED: "We're having trouble checking availability. Please try again.",
   BOOKING_FAILED: "We couldn't complete your booking. Your card has not been charged.",
-  PAYMENT_DECLINED: "Your payment was declined. Please check your card details or try another card.",
-  NETWORK_ERROR: "Connection lost. Please check your internet and try again.",
-  HOTEL_UNAVAILABLE: "This hotel is no longer available for your dates. Here are similar options:",
+  PAYMENT_DECLINED:
+    'Your payment was declined. Please check your card details or try another card.',
+  NETWORK_ERROR: 'Connection lost. Please check your internet and try again.',
+  HOTEL_UNAVAILABLE: 'This hotel is no longer available for your dates. Here are similar options:',
   MODIFICATION_FAILED: "We couldn't modify your booking. Please contact support.",
   CANCELLATION_FAILED: "We couldn't cancel your booking. Please contact support immediately.",
-  VALIDATION_ERROR: "Please check your information and try again.",
-  RATE_LIMIT_ERROR: "Too many requests. Please wait a moment before trying again.",
-  UNKNOWN_ERROR: "Something went wrong. Please try again or contact support.",
+  VALIDATION_ERROR: 'Please check your information and try again.',
+  RATE_LIMIT_ERROR: 'Too many requests. Please wait a moment before trying again.',
+  UNKNOWN_ERROR: 'Something went wrong. Please try again or contact support.',
 } as const;
 
 // Booking steps

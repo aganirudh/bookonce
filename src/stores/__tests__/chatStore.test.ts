@@ -6,14 +6,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useChatStore } from '../chatStore';
 import type { ChatMessage } from '@/types/chat';
-import { geminiAIService } from '@/services/GeminiAIService';
+import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
 
-// Mock the GeminiAIService
-vi.mock('@/services/GeminiAIService', () => ({
-  geminiAIService: {
-    initialize: vi.fn(),
-    isConfigured: vi.fn(),
-    sendMessage: vi.fn(),
+// Mock the BookOnceAIService
+vi.mock('@/features/journey/services/BookOnceAIService', () => ({
+  bookOnceAIService: {
+    answerQuestionWithHistory: vi.fn(),
   },
 }));
 
@@ -31,7 +29,7 @@ describe('Chat Store', () => {
   describe('addMessage', () => {
     it('should add a message to the store', () => {
       const { addMessage } = useChatStore.getState();
-      
+
       const message: ChatMessage = {
         id: '1',
         role: 'user',
@@ -48,7 +46,7 @@ describe('Chat Store', () => {
 
     it('should add multiple messages in order', () => {
       const { addMessage } = useChatStore.getState();
-      
+
       const message1: ChatMessage = {
         id: '1',
         role: 'user',
@@ -74,9 +72,9 @@ describe('Chat Store', () => {
 
     it('should clear error when adding a message', () => {
       const { addMessage, setError } = useChatStore.getState();
-      
+
       setError('Previous error');
-      
+
       const message: ChatMessage = {
         id: '1',
         role: 'user',
@@ -94,7 +92,7 @@ describe('Chat Store', () => {
   describe('clearMessages', () => {
     it('should clear all messages', () => {
       const { addMessage, clearMessages } = useChatStore.getState();
-      
+
       const message1: ChatMessage = {
         id: '1',
         role: 'user',
@@ -119,7 +117,7 @@ describe('Chat Store', () => {
 
     it('should clear error when clearing messages', () => {
       const { clearMessages, setError } = useChatStore.getState();
-      
+
       setError('Some error');
       clearMessages();
 
@@ -131,7 +129,7 @@ describe('Chat Store', () => {
   describe('setLoading', () => {
     it('should set loading state to true', () => {
       const { setLoading } = useChatStore.getState();
-      
+
       setLoading(true);
 
       const state = useChatStore.getState();
@@ -140,7 +138,7 @@ describe('Chat Store', () => {
 
     it('should set loading state to false', () => {
       const { setLoading } = useChatStore.getState();
-      
+
       setLoading(true);
       setLoading(false);
 
@@ -152,7 +150,7 @@ describe('Chat Store', () => {
   describe('setError', () => {
     it('should set error message', () => {
       const { setError } = useChatStore.getState();
-      
+
       setError('Test error');
 
       const state = useChatStore.getState();
@@ -161,7 +159,7 @@ describe('Chat Store', () => {
 
     it('should clear error message', () => {
       const { setError } = useChatStore.getState();
-      
+
       setError('Test error');
       setError(null);
 
@@ -173,7 +171,7 @@ describe('Chat Store', () => {
   describe('setOpen', () => {
     it('should set modal open state to true', () => {
       const { setOpen } = useChatStore.getState();
-      
+
       setOpen(true);
 
       const state = useChatStore.getState();
@@ -182,7 +180,7 @@ describe('Chat Store', () => {
 
     it('should set modal open state to false', () => {
       const { setOpen } = useChatStore.getState();
-      
+
       setOpen(true);
       setOpen(false);
 
@@ -193,13 +191,12 @@ describe('Chat Store', () => {
 
   describe('sendMessage', () => {
     beforeEach(() => {
-      vi.mocked(geminiAIService.isConfigured).mockReturnValue(true);
-      vi.mocked(geminiAIService.sendMessage).mockResolvedValue('AI response');
+      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockResolvedValue('AI response');
     });
 
     it('should add user message immediately', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       const promise = sendMessage('Hello');
 
       // Check state before promise resolves
@@ -213,10 +210,10 @@ describe('Chat Store', () => {
 
     it('should set loading state while waiting for response', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       let loadingDuringCall = false;
-      
-      vi.mocked(geminiAIService.sendMessage).mockImplementation(async () => {
+
+      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockImplementation(async () => {
         loadingDuringCall = useChatStore.getState().isLoading;
         return 'AI response';
       });
@@ -229,7 +226,7 @@ describe('Chat Store', () => {
 
     it('should add AI response after receiving it', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       await sendMessage('Hello');
 
       const state = useChatStore.getState();
@@ -238,19 +235,17 @@ describe('Chat Store', () => {
       expect(state.messages[1].content).toBe('AI response');
     });
 
-    it('should initialize service if not configured', async () => {
-      vi.mocked(geminiAIService.isConfigured).mockReturnValue(false);
-      
+    it('should call vagabond AI service', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       await sendMessage('Hello');
 
-      expect(geminiAIService.initialize).toHaveBeenCalled();
+      expect(bookOnceAIService.answerQuestionWithHistory).toHaveBeenCalled();
     });
 
     it('should pass conversation history to service', async () => {
       const { sendMessage, addMessage } = useChatStore.getState();
-      
+
       // Add some existing messages
       const existingMessage: ChatMessage = {
         id: '1',
@@ -262,50 +257,50 @@ describe('Chat Store', () => {
 
       await sendMessage('New message');
 
-      expect(geminiAIService.sendMessage).toHaveBeenCalledWith(
+      expect(bookOnceAIService.answerQuestionWithHistory).toHaveBeenCalledWith(
         'New message',
-        expect.arrayContaining([
-          expect.objectContaining({ content: 'Previous message' }),
-        ])
+        expect.any(Object),
+        expect.arrayContaining([expect.objectContaining({ content: 'Previous message' })])
       );
     });
 
     it('should handle empty message', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       await sendMessage('');
 
       const state = useChatStore.getState();
       expect(state.error).toBe('Message cannot be empty');
       expect(state.messages).toHaveLength(0);
-      expect(geminiAIService.sendMessage).not.toHaveBeenCalled();
+      expect(bookOnceAIService.answerQuestionWithHistory).not.toHaveBeenCalled();
     });
 
     it('should handle whitespace-only message', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       await sendMessage('   ');
 
       const state = useChatStore.getState();
       expect(state.error).toBe('Message cannot be empty');
       expect(state.messages).toHaveLength(0);
-      expect(geminiAIService.sendMessage).not.toHaveBeenCalled();
+      expect(bookOnceAIService.answerQuestionWithHistory).not.toHaveBeenCalled();
     });
 
     it('should trim message content', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       await sendMessage('  Hello  ');
 
-      expect(geminiAIService.sendMessage).toHaveBeenCalledWith(
+      expect(bookOnceAIService.answerQuestionWithHistory).toHaveBeenCalledWith(
         'Hello',
+        expect.any(Object),
         expect.any(Array)
       );
     });
 
     it('should clear previous error before sending', async () => {
       const { sendMessage, setError } = useChatStore.getState();
-      
+
       setError('Previous error');
       await sendMessage('Hello');
 
@@ -315,8 +310,8 @@ describe('Chat Store', () => {
 
     it('should handle API errors', async () => {
       const { sendMessage } = useChatStore.getState();
-      
-      vi.mocked(geminiAIService.sendMessage).mockRejectedValue(
+
+      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockRejectedValue(
         new Error('API error')
       );
 
@@ -330,19 +325,19 @@ describe('Chat Store', () => {
 
     it('should handle errors without message', async () => {
       const { sendMessage } = useChatStore.getState();
-      
-      vi.mocked(geminiAIService.sendMessage).mockRejectedValue({});
+
+      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockRejectedValue({});
 
       await sendMessage('Hello');
 
       const state = useChatStore.getState();
-      expect(state.error).toBe('Something went wrong. Please try again.');
+      expect(state.error).toContain('Unable to connect');
     });
 
     it('should clear loading state after error', async () => {
       const { sendMessage } = useChatStore.getState();
-      
-      vi.mocked(geminiAIService.sendMessage).mockRejectedValue(
+
+      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockRejectedValue(
         new Error('API error')
       );
 
@@ -354,7 +349,7 @@ describe('Chat Store', () => {
 
     it('should generate unique IDs for messages', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       await sendMessage('Hello');
 
       const state = useChatStore.getState();
@@ -365,26 +360,22 @@ describe('Chat Store', () => {
 
     it('should set timestamps for messages', async () => {
       const { sendMessage } = useChatStore.getState();
-      
+
       const beforeTime = new Date();
       await sendMessage('Hello');
       const afterTime = new Date();
 
       const state = useChatStore.getState();
       expect(state.messages[0].timestamp).toBeInstanceOf(Date);
-      expect(state.messages[0].timestamp.getTime()).toBeGreaterThanOrEqual(
-        beforeTime.getTime()
-      );
-      expect(state.messages[0].timestamp.getTime()).toBeLessThanOrEqual(
-        afterTime.getTime()
-      );
+      expect(state.messages[0].timestamp.getTime()).toBeGreaterThanOrEqual(beforeTime.getTime());
+      expect(state.messages[0].timestamp.getTime()).toBeLessThanOrEqual(afterTime.getTime());
     });
   });
 
   describe('state persistence', () => {
     it('should maintain messages across multiple actions', () => {
       const { addMessage, setLoading, setError } = useChatStore.getState();
-      
+
       const message: ChatMessage = {
         id: '1',
         role: 'user',
@@ -406,7 +397,7 @@ describe('Chat Store', () => {
   describe('selectors', () => {
     it('should select messages', async () => {
       const { addMessage } = useChatStore.getState();
-      
+
       const message: ChatMessage = {
         id: '1',
         role: 'user',
@@ -424,7 +415,7 @@ describe('Chat Store', () => {
 
     it('should select loading state', async () => {
       const { setLoading } = useChatStore.getState();
-      
+
       setLoading(true);
 
       const { selectIsLoading } = await import('../chatStore');
@@ -434,7 +425,7 @@ describe('Chat Store', () => {
 
     it('should select error', async () => {
       const { setError } = useChatStore.getState();
-      
+
       setError('Test error');
 
       const { selectError } = await import('../chatStore');
@@ -444,7 +435,7 @@ describe('Chat Store', () => {
 
     it('should select open state', async () => {
       const { setOpen } = useChatStore.getState();
-      
+
       setOpen(true);
 
       const { selectIsOpen } = await import('../chatStore');
@@ -454,7 +445,7 @@ describe('Chat Store', () => {
 
     it('should select last message', async () => {
       const { addMessage } = useChatStore.getState();
-      
+
       const message1: ChatMessage = {
         id: '1',
         role: 'user',

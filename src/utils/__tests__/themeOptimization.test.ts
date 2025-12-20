@@ -74,10 +74,15 @@ describe('Theme Optimization Utilities', () => {
   describe('useThemeClasses', () => {
     it('should return memoized theme classes', () => {
       const { result, rerender } = renderHook(
-        ({ resolvedTheme, isThemeSwitching }: { resolvedTheme: 'light' | 'dark' | 'high-contrast', isThemeSwitching: boolean }) => 
-          useThemeClasses(resolvedTheme, isThemeSwitching),
+        ({
+          resolvedTheme,
+          isThemeSwitching,
+        }: {
+          resolvedTheme: 'light' | 'dark' | 'high-contrast';
+          isThemeSwitching: boolean;
+        }) => useThemeClasses(resolvedTheme, isThemeSwitching),
         {
-          initialProps: { resolvedTheme: 'light' as const, isThemeSwitching: false }
+          initialProps: { resolvedTheme: 'light' as const, isThemeSwitching: false },
         }
       );
 

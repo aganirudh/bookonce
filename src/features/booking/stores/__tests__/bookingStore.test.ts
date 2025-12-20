@@ -61,9 +61,9 @@ describe('Booking Store', () => {
   describe('startBooking', () => {
     it('should initialize a new booking with hotel', () => {
       const { startBooking, currentBooking } = useBookingStore.getState();
-      
+
       startBooking(mockHotel);
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking).not.toBeNull();
       expect(state.currentBooking?.hotel).toEqual(mockHotel);
@@ -73,14 +73,14 @@ describe('Booking Store', () => {
 
     it('should reset previous booking when starting new one', () => {
       const { startBooking, setDates } = useBookingStore.getState();
-      
+
       // Start first booking and set dates
       startBooking(mockHotel);
       setDates(new Date('2024-01-01'), new Date('2024-01-05'));
-      
+
       // Start new booking
       startBooking({ ...mockHotel, id: 2 });
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.hotel.id).toBe(2);
       expect(state.currentBooking?.checkInDate).toBeNull();
@@ -90,19 +90,19 @@ describe('Booking Store', () => {
   describe('updateBookingStep', () => {
     it('should update the current step', () => {
       const { startBooking, updateBookingStep } = useBookingStore.getState();
-      
+
       startBooking(mockHotel);
       updateBookingStep('rooms');
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.step).toBe('rooms');
     });
 
     it('should not update step if no current booking', () => {
       const { updateBookingStep } = useBookingStore.getState();
-      
+
       updateBookingStep('rooms');
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking).toBeNull();
     });
@@ -113,10 +113,10 @@ describe('Booking Store', () => {
       const { startBooking, setDates } = useBookingStore.getState();
       const checkIn = new Date('2024-01-01');
       const checkOut = new Date('2024-01-05');
-      
+
       startBooking(mockHotel);
       setDates(checkIn, checkOut);
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.checkInDate).toEqual(checkIn);
       expect(state.currentBooking?.checkOutDate).toEqual(checkOut);
@@ -124,14 +124,14 @@ describe('Booking Store', () => {
 
     it('should clear room selection and pricing when dates change', () => {
       const { startBooking, setDates, selectRoom } = useBookingStore.getState();
-      
+
       startBooking(mockHotel);
       setDates(new Date('2024-01-01'), new Date('2024-01-05'));
       selectRoom(mockRoom);
-      
+
       // Change dates
       setDates(new Date('2024-02-01'), new Date('2024-02-05'));
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.selectedRoom).toBeNull();
       expect(state.currentBooking?.pricing).toBeNull();
@@ -141,10 +141,10 @@ describe('Booking Store', () => {
   describe('selectRoom', () => {
     it('should select a room', () => {
       const { startBooking, selectRoom } = useBookingStore.getState();
-      
+
       startBooking(mockHotel);
       selectRoom(mockRoom);
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.selectedRoom).toEqual(mockRoom);
     });
@@ -152,11 +152,11 @@ describe('Booking Store', () => {
     it('should replace previously selected room', () => {
       const { startBooking, selectRoom } = useBookingStore.getState();
       const anotherRoom = { ...mockRoom, id: 'room-2', name: 'Suite' };
-      
+
       startBooking(mockHotel);
       selectRoom(mockRoom);
       selectRoom(anotherRoom);
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.selectedRoom?.id).toBe('room-2');
     });
@@ -165,21 +165,21 @@ describe('Booking Store', () => {
   describe('setGuestInfo', () => {
     it('should set guest information', () => {
       const { startBooking, setGuestInfo } = useBookingStore.getState();
-      
+
       startBooking(mockHotel);
       setGuestInfo(mockGuestInfo);
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.guestInfo).toEqual(mockGuestInfo);
     });
 
     it('should merge guest information updates', () => {
       const { startBooking, setGuestInfo } = useBookingStore.getState();
-      
+
       startBooking(mockHotel);
       setGuestInfo({ firstName: 'John' });
       setGuestInfo({ lastName: 'Doe' });
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking?.guestInfo.firstName).toBe('John');
       expect(state.currentBooking?.guestInfo.lastName).toBe('Doe');
@@ -189,11 +189,11 @@ describe('Booking Store', () => {
   describe('cancelCurrentBooking', () => {
     it('should clear current booking', () => {
       const { startBooking, setDates, cancelCurrentBooking } = useBookingStore.getState();
-      
+
       startBooking(mockHotel);
       setDates(new Date('2024-01-01'), new Date('2024-01-05'));
       cancelCurrentBooking();
-      
+
       const state = useBookingStore.getState();
       expect(state.currentBooking).toBeNull();
       expect(state.error).toBeNull();
@@ -203,19 +203,19 @@ describe('Booking Store', () => {
   describe('error handling', () => {
     it('should set error message', () => {
       const { setError } = useBookingStore.getState();
-      
+
       setError('Test error');
-      
+
       const state = useBookingStore.getState();
       expect(state.error).toBe('Test error');
     });
 
     it('should clear error message', () => {
       const { setError, clearError } = useBookingStore.getState();
-      
+
       setError('Test error');
       clearError();
-      
+
       const state = useBookingStore.getState();
       expect(state.error).toBeNull();
     });
@@ -224,10 +224,10 @@ describe('Booking Store', () => {
   describe('loading state', () => {
     it('should set loading state', () => {
       const { setLoading } = useBookingStore.getState();
-      
+
       setLoading(true);
       expect(useBookingStore.getState().isLoading).toBe(true);
-      
+
       setLoading(false);
       expect(useBookingStore.getState().isLoading).toBe(false);
     });
@@ -258,9 +258,9 @@ describe('Booking Store', () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      
+
       addToHistory(mockBooking);
-      
+
       const state = useBookingStore.getState();
       expect(state.bookingHistory).toHaveLength(1);
       expect(state.bookingHistory[0]).toEqual(mockBooking);
@@ -291,10 +291,10 @@ describe('Booking Store', () => {
         updatedAt: new Date().toISOString(),
       };
       const booking2 = { ...booking1, bookingId: 'booking-2' };
-      
+
       addToHistory(booking1);
       addToHistory(booking2);
-      
+
       const state = useBookingStore.getState();
       expect(state.bookingHistory[0].bookingId).toBe('booking-2');
       expect(state.bookingHistory[1].bookingId).toBe('booking-1');

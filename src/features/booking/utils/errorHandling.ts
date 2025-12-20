@@ -47,7 +47,7 @@ export const determineErrorType = (error: any): BookingErrorType => {
 
   // HTTP status code based detection
   const statusCode = error.response?.status || error.statusCode;
-  
+
   if (statusCode) {
     if (statusCode === 400) return 'VALIDATION_ERROR';
     if (statusCode === 402 || statusCode === 403) return 'PAYMENT_DECLINED';
@@ -74,12 +74,12 @@ export const isRetryableError = (error: any): boolean => {
   }
 
   const statusCode = error.response?.status || error.statusCode;
-  
+
   // Retry on network errors and 5xx server errors
   if (!statusCode) return true; // Network error
   if (statusCode >= 500 && statusCode < 600) return true;
   if (statusCode === 408 || statusCode === 429) return true; // Timeout or rate limit
-  
+
   return false;
 };
 
@@ -100,7 +100,7 @@ export const getUserErrorMessage = (errorType: BookingErrorType): string => {
 export const createBookingError = (error: any): BookingError => {
   const type = determineErrorType(error);
   const message = getUserErrorMessage(type);
-  
+
   return {
     type,
     message,
@@ -141,10 +141,10 @@ const calculateBackoffDelay = (
 ): number => {
   const exponentialDelay = initialDelay * Math.pow(multiplier, attempt);
   const cappedDelay = Math.min(exponentialDelay, maxDelay);
-  
+
   // Add jitter (random variation) to prevent thundering herd
   const jitter = cappedDelay * 0.1 * Math.random();
-  
+
   return Math.floor(cappedDelay + jitter);
 };
 
@@ -230,11 +230,7 @@ export interface ErrorLogContext {
 /**
  * Log error with context for debugging and monitoring
  */
-export const logError = (
-  message: string,
-  error: any,
-  context?: ErrorLogContext
-): void => {
+export const logError = (message: string, error: any, context?: ErrorLogContext): void => {
   const errorInfo = {
     message,
     error: {
@@ -266,10 +262,7 @@ export const logError = (
 /**
  * Log warning (non-critical issues)
  */
-export const logWarning = (
-  message: string,
-  context?: ErrorLogContext
-): void => {
+export const logWarning = (message: string, context?: ErrorLogContext): void => {
   const warningInfo = {
     message,
     context,
@@ -305,9 +298,7 @@ export const withErrorHandling = <T extends any[], R>(
 /**
  * Create a safe version of a function that returns null on error instead of throwing
  */
-export const makeSafe = <T extends any[], R>(
-  fn: (...args: T) => Promise<R>
-) => {
+export const makeSafe = <T extends any[], R>(fn: (...args: T) => Promise<R>) => {
   return async (...args: T): Promise<R | null> => {
     try {
       return await fn(...args);

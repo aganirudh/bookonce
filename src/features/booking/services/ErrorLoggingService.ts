@@ -1,6 +1,6 @@
 /**
  * Error Logging Service
- * 
+ *
  * Provides centralized error logging with context for debugging and monitoring.
  * In production, this would integrate with Sentry or similar error tracking service.
  */
@@ -105,7 +105,11 @@ class ErrorLoggingService {
   /**
    * Capture message (non-error logging)
    */
-  captureMessage(message: string, context?: ErrorContext, severity: ErrorLogEntry['severity'] = 'low'): void {
+  captureMessage(
+    message: string,
+    context?: ErrorContext,
+    severity: ErrorLogEntry['severity'] = 'low'
+  ): void {
     const error = new Error(message);
     this.logError(error, context || {}, severity);
   }
@@ -256,7 +260,7 @@ class ErrorLoggingService {
       byStep: {} as Record<string, number>,
     };
 
-    this.errors.forEach((entry) => {
+    this.errors.forEach(entry => {
       // Count by component
       if (entry.context.component) {
         stats.byComponent[entry.context.component] =

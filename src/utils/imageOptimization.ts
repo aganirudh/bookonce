@@ -8,7 +8,7 @@
  */
 export const supportsWebP = (): boolean => {
   if (typeof window === 'undefined') return false;
-  
+
   const canvas = document.createElement('canvas');
   if (canvas.getContext && canvas.getContext('2d')) {
     return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
@@ -22,7 +22,7 @@ export const supportsWebP = (): boolean => {
  * @param fallbackUrl - Fallback URL if WebP is not supported
  */
 export const getOptimizedImageUrl = (imageUrl: string, fallbackUrl?: string): string => {
-  if (supportsWebP() && imageUrl.includes('.jpg') || imageUrl.includes('.png')) {
+  if ((supportsWebP() && imageUrl.includes('.jpg')) || imageUrl.includes('.png')) {
     // In production, this would convert to WebP
     // For now, return original URL
     return imageUrl;
@@ -38,7 +38,7 @@ export const getOptimizedImageUrl = (imageUrl: string, fallbackUrl?: string): st
 export const lazyLoadImage = (imageElement: HTMLImageElement, src: string): void => {
   if ('IntersectionObserver' in window) {
     const imageObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         if (entry.isIntersecting) {
           const img = entry.target as HTMLImageElement;
           img.src = src;
@@ -60,7 +60,7 @@ export const lazyLoadImage = (imageElement: HTMLImageElement, src: string): void
  * @param imageUrls - Array of image URLs to preload
  */
 export const preloadImages = (imageUrls: string[]): void => {
-  imageUrls.forEach((url) => {
+  imageUrls.forEach(url => {
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
@@ -76,7 +76,7 @@ export const preloadImages = (imageUrls: string[]): void => {
  */
 export const generateSrcSet = (baseUrl: string, sizes: number[]): string => {
   return sizes
-    .map((size) => {
+    .map(size => {
       // In production, this would generate different sized images
       return `${baseUrl} ${size}w`;
     })
@@ -150,7 +150,7 @@ export const isFormatSupported = async (format: string): Promise<boolean> => {
   canvas.height = 1;
 
   try {
-    const blob = await new Promise<Blob | null>((resolve) => {
+    const blob = await new Promise<Blob | null>(resolve => {
       canvas.toBlob(resolve, format);
     });
     return blob !== null;

@@ -62,6 +62,28 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         glass: "hsl(var(--glass))",
+        "glass-border": "hsl(var(--glass-border))",
+        "glass-strong": "hsl(var(--glass-strong))",
+        "hover-overlay": "hsl(var(--hover-overlay))",
+        "active-overlay": "hsl(var(--active-overlay))",
+        "focus-ring": "hsl(var(--focus-ring))",
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
+        "navbar-bg": "hsl(var(--navbar-bg))",
+        "modal-backdrop": "hsl(var(--modal-backdrop))",
+        "tooltip-bg": "hsl(var(--tooltip-bg))",
+        "dropdown-bg": "hsl(var(--dropdown-bg))",
+        "input-focus": "hsl(var(--input-focus))",
         indigo: {
           50: '#eef2ff',
           100: '#e0e7ff',
@@ -87,6 +109,12 @@ export default {
           800: '#1e293b',
           900: '#0f172a',
           950: '#020617',
+        },
+        'safety-mesh': {
+          'millbrook': '#613f33',
+          'my-pink': '#d69d84',
+          'rock-blue': '#9fb9c8',
+          'amethyst-smoke': '#948ca6',
         },
       },
       borderRadius: {
@@ -164,5 +192,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    // Remove or comment out this line:
+    // require('@tailwindcss/line-clamp'),
+  ],
 } satisfies Config;

@@ -23,7 +23,7 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     service = new NotificationService('/api/notifications');
-    
+
     // Reset mocks
     vi.clearAllMocks();
     (global.fetch as any).mockResolvedValue({
@@ -131,10 +131,10 @@ describe('NotificationService', () => {
 
       // Should call fetch twice: once for email, once for push
       expect(global.fetch).toHaveBeenCalledTimes(2);
-      
+
       const pushCall = (global.fetch as any).mock.calls[1];
       expect(pushCall[0]).toBe('/api/notifications/push');
-      
+
       const pushBody = JSON.parse(pushCall[1].body);
       expect(pushBody.title).toBe('Booking Confirmed');
       expect(pushBody.body).toContain('Test Hotel');
@@ -157,7 +157,7 @@ describe('NotificationService', () => {
       await service.sendModificationConfirmation(mockBooking, 'test@example.com');
 
       expect(global.fetch).toHaveBeenCalled();
-      
+
       const callArgs = (global.fetch as any).mock.calls[0][1];
       const body = JSON.parse(callArgs.body);
       expect(body.subject).toContain('Booking Modified');
@@ -176,11 +176,11 @@ describe('NotificationService', () => {
   describe('sendCancellationConfirmation', () => {
     it('should send cancellation confirmation email with refund amount', async () => {
       const refundAmount = 1000;
-      
+
       await service.sendCancellationConfirmation(mockBooking, refundAmount, 'test@example.com');
 
       expect(global.fetch).toHaveBeenCalled();
-      
+
       const callArgs = (global.fetch as any).mock.calls[0][1];
       const body = JSON.parse(callArgs.body);
       expect(body.subject).toContain('Booking Cancelled');
@@ -202,7 +202,7 @@ describe('NotificationService', () => {
       await service.sendCheckInReminder(mockBooking, 'test@example.com');
 
       expect(global.fetch).toHaveBeenCalled();
-      
+
       const callArgs = (global.fetch as any).mock.calls[0][1];
       const body = JSON.parse(callArgs.body);
       expect(body.subject).toContain('Check-in Reminder');
@@ -229,7 +229,7 @@ describe('NotificationService', () => {
       );
 
       expect(global.fetch).toHaveBeenCalled();
-      
+
       const callArgs = (global.fetch as any).mock.calls[0][1];
       const body = JSON.parse(callArgs.body);
       expect(body.subject).toContain('Booking Status Update');
@@ -280,7 +280,7 @@ describe('NotificationService', () => {
       );
 
       expect(global.fetch).toHaveBeenCalled();
-      
+
       const callArgs = (global.fetch as any).mock.calls[0][1];
       const body = JSON.parse(callArgs.body);
       expect(body.subject).toContain('URGENT');
@@ -290,15 +290,10 @@ describe('NotificationService', () => {
     });
 
     it('should send notification without alternatives', async () => {
-      await service.sendHotelCancellation(
-        mockBooking,
-        'Maintenance',
-        [],
-        'test@example.com'
-      );
+      await service.sendHotelCancellation(mockBooking, 'Maintenance', [], 'test@example.com');
 
       expect(global.fetch).toHaveBeenCalled();
-      
+
       const callArgs = (global.fetch as any).mock.calls[0][1];
       const body = JSON.parse(callArgs.body);
       expect(body.html).toContain('Maintenance');
@@ -308,12 +303,7 @@ describe('NotificationService', () => {
       vi.mocked(notificationPreferences.isEmailNotificationEnabled).mockReturnValue(false);
       vi.mocked(notificationPreferences.isPushNotificationEnabled).mockReturnValue(false);
 
-      await service.sendHotelCancellation(
-        mockBooking,
-        'Maintenance',
-        [],
-        'test@example.com'
-      );
+      await service.sendHotelCancellation(mockBooking, 'Maintenance', [], 'test@example.com');
 
       expect(global.fetch).not.toHaveBeenCalled();
     });
@@ -321,12 +311,7 @@ describe('NotificationService', () => {
 
   describe('sendPushNotification', () => {
     it('should send push notification', async () => {
-      await service.sendPushNotification(
-        'user-123',
-        'Test Title',
-        'Test Body',
-        { key: 'value' }
-      );
+      await service.sendPushNotification('user-123', 'Test Title', 'Test Body', { key: 'value' });
 
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/notifications/push',

@@ -165,7 +165,7 @@ describe('CreateAccountDialog', () => {
   it('should close dialog after successful registration', async () => {
     const user = userEvent.setup();
     mockRegister.mockResolvedValue(undefined);
-    
+
     renderDialog();
 
     const passwordInput = screen.getByLabelText('Password');
@@ -181,8 +181,11 @@ describe('CreateAccountDialog', () => {
     });
 
     // Wait for auto-close timeout
-    await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(mockOnClose).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
   });
 });

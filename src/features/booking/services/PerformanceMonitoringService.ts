@@ -1,6 +1,6 @@
 /**
  * Performance Monitoring Service
- * 
+ *
  * Tracks and monitors performance metrics for the booking system.
  * Monitors API response times, cache hit rates, booking completion times, and payment success rates.
  */
@@ -59,7 +59,7 @@ class PerformanceMonitoringService {
    */
   initialize(): void {
     console.log('[PerformanceMonitoring] Service initialized');
-    
+
     // Set up performance observer for web vitals
     if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
       this.observeWebVitals();
@@ -251,7 +251,7 @@ class PerformanceMonitoringService {
    */
   startTimer(name: string): () => number {
     const startTime = performance.now();
-    
+
     return () => {
       const duration = performance.now() - startTime;
       return duration;
@@ -281,7 +281,7 @@ class PerformanceMonitoringService {
    */
   getAverageApiResponseTime(endpoint?: string): number {
     let relevantMetrics = this.apiMetrics;
-    
+
     if (endpoint) {
       relevantMetrics = this.apiMetrics.filter(m => m.endpoint === endpoint);
     }
@@ -385,10 +385,10 @@ class PerformanceMonitoringService {
   private observeWebVitals(): void {
     // Largest Contentful Paint (LCP)
     try {
-      const lcpObserver = new PerformanceObserver((list) => {
+      const lcpObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
-        
+
         this.metrics.push({
           name: 'lcp',
           value: lastEntry.startTime,
@@ -407,7 +407,7 @@ class PerformanceMonitoringService {
 
     // First Input Delay (FID)
     try {
-      const fidObserver = new PerformanceObserver((list) => {
+      const fidObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
         entries.forEach((entry: any) => {
           this.metrics.push({
@@ -418,7 +418,10 @@ class PerformanceMonitoringService {
           });
 
           if (import.meta.env.DEV) {
-            console.log('[PerformanceMonitoring] FID:', `${(entry.processingStart - entry.startTime).toFixed(2)}ms`);
+            console.log(
+              '[PerformanceMonitoring] FID:',
+              `${(entry.processingStart - entry.startTime).toFixed(2)}ms`
+            );
           }
         });
       });
@@ -430,7 +433,7 @@ class PerformanceMonitoringService {
     // Cumulative Layout Shift (CLS)
     try {
       let clsValue = 0;
-      const clsObserver = new PerformanceObserver((list) => {
+      const clsObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
         entries.forEach((entry: any) => {
           if (!entry.hadRecentInput) {

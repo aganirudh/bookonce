@@ -51,15 +51,17 @@ export const detectBrowserSupport = (): BrowserSupport => {
   try {
     const testElement = document.createElement('div');
     testElement.style.setProperty('--test-prop', 'test-value');
-    support.cssCustomProperties = testElement.style.getPropertyValue('--test-prop') === 'test-value';
+    support.cssCustomProperties =
+      testElement.style.getPropertyValue('--test-prop') === 'test-value';
   } catch {
     support.cssCustomProperties = false;
   }
 
   // Test matchMedia
   try {
-    support.matchMedia = typeof window.matchMedia === 'function' && 
-                        window.matchMedia('(prefers-color-scheme: dark)') !== null;
+    support.matchMedia =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)') !== null;
   } catch {
     support.matchMedia = false;
   }
@@ -130,7 +132,7 @@ export const applyFallbackStyles = (theme: ResolvedTheme): void => {
   if (typeof window === 'undefined') return;
 
   const support = detectBrowserSupport();
-  
+
   if (support.cssCustomProperties) {
     // Browser supports CSS custom properties, no fallback needed
     return;
@@ -140,19 +142,19 @@ export const applyFallbackStyles = (theme: ResolvedTheme): void => {
   const elements = document.querySelectorAll('*');
 
   // Apply fallback styles directly to elements
-  elements.forEach((element) => {
+  elements.forEach(element => {
     const htmlElement = element as HTMLElement;
-    
+
     // Apply background colors
     if (htmlElement.style.backgroundColor || htmlElement.classList.contains('bg-background')) {
       htmlElement.style.backgroundColor = themeConfig.backgroundColor;
     }
-    
+
     // Apply text colors
     if (htmlElement.style.color || htmlElement.classList.contains('text-foreground')) {
       htmlElement.style.color = themeConfig.color;
     }
-    
+
     // Apply border colors
     if (htmlElement.style.borderColor || htmlElement.classList.contains('border')) {
       htmlElement.style.borderColor = themeConfig.borderColor;
@@ -167,7 +169,7 @@ export const getFallbackSystemTheme = (): ResolvedTheme => {
   if (typeof window === 'undefined') return 'light';
 
   const support = detectBrowserSupport();
-  
+
   if (support.matchMedia) {
     // Browser supports matchMedia, use normal detection
     try {
@@ -180,7 +182,7 @@ export const getFallbackSystemTheme = (): ResolvedTheme => {
   // Fallback: check for common dark mode indicators
   const hour = new Date().getHours();
   const isDarkTime = hour < 6 || hour > 18;
-  
+
   // Use time-based heuristic as fallback
   return isDarkTime ? 'dark' : 'light';
 };
@@ -210,7 +212,7 @@ export class FallbackStorage {
       const name = key + '=';
       const decodedCookie = decodeURIComponent(document.cookie);
       const cookieArray = decodedCookie.split(';');
-      
+
       for (let cookie of cookieArray) {
         while (cookie.charAt(0) === ' ') {
           cookie = cookie.substring(1);
@@ -222,7 +224,7 @@ export class FallbackStorage {
     } catch {
       // Cookies also not available
     }
-    
+
     return null;
   }
 
@@ -262,7 +264,7 @@ export class FallbackStorage {
  */
 export const applyFallbackThemeClass = (element: Element, theme: ResolvedTheme): void => {
   const support = detectBrowserSupport();
-  
+
   if (support.classList) {
     // Browser supports classList, use normal method
     element.classList.remove('light', 'dark', 'high-contrast');
@@ -274,13 +276,13 @@ export const applyFallbackThemeClass = (element: Element, theme: ResolvedTheme):
   try {
     const htmlElement = element as HTMLElement;
     let className = htmlElement.className || '';
-    
+
     // Remove existing theme classes
     className = className.replace(/\b(light|dark|high-contrast)\b/g, '').trim();
-    
+
     // Add new theme class
     className = className ? `${className} ${theme}` : theme;
-    
+
     htmlElement.className = className;
   } catch (error) {
     console.warn('Failed to apply theme class:', error);
@@ -292,7 +294,7 @@ export const applyFallbackThemeClass = (element: Element, theme: ResolvedTheme):
  */
 export const fallbackRequestAnimationFrame = (callback: () => void): void => {
   const support = detectBrowserSupport();
-  
+
   if (support.requestAnimationFrame) {
     requestAnimationFrame(callback);
   } else {
@@ -312,24 +314,24 @@ export class ThemeErrorRecovery {
 
   static handleError(error: Error, operation: string, fallback?: () => void): void {
     const now = Date.now();
-    
+
     // Reset error count if enough time has passed
     if (now - this.lastErrorTime > this.errorCooldown) {
       this.errorCount = 0;
     }
-    
+
     this.errorCount++;
     this.lastErrorTime = now;
-    
+
     console.warn(`Theme operation '${operation}' failed:`, error.message);
-    
+
     // If too many errors, disable theme switching temporarily
     if (this.errorCount >= this.maxErrors) {
       console.error('Too many theme errors, disabling theme switching temporarily');
       this.disableThemeSwitching();
       return;
     }
-    
+
     // Execute fallback if provided
     if (fallback) {
       try {
@@ -344,7 +346,7 @@ export class ThemeErrorRecovery {
     // Add a temporary class to indicate theme switching is disabled
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme-disabled', 'true');
-      
+
       // Re-enable after cooldown period
       setTimeout(() => {
         document.documentElement.removeAttribute('data-theme-disabled');
@@ -372,29 +374,29 @@ export class ThemeErrorRecovery {
  */
 export const initializeThemeFallbacks = (): void => {
   const support = detectBrowserSupport();
-  
+
   // Log browser support status
   console.log('Theme system browser support:', support);
-  
+
   // Apply necessary polyfills or fallbacks
   if (!support.cssCustomProperties) {
     console.warn('CSS Custom Properties not supported, using fallback styles');
     // Apply initial fallback theme
     applyFallbackStyles('light');
   }
-  
+
   if (!support.matchMedia) {
     console.warn('matchMedia not supported, using fallback system theme detection');
   }
-  
+
   if (!support.localStorage) {
     console.warn('localStorage not supported, using cookie fallback for theme persistence');
   }
-  
+
   if (!support.classList) {
     console.warn('classList not supported, using className manipulation fallback');
   }
-  
+
   if (!support.requestAnimationFrame) {
     console.warn('requestAnimationFrame not supported, using setTimeout fallback');
   }
@@ -410,7 +412,9 @@ export const safeThemeOperation = <T>(
   fallbackOperation?: () => void
 ): T => {
   if (ThemeErrorRecovery.isThemeSwitchingDisabled()) {
-    console.warn(`Theme operation '${operationName}' skipped: theme switching temporarily disabled`);
+    console.warn(
+      `Theme operation '${operationName}' skipped: theme switching temporarily disabled`
+    );
     return fallback;
   }
 

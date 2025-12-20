@@ -1,6 +1,6 @@
 /**
  * AI Advisor Interface Component
- * 
+ *
  * Main container for the comprehensive AI-powered journey advisor
  * Provides intelligent travel advice for all aspects of the journey
  */
@@ -34,7 +34,16 @@ export interface AIAdvisorInterfaceProps {
   departureTime: string;
 }
 
-type PanelType = 'overview' | 'transportation' | 'weather' | 'dining' | 'accommodation' | 'activities' | 'safety' | 'budget' | 'packing';
+type PanelType =
+  | 'overview'
+  | 'transportation'
+  | 'weather'
+  | 'dining'
+  | 'accommodation'
+  | 'activities'
+  | 'safety'
+  | 'budget'
+  | 'packing';
 
 export function AIAdvisorInterface({
   origin,
@@ -55,7 +64,9 @@ export function AIAdvisorInterface({
   const [packingAdvice, setPackingAdvice] = useState<string>('');
   const [budgetAdvice, setBudgetAdvice] = useState<string>('');
   const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [chatMessages, setChatMessages] = useState<
+    Array<{ role: 'user' | 'assistant'; content: string }>
+  >([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const context = {
@@ -137,7 +148,10 @@ export function AIAdvisorInterface({
       setChatMessages(prev => [...prev, { role: 'assistant', content: response }]);
     } catch (error) {
       console.error('Error in chat:', error);
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+      setChatMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' },
+      ]);
     } finally {
       setIsChatLoading(false);
     }
@@ -159,7 +173,7 @@ export function AIAdvisorInterface({
         </div>
       </div>
 
-      <Tabs value={activePanel} onValueChange={(value) => setActivePanel(value as PanelType)}>
+      <Tabs value={activePanel} onValueChange={value => setActivePanel(value as PanelType)}>
         <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
@@ -192,11 +206,22 @@ export function AIAdvisorInterface({
                 <h3 className="font-semibold text-blue-900">Your Journey</h3>
               </div>
               <div className="space-y-2 text-sm">
-                <p><span className="font-medium">From:</span> {origin}</p>
-                <p><span className="font-medium">To:</span> {destination}</p>
-                <p><span className="font-medium">Date:</span> {departureDate}</p>
-                <p><span className="font-medium">Travelers:</span> {travelers}</p>
-                <p><span className="font-medium">Style:</span> {intent === 'urgent' ? '⚡ Urgent' : '🎒 Leisure'}</p>
+                <p>
+                  <span className="font-medium">From:</span> {origin}
+                </p>
+                <p>
+                  <span className="font-medium">To:</span> {destination}
+                </p>
+                <p>
+                  <span className="font-medium">Date:</span> {departureDate}
+                </p>
+                <p>
+                  <span className="font-medium">Travelers:</span> {travelers}
+                </p>
+                <p>
+                  <span className="font-medium">Style:</span>{' '}
+                  {intent === 'urgent' ? '⚡ Urgent' : '🎒 Leisure'}
+                </p>
               </div>
             </Card>
 
@@ -207,7 +232,12 @@ export function AIAdvisorInterface({
               </div>
               <div className="space-y-2 text-sm text-green-800">
                 <p>✓ Route optimized for {intent} travel</p>
-                <p>✓ {visitor === 'first-time' ? 'First-time visitor tips included' : 'Returning visitor recommendations'}</p>
+                <p>
+                  ✓{' '}
+                  {visitor === 'first-time'
+                    ? 'First-time visitor tips included'
+                    : 'Returning visitor recommendations'}
+                </p>
                 <p>✓ Real-time updates enabled</p>
                 <p>✓ Group of {travelers} - special considerations applied</p>
               </div>
@@ -242,7 +272,8 @@ export function AIAdvisorInterface({
 
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-900">
-              <strong>💡 Pro Tip:</strong> Explore each tab to see detailed recommendations for transportation, weather, dining, accommodation, activities, safety, and more!
+              <strong>💡 Pro Tip:</strong> Explore each tab to see detailed recommendations for
+              transportation, weather, dining, accommodation, activities, safety, and more!
             </p>
           </div>
         </TabsContent>
@@ -288,7 +319,9 @@ export function AIAdvisorInterface({
                   <div className="whitespace-pre-wrap text-sm">{diningAdvice}</div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No dining recommendations available.</p>
+                <p className="text-sm text-muted-foreground">
+                  No dining recommendations available.
+                </p>
               )}
             </Card>
 
@@ -385,16 +418,14 @@ export function AIAdvisorInterface({
           <MessageCircle className="h-5 w-5 text-primary" />
           <h3 className="font-semibold">Ask BookOnce AI</h3>
         </div>
-        
+
         {chatMessages.length > 0 && (
           <div className="mb-4 space-y-3 max-h-60 overflow-y-auto">
             {chatMessages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`p-3 rounded-lg ${
-                  msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground ml-8'
-                    : 'bg-muted mr-8'
+                  msg.role === 'user' ? 'bg-primary text-primary-foreground ml-8' : 'bg-muted mr-8'
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -412,7 +443,7 @@ export function AIAdvisorInterface({
           <input
             type="text"
             value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
+            onChange={e => setChatInput(e.target.value)}
             placeholder="Ask me anything about your trip..."
             className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             disabled={isChatLoading}
@@ -433,7 +464,7 @@ export function AIAdvisorInterface({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setChatInput("Any local customs I should know?")}
+            onClick={() => setChatInput('Any local customs I should know?')}
           >
             Local customs?
           </Button>

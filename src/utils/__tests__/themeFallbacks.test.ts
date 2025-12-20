@@ -24,13 +24,13 @@ const mockMatchMedia = vi.fn();
 describe('Theme Fallbacks and Error Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Reset global mocks
     Object.defineProperty(window, 'localStorage', {
       value: mockLocalStorage,
       writable: true,
     });
-    
+
     Object.defineProperty(window, 'matchMedia', {
       value: mockMatchMedia,
       writable: true,
@@ -246,14 +246,11 @@ describe('Theme Fallbacks and Error Handling', () => {
 
     it('should log browser support status', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
+
       initializeThemeFallbacks();
-      
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Theme system browser support:',
-        expect.any(Object)
-      );
-      
+
+      expect(consoleSpy).toHaveBeenCalledWith('Theme system browser support:', expect.any(Object));
+
       consoleSpy.mockRestore();
     });
   });

@@ -1,0 +1,43 @@
+.squares-bg-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.squares-bg-square {
+  position: absolute;
+  border-radius: 6px;
+  filter: blur(6px);
+  transform-origin: center;
+  will-change: transform, opacity;
+  /* subtle float + rotate */
+  animation-name: squares-float;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  mix-blend-mode: screen; /* helps the translucent squares show on dark backgrounds */
+}
+
+@keyframes squares-float {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-120vh) rotate(360deg) scale(0.98);
+    opacity: 0;
+  }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .squares-bg-square {
+    animation: none !important;
+    opacity: 0.06 !important;
+    transform: none !important;
+  }
+}

@@ -24,18 +24,18 @@ describe('GoogleMapsService', () => {
         address: 'Mumbai',
         city: 'Mumbai',
         country: 'India',
-        coordinates: { lat: 19.0760, lng: 72.8777 },
+        coordinates: { lat: 19.076, lng: 72.8777 },
       };
 
       const destination = {
         address: 'Goa',
         city: 'Goa',
         country: 'India',
-        coordinates: { lat: 15.2993, lng: 74.1240 },
+        coordinates: { lat: 15.2993, lng: 74.124 },
       };
 
       const distance = googleMapsService.calculateDistance(origin, destination);
-      
+
       // Distance between Mumbai and Goa is approximately 440-460 km
       expect(distance).toBeGreaterThan(400000); // 400 km
       expect(distance).toBeLessThan(500000); // 500 km
@@ -46,7 +46,7 @@ describe('GoogleMapsService', () => {
         address: 'Mumbai',
         city: 'Mumbai',
         country: 'India',
-        coordinates: { lat: 19.0760, lng: 72.8777 },
+        coordinates: { lat: 19.076, lng: 72.8777 },
       };
 
       const distance = googleMapsService.calculateDistance(location, location);

@@ -25,7 +25,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New service worker available
               console.log('New service worker available. Refresh to update.');
-              
+
               // Optionally notify user
               if (window.confirm('New version available! Reload to update?')) {
                 window.location.reload();
@@ -79,7 +79,7 @@ export const sendMessageToServiceWorker = (message: any): Promise<any> => {
     }
 
     const messageChannel = new MessageChannel();
-    messageChannel.port1.onmessage = (event) => {
+    messageChannel.port1.onmessage = event => {
       if (event.data.error) {
         reject(event.data.error);
       } else {
@@ -97,7 +97,7 @@ export const sendMessageToServiceWorker = (message: any): Promise<any> => {
 export const clearServiceWorkerCache = async (): Promise<void> => {
   if ('caches' in window) {
     const cacheNames = await caches.keys();
-    await Promise.all(cacheNames.map((name) => caches.delete(name)));
+    await Promise.all(cacheNames.map(name => caches.delete(name)));
     console.log('Service worker cache cleared');
   }
 };

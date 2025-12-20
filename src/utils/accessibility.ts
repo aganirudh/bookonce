@@ -12,11 +12,13 @@
  */
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
 }
 
 /**
@@ -30,9 +32,9 @@ function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: n
   const hue2rgb = (p: number, q: number, t: number) => {
     if (t < 0) t += 1;
     if (t > 1) t -= 1;
-    if (t < 1/6) return p + (q - p) * 6 * t;
-    if (t < 1/2) return q;
-    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
     return p;
   };
 
@@ -43,15 +45,15 @@ function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: n
   } else {
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1/3);
+    r = hue2rgb(p, q, h + 1 / 3);
     g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1/3);
+    b = hue2rgb(p, q, h - 1 / 3);
   }
 
   return {
     r: Math.round(r * 255),
     g: Math.round(g * 255),
-    b: Math.round(b * 255)
+    b: Math.round(b * 255),
   };
 }
 
@@ -63,7 +65,7 @@ function getRelativeLuminance(r: number, g: number, b: number): number {
     c = c / 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   });
-  
+
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
 }
 
@@ -76,38 +78,38 @@ export function getContrastRatio(color1: string, color2: string): number {
     if (color.startsWith('#')) {
       return hexToRgb(color);
     }
-    
+
     // Handle HSL colors (e.g., "hsl(215, 25%, 12%)")
     const hslMatch = color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
     if (hslMatch) {
       const [, h, s, l] = hslMatch.map(Number);
       return hslToRgb(h, s, l);
     }
-    
+
     // Handle RGB colors (e.g., "rgb(255, 255, 255)")
     const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
     if (rgbMatch) {
       const [, r, g, b] = rgbMatch.map(Number);
       return { r, g, b };
     }
-    
+
     return null;
   };
 
   const rgb1 = parseColor(color1);
   const rgb2 = parseColor(color2);
-  
+
   if (!rgb1 || !rgb2) {
     console.warn('Invalid color format provided to getContrastRatio');
     return 1;
   }
-  
+
   const lum1 = getRelativeLuminance(rgb1.r, rgb1.g, rgb1.b);
   const lum2 = getRelativeLuminance(rgb2.r, rgb2.g, rgb2.b);
-  
+
   const lighter = Math.max(lum1, lum2);
   const darker = Math.min(lum1, lum2);
-  
+
   return (lighter + 0.05) / (darker + 0.05);
 }
 
@@ -132,16 +134,14 @@ export function meetsWCAGAAA(foreground: string, background: string, isLargeText
  */
 export function getCSSCustomProperty(property: string): string {
   if (typeof window === 'undefined') return '';
-  
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(property)
-    .trim();
-    
+
+  const value = getComputedStyle(document.documentElement).getPropertyValue(property).trim();
+
   // Convert HSL values to full HSL string if needed
   if (value && !value.startsWith('hsl') && !value.startsWith('#') && !value.startsWith('rgb')) {
     return `hsl(${value})`;
   }
-  
+
   return value;
 }
 
@@ -160,7 +160,7 @@ export interface ContrastCheck {
 
 export function validateThemeContrast(): ContrastCheck[] {
   const checks: ContrastCheck[] = [];
-  
+
   const contrastPairs = [
     {
       property: 'Primary text on background',
@@ -193,11 +193,11 @@ export function validateThemeContrast(): ContrastCheck[] {
       background: '--destructive',
     },
   ];
-  
+
   contrastPairs.forEach(({ property, foreground, background }) => {
     const fgColor = getCSSCustomProperty(foreground);
     const bgColor = getCSSCustomProperty(background);
-    
+
     if (fgColor && bgColor) {
       const ratio = getContrastRatio(fgColor, bgColor);
       checks.push({
@@ -210,7 +210,7 @@ export function validateThemeContrast(): ContrastCheck[] {
       });
     }
   });
-  
+
   return checks;
 }
 
@@ -231,7 +231,7 @@ export function getFocusableElements(container: HTMLElement): HTMLElement[] {
     '[tabindex]:not([tabindex="-1"])',
     '[contenteditable="true"]',
   ].join(', ');
-  
+
   return Array.from(container.querySelectorAll(focusableSelectors)) as HTMLElement[];
 }
 
@@ -242,10 +242,10 @@ export function trapFocus(container: HTMLElement): () => void {
   const focusableElements = getFocusableElements(container);
   const firstElement = focusableElements[0];
   const lastElement = focusableElements[focusableElements.length - 1];
-  
+
   const handleTabKey = (e: KeyboardEvent) => {
     if (e.key !== 'Tab') return;
-    
+
     if (e.shiftKey) {
       // Shift + Tab
       if (document.activeElement === firstElement) {
@@ -260,12 +260,12 @@ export function trapFocus(container: HTMLElement): () => void {
       }
     }
   };
-  
+
   container.addEventListener('keydown', handleTabKey);
-  
+
   // Focus the first element
   firstElement?.focus();
-  
+
   // Return cleanup function
   return () => {
     container.removeEventListener('keydown', handleTabKey);
@@ -279,17 +279,20 @@ export function trapFocus(container: HTMLElement): () => void {
 /**
  * Announce message to screen readers
  */
-export function announceToScreenReader(message: string, priority: 'polite' | 'assertive' = 'polite'): void {
+export function announceToScreenReader(
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite'
+): void {
   if (typeof window === 'undefined') return;
-  
+
   const announcement = document.createElement('div');
   announcement.setAttribute('aria-live', priority);
   announcement.setAttribute('aria-atomic', 'true');
   announcement.className = 'sr-only';
   announcement.textContent = message;
-  
+
   document.body.appendChild(announcement);
-  
+
   // Remove after announcement
   setTimeout(() => {
     document.body.removeChild(announcement);
@@ -301,7 +304,7 @@ export function announceToScreenReader(message: string, priority: 'polite' | 'as
  */
 export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch {
@@ -314,7 +317,7 @@ export function prefersReducedMotion(): boolean {
  */
 export function prefersHighContrast(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   try {
     return window.matchMedia('(prefers-contrast: high)').matches;
   } catch {
@@ -340,17 +343,17 @@ export function handleArrowKeyNavigation(
   } = {}
 ): void {
   const { loop = true, horizontal = false } = options;
-  
+
   let newIndex = currentIndex;
-  
+
   switch (event.key) {
     case horizontal ? 'ArrowLeft' : 'ArrowUp':
       event.preventDefault();
-      newIndex = currentIndex > 0 ? currentIndex - 1 : (loop ? items.length - 1 : 0);
+      newIndex = currentIndex > 0 ? currentIndex - 1 : loop ? items.length - 1 : 0;
       break;
     case horizontal ? 'ArrowRight' : 'ArrowDown':
       event.preventDefault();
-      newIndex = currentIndex < items.length - 1 ? currentIndex + 1 : (loop ? 0 : items.length - 1);
+      newIndex = currentIndex < items.length - 1 ? currentIndex + 1 : loop ? 0 : items.length - 1;
       break;
     case 'Home':
       event.preventDefault();
@@ -363,7 +366,7 @@ export function handleArrowKeyNavigation(
     default:
       return;
   }
-  
+
   if (newIndex !== currentIndex) {
     onIndexChange(newIndex);
     items[newIndex]?.focus();
@@ -382,7 +385,7 @@ export function generateAccessibilityId(prefix = 'a11y'): string {
  */
 export function isVisibleToScreenReader(element: HTMLElement): boolean {
   const style = getComputedStyle(element);
-  
+
   return !(
     style.display === 'none' ||
     style.visibility === 'hidden' ||
@@ -401,53 +404,53 @@ export const a11yTest = {
    */
   logContrastRatios(): void {
     if (process.env.NODE_ENV !== 'development') return;
-    
+
     const checks = validateThemeContrast();
     console.group('🎨 Theme Contrast Analysis');
-    
+
     checks.forEach(check => {
       const status = check.meetsAA ? '✅' : '❌';
       const aaa = check.meetsAAA ? ' (AAA ✅)' : ' (AAA ❌)';
       console.log(`${status} ${check.property}: ${check.ratio.toFixed(2)}:1${aaa}`);
     });
-    
+
     console.groupEnd();
   },
-  
+
   /**
    * Check for missing alt text on images
    */
   checkImageAltText(): void {
     if (process.env.NODE_ENV !== 'development') return;
-    
+
     const images = document.querySelectorAll('img');
     const missingAlt: HTMLImageElement[] = [];
-    
+
     images.forEach(img => {
       if (!img.alt && !img.hasAttribute('aria-label') && !img.hasAttribute('aria-labelledby')) {
         missingAlt.push(img);
       }
     });
-    
+
     if (missingAlt.length > 0) {
       console.warn('🖼️ Images missing alt text:', missingAlt);
     }
   },
-  
+
   /**
    * Check for proper heading hierarchy
    */
   checkHeadingHierarchy(): void {
     if (process.env.NODE_ENV !== 'development') return;
-    
+
     const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
     const levels: number[] = [];
-    
+
     headings.forEach(heading => {
       const level = parseInt(heading.tagName.charAt(1));
       levels.push(level);
     });
-    
+
     let hasIssues = false;
     for (let i = 1; i < levels.length; i++) {
       if (levels[i] > levels[i - 1] + 1) {
@@ -455,7 +458,7 @@ export const a11yTest = {
         break;
       }
     }
-    
+
     if (hasIssues) {
       console.warn('📝 Heading hierarchy issues detected:', levels);
     }

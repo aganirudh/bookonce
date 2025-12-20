@@ -38,7 +38,7 @@ describe('Enhanced CSS Variables', () => {
   it('should have enhanced dark mode variables when dark class is applied', () => {
     // Apply dark mode class
     document.documentElement.classList.add('dark');
-    
+
     const testElement = document.getElementById('test-element')!;
     const computedStyle = getComputedStyle(testElement);
 
@@ -58,7 +58,7 @@ describe('Enhanced CSS Variables', () => {
   it('should have high contrast variables when high-contrast class is applied', () => {
     // Apply high contrast class
     document.documentElement.classList.add('high-contrast');
-    
+
     const testElement = document.getElementById('test-element')!;
     const computedStyle = getComputedStyle(testElement);
 

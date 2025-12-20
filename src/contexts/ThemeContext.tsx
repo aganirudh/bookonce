@@ -73,7 +73,7 @@ const DARK_MODE_MEDIA_QUERY = '(prefers-color-scheme: dark)';
  */
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === 'undefined') return 'light';
-  
+
   try {
     // Check for high contrast preference first
     if (window.matchMedia('(prefers-contrast: high)').matches) {
@@ -90,7 +90,7 @@ function getSystemTheme(): ResolvedTheme {
  */
 function getSystemHighContrastPreference(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   try {
     return window.matchMedia('(prefers-contrast: high)').matches;
   } catch {
@@ -103,15 +103,13 @@ function getSystemHighContrastPreference(): boolean {
  */
 function getSystemReducedMotionPreference(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch {
     return false;
   }
 }
-
-
 
 /**
  * Debounce function for performance optimization
@@ -132,13 +130,13 @@ function debounce<T extends (...args: any[]) => void>(
  */
 function loadThemePreference(): Theme {
   if (typeof window === 'undefined') return 'system';
-  
+
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (!stored) return 'system';
-    
+
     const preference: ThemePreference = JSON.parse(stored);
-    
+
     // Validate the stored theme
     if (['light', 'dark', 'system', 'high-contrast'].includes(preference.theme)) {
       return preference.theme;
@@ -146,7 +144,7 @@ function loadThemePreference(): Theme {
   } catch (error) {
     console.warn('Failed to load theme preference:', error);
   }
-  
+
   return 'system';
 }
 
@@ -155,7 +153,7 @@ function loadThemePreference(): Theme {
  */
 function saveThemePreference(theme: Theme): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     const preference: ThemePreference = {
       theme,
@@ -172,24 +170,24 @@ function saveThemePreference(theme: Theme): void {
  */
 function applyTheme(resolvedTheme: ResolvedTheme, systemPrefersReducedMotion: boolean): void {
   if (typeof window === 'undefined') return;
-  
+
   const root = document.documentElement;
-  
+
   // Add theme-switching class to disable transitions temporarily (unless reduced motion is preferred)
   if (!systemPrefersReducedMotion) {
     root.classList.add('theme-switching');
   }
-  
+
   // Remove existing theme classes
   root.classList.remove('light', 'dark', 'high-contrast');
-  
+
   // Apply new theme class
   root.classList.add(resolvedTheme);
-  
+
   // Apply theme classes to body as well for portal elements
   document.body.classList.remove('light', 'dark', 'high-contrast');
   document.body.classList.add(resolvedTheme);
-  
+
   // Update meta theme-color for mobile browsers
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
   if (metaThemeColor) {
@@ -206,19 +204,19 @@ function applyTheme(resolvedTheme: ResolvedTheme, systemPrefersReducedMotion: bo
     }
     metaThemeColor.setAttribute('content', backgroundColor);
   }
-  
+
   // Apply theme to any existing portal containers
   const portalContainers = document.querySelectorAll('[data-radix-portal], [data-portal]');
-  portalContainers.forEach((container) => {
+  portalContainers.forEach(container => {
     container.classList.remove('light', 'dark', 'high-contrast');
     container.classList.add(resolvedTheme);
   });
-  
+
   // Add accessibility attributes
   root.setAttribute('data-theme', resolvedTheme);
   root.setAttribute('data-high-contrast', resolvedTheme === 'high-contrast' ? 'true' : 'false');
   root.setAttribute('data-reduced-motion', systemPrefersReducedMotion ? 'true' : 'false');
-  
+
   // Remove theme-switching class after a brief delay to re-enable transitions
   if (!systemPrefersReducedMotion) {
     requestAnimationFrame(() => {
@@ -236,15 +234,19 @@ function applyTheme(resolvedTheme: ResolvedTheme, systemPrefersReducedMotion: bo
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('system');
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() => getSystemTheme());
-  const [systemPrefersHighContrast, setSystemPrefersHighContrast] = useState<boolean>(() => getSystemHighContrastPreference());
-  const [systemPrefersReducedMotion, setSystemPrefersReducedMotion] = useState<boolean>(() => getSystemReducedMotionPreference());
+  const [systemPrefersHighContrast, setSystemPrefersHighContrast] = useState<boolean>(() =>
+    getSystemHighContrastPreference()
+  );
+  const [systemPrefersReducedMotion, setSystemPrefersReducedMotion] = useState<boolean>(() =>
+    getSystemReducedMotionPreference()
+  );
 
-  
   /**
    * Calculate resolved theme based on current theme and system preference
    */
-  const resolvedTheme: ResolvedTheme = theme === 'system' ? systemTheme : theme === 'high-contrast' ? 'high-contrast' : theme;
-  
+  const resolvedTheme: ResolvedTheme =
+    theme === 'system' ? systemTheme : theme === 'high-contrast' ? 'high-contrast' : theme;
+
   /**
    * Initialize theme from localStorage and system preference
    */
@@ -252,22 +254,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const savedTheme = loadThemePreference();
     setThemeState(savedTheme);
   }, []);
-  
+
   /**
    * Listen for system theme and accessibility preference changes
    */
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const darkModeQuery = window.matchMedia(DARK_MODE_MEDIA_QUERY);
     const highContrastQuery = window.matchMedia('(prefers-contrast: high)');
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    
+
     const handleSystemThemeChange = () => {
       const newSystemTheme = getSystemTheme();
       setSystemTheme(newSystemTheme);
     };
-    
+
     const handleHighContrastChange = (e: MediaQueryListEvent) => {
       setSystemPrefersHighContrast(e.matches);
       // If user prefers high contrast and is on system theme, switch to high contrast
@@ -278,16 +280,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setSystemTheme(darkModeQuery.matches ? 'dark' : 'light');
       }
     };
-    
+
     const handleReducedMotionChange = (e: MediaQueryListEvent) => {
       setSystemPrefersReducedMotion(e.matches);
     };
-    
+
     // Set initial values
     setSystemTheme(getSystemTheme());
     setSystemPrefersHighContrast(getSystemHighContrastPreference());
     setSystemPrefersReducedMotion(getSystemReducedMotionPreference());
-    
+
     // Listen for changes
     const addListeners = (query: MediaQueryList, handler: (e: MediaQueryListEvent) => void) => {
       if (query.addEventListener) {
@@ -297,7 +299,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         query.addListener(handler);
       }
     };
-    
+
     const removeListeners = (query: MediaQueryList, handler: (e: MediaQueryListEvent) => void) => {
       if (query.removeEventListener) {
         query.removeEventListener('change', handler);
@@ -306,37 +308,37 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         query.removeListener(handler);
       }
     };
-    
+
     addListeners(darkModeQuery, handleSystemThemeChange);
     addListeners(highContrastQuery, handleHighContrastChange);
     addListeners(reducedMotionQuery, handleReducedMotionChange);
-    
+
     return () => {
       removeListeners(darkModeQuery, handleSystemThemeChange);
       removeListeners(highContrastQuery, handleHighContrastChange);
       removeListeners(reducedMotionQuery, handleReducedMotionChange);
     };
   }, [theme, systemTheme]);
-  
+
   /**
    * Apply theme to document when resolved theme changes
    */
   useEffect(() => {
     applyTheme(resolvedTheme, systemPrefersReducedMotion);
   }, [resolvedTheme, systemPrefersReducedMotion]);
-  
+
   /**
    * Watch for dynamically created portal elements and apply theme classes
    */
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
+
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
-            
+
             // Check if the added element is a portal container
             if (
               element.hasAttribute('data-radix-portal') ||
@@ -346,10 +348,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
               // Apply theme class to the portal container
               element.classList.remove('light', 'dark', 'high-contrast');
               element.classList.add(resolvedTheme);
-              
+
               // Also apply to any nested portal containers
               const nestedPortals = element.querySelectorAll('[data-radix-portal], [data-portal]');
-              nestedPortals.forEach((portal) => {
+              nestedPortals.forEach(portal => {
                 portal.classList.remove('light', 'dark', 'high-contrast');
                 portal.classList.add(resolvedTheme);
               });
@@ -358,18 +360,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         });
       });
     });
-    
+
     // Start observing
     observer.observe(document.body, {
       childList: true,
       subtree: true,
     });
-    
+
     return () => {
       observer.disconnect();
     };
   }, [resolvedTheme]);
-  
+
   /**
    * Set theme and save to localStorage
    */
@@ -377,7 +379,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(newTheme);
     saveThemePreference(newTheme);
   };
-  
+
   const value: ThemeContextType = {
     theme,
     resolvedTheme,
@@ -394,12 +396,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       localStorage: true,
     },
   };
-  
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 /**
@@ -425,7 +423,7 @@ export function getStoredThemePreference(): Theme {
  */
 export function clearThemePreference(): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     localStorage.removeItem(THEME_STORAGE_KEY);
   } catch (error) {

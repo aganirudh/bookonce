@@ -113,7 +113,9 @@ describe('Error Handling Utilities', () => {
 
   describe('getUserErrorMessage', () => {
     it('should return correct message for each error type', () => {
-      expect(getUserErrorMessage('AVAILABILITY_CHECK_FAILED')).toContain('trouble checking availability');
+      expect(getUserErrorMessage('AVAILABILITY_CHECK_FAILED')).toContain(
+        'trouble checking availability'
+      );
       expect(getUserErrorMessage('BOOKING_FAILED')).toContain("couldn't complete your booking");
       expect(getUserErrorMessage('PAYMENT_DECLINED')).toContain('payment was declined');
       expect(getUserErrorMessage('NETWORK_ERROR')).toContain('Connection lost');
@@ -146,7 +148,7 @@ describe('Error Handling Utilities', () => {
 
     it('should succeed on first try', async () => {
       const fn = vi.fn().mockResolvedValue('success');
-      
+
       const promise = retryWithBackoff(fn);
       await vi.runAllTimersAsync();
       const result = await promise;
@@ -156,7 +158,8 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should retry on failure and eventually succeed', async () => {
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('Fail 1'))
         .mockRejectedValueOnce(new Error('Fail 2'))
         .mockResolvedValue('success');
@@ -191,9 +194,7 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should call onRetry callback', async () => {
-      const fn = vi.fn()
-        .mockRejectedValueOnce(new Error('Fail'))
-        .mockResolvedValue('success');
+      const fn = vi.fn().mockRejectedValueOnce(new Error('Fail')).mockResolvedValue('success');
       const onRetry = vi.fn();
 
       const promise = retryWithBackoff(fn, { maxRetries: 2, onRetry });
@@ -201,11 +202,7 @@ describe('Error Handling Utilities', () => {
       await promise;
 
       expect(onRetry).toHaveBeenCalledTimes(1);
-      expect(onRetry).toHaveBeenCalledWith(
-        expect.any(Error),
-        1,
-        expect.any(Number)
-      );
+      expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 1, expect.any(Number));
     });
   });
 
@@ -237,9 +234,9 @@ describe('Error Handling Utilities', () => {
       const fallback = vi.fn().mockResolvedValue('fallback');
       const shouldFallback = vi.fn().mockReturnValue(false);
 
-      await expect(
-        withFallback(primary, fallback, shouldFallback)
-      ).rejects.toThrow('Primary failed');
+      await expect(withFallback(primary, fallback, shouldFallback)).rejects.toThrow(
+        'Primary failed'
+      );
 
       expect(fallback).not.toHaveBeenCalled();
     });

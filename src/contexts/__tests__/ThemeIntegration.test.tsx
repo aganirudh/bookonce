@@ -6,7 +6,12 @@
 import { render, screen, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ThemeProvider, useTheme, getStoredThemePreference, clearThemePreference } from '../ThemeContext';
+import {
+  ThemeProvider,
+  useTheme,
+  getStoredThemePreference,
+  clearThemePreference,
+} from '../ThemeContext';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 // Mock framer-motion
@@ -39,7 +44,7 @@ const createMockStorage = () => {
 let mockLocalStorage: ReturnType<typeof createMockStorage>;
 
 // Mock matchMedia with configurable responses
-const createMatchMediaMock = (responses: Record<string, boolean>) => 
+const createMatchMediaMock = (responses: Record<string, boolean>) =>
   vi.fn().mockImplementation(query => ({
     matches: responses[query] || false,
     media: query,
@@ -53,8 +58,14 @@ const createMatchMediaMock = (responses: Record<string, boolean>) =>
 
 // Test component that displays theme state
 function ThemeStateDisplay() {
-  const { theme, resolvedTheme, systemTheme, systemPrefersHighContrast, systemPrefersReducedMotion } = useTheme();
-  
+  const {
+    theme,
+    resolvedTheme,
+    systemTheme,
+    systemPrefersHighContrast,
+    systemPrefersReducedMotion,
+  } = useTheme();
+
   return (
     <div>
       <div data-testid="theme">{theme}</div>
@@ -90,14 +101,14 @@ describe('Theme Integration Tests', () => {
       value: mockLocalStorage,
       writable: true,
     });
-    
+
     // Default matchMedia responses
     window.matchMedia = createMatchMediaMock({
       '(prefers-color-scheme: dark)': false,
       '(prefers-contrast: high)': false,
       '(prefers-reduced-motion: reduce)': false,
     });
-    
+
     // Clear document classes
     document.documentElement.className = '';
     document.body.className = '';
@@ -115,23 +126,23 @@ describe('Theme Integration Tests', () => {
   describe('Theme Persistence', () => {
     it('saves theme preference to localStorage', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       // Open dropdown and select dark theme
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(toggle);
-      
+
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
       await user.click(darkOption);
-      
+
       await waitFor(() => {
         expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
           'vagabond-theme-preference',
           expect.stringContaining('"theme":"dark"')
         );
       });
-      
+
       // Verify the stored data structure
       const storedData = JSON.parse(mockLocalStorage._storage['vagabond-theme-preference']);
       expect(storedData).toHaveProperty('theme', 'dark');
@@ -147,9 +158,9 @@ describe('Theme Integration Tests', () => {
       };
       mockLocalStorage._storage['vagabond-theme-preference'] = JSON.stringify(preference);
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(preference));
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       expect(screen.getByTestId('theme')).toHaveTextContent('dark');
       expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
     });
@@ -157,9 +168,9 @@ describe('Theme Integration Tests', () => {
     it('handles corrupted localStorage data gracefully', () => {
       // Set corrupted data
       mockLocalStorage.getItem.mockReturnValue('invalid-json');
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       // Should fall back to system theme
       expect(screen.getByTestId('theme')).toHaveTextContent('system');
     });
@@ -171,9 +182,9 @@ describe('Theme Integration Tests', () => {
         timestamp: Date.now(),
       };
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(invalidPreference));
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       // Should fall back to system theme
       expect(screen.getByTestId('theme')).toHaveTextContent('system');
     });
@@ -185,9 +196,9 @@ describe('Theme Integration Tests', () => {
         timestamp: Date.now(),
       };
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(preference));
-      
+
       expect(getStoredThemePreference()).toBe('light');
-      
+
       // Test clearThemePreference
       clearThemePreference();
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('vagabond-theme-preference');
@@ -199,9 +210,9 @@ describe('Theme Integration Tests', () => {
       window.matchMedia = createMatchMediaMock({
         '(prefers-color-scheme: dark)': true,
       });
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       expect(screen.getByTestId('system-theme')).toHaveTextContent('dark');
       expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
     });
@@ -210,9 +221,9 @@ describe('Theme Integration Tests', () => {
       window.matchMedia = createMatchMediaMock({
         '(prefers-contrast: high)': true,
       });
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       expect(screen.getByTestId('high-contrast')).toHaveTextContent('true');
       expect(screen.getByTestId('system-theme')).toHaveTextContent('high-contrast');
       expect(screen.getByTestId('resolved-theme')).toHaveTextContent('high-contrast');
@@ -222,9 +233,9 @@ describe('Theme Integration Tests', () => {
       window.matchMedia = createMatchMediaMock({
         '(prefers-reduced-motion: reduce)': true,
       });
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       expect(screen.getByTestId('reduced-motion')).toHaveTextContent('true');
     });
 
@@ -234,9 +245,9 @@ describe('Theme Integration Tests', () => {
         '(prefers-contrast: high)': true,
         '(prefers-reduced-motion: reduce)': true,
       });
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       expect(screen.getByTestId('high-contrast')).toHaveTextContent('true');
       expect(screen.getByTestId('reduced-motion')).toHaveTextContent('true');
       expect(screen.getByTestId('system-theme')).toHaveTextContent('high-contrast');
@@ -244,7 +255,7 @@ describe('Theme Integration Tests', () => {
 
     it('responds to system preference changes', async () => {
       let darkModeListener: ((e: MediaQueryListEvent) => void) | null = null;
-      
+
       // Mock matchMedia with listener capture
       window.matchMedia = vi.fn().mockImplementation(query => {
         const mockQuery = {
@@ -263,21 +274,27 @@ describe('Theme Integration Tests', () => {
         };
         return mockQuery;
       });
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       // Initial state should be light
       expect(screen.getByTestId('system-theme')).toHaveTextContent('light');
-      
+
       // Simulate system theme change to dark
       if (darkModeListener) {
         act(() => {
-          darkModeListener({ matches: true, media: '(prefers-color-scheme: dark)' } as MediaQueryListEvent);
+          darkModeListener({
+            matches: true,
+            media: '(prefers-color-scheme: dark)',
+          } as MediaQueryListEvent);
         });
-        
-        await waitFor(() => {
-          expect(screen.getByTestId('system-theme')).toHaveTextContent('dark');
-        }, { timeout: 2000 });
+
+        await waitFor(
+          () => {
+            expect(screen.getByTestId('system-theme')).toHaveTextContent('dark');
+          },
+          { timeout: 2000 }
+        );
       } else {
         // Skip test if listener wasn't captured
         expect(true).toBe(true);
@@ -288,16 +305,16 @@ describe('Theme Integration Tests', () => {
   describe('DOM Integration', () => {
     it('applies theme classes to document root', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       // Switch to dark theme
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(toggle);
-      
+
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
       await user.click(darkOption);
-      
+
       await waitFor(() => {
         expect(document.documentElement).toHaveClass('dark');
         expect(document.body).toHaveClass('dark');
@@ -306,16 +323,16 @@ describe('Theme Integration Tests', () => {
 
     it('applies theme classes to body for portal elements', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       // Switch to high contrast theme
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(toggle);
-      
+
       const highContrastOption = screen.getByRole('menuitem', { name: /high contrast/i });
       await user.click(highContrastOption);
-      
+
       await waitFor(() => {
         expect(document.body).toHaveClass('high-contrast');
       });
@@ -326,9 +343,9 @@ describe('Theme Integration Tests', () => {
         '(prefers-contrast: high)': true,
         '(prefers-reduced-motion: reduce)': true,
       });
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       await waitFor(() => {
         expect(document.documentElement).toHaveAttribute('data-theme', 'high-contrast');
         expect(document.documentElement).toHaveAttribute('data-high-contrast', 'true');
@@ -342,23 +359,23 @@ describe('Theme Integration Tests', () => {
       metaTag.name = 'theme-color';
       metaTag.content = '#000000';
       document.head.appendChild(metaTag);
-      
+
       const user = userEvent.setup();
-      
+
       render(<ThemeIntegrationTest />);
-      
+
       // Switch to dark theme
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(toggle);
-      
+
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
       await user.click(darkOption);
-      
+
       await waitFor(() => {
         const updatedMeta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
         expect(updatedMeta?.content).toBe('hsl(215, 25%, 8%)');
       });
-      
+
       // Cleanup
       document.head.removeChild(metaTag);
     });
@@ -367,40 +384,40 @@ describe('Theme Integration Tests', () => {
   describe('Portal Element Handling', () => {
     it('applies theme classes to dynamically created portal elements', async () => {
       render(<ThemeIntegrationTest />);
-      
+
       // Create a mock portal element
       const portalElement = document.createElement('div');
       portalElement.setAttribute('data-radix-portal', '');
       document.body.appendChild(portalElement);
-      
+
       // Wait for MutationObserver to detect the new element
       await waitFor(() => {
         expect(portalElement).toHaveClass('light');
       });
-      
+
       // Cleanup
       document.body.removeChild(portalElement);
     });
 
     it('handles nested portal containers', async () => {
       render(<ThemeIntegrationTest />);
-      
+
       // Create nested portal structure
       const outerPortal = document.createElement('div');
       outerPortal.setAttribute('data-portal', '');
-      
+
       const innerPortal = document.createElement('div');
       innerPortal.setAttribute('data-radix-portal', '');
-      
+
       outerPortal.appendChild(innerPortal);
       document.body.appendChild(outerPortal);
-      
+
       // Wait for MutationObserver to detect the new elements
       await waitFor(() => {
         expect(outerPortal).toHaveClass('light');
         expect(innerPortal).toHaveClass('light');
       });
-      
+
       // Cleanup
       document.body.removeChild(outerPortal);
     });
@@ -411,18 +428,24 @@ describe('Theme Integration Tests', () => {
       // Mock localStorage to throw errors
       Object.defineProperty(window, 'localStorage', {
         value: {
-          getItem: vi.fn(() => { throw new Error('localStorage unavailable'); }),
-          setItem: vi.fn(() => { throw new Error('localStorage unavailable'); }),
-          removeItem: vi.fn(() => { throw new Error('localStorage unavailable'); }),
+          getItem: vi.fn(() => {
+            throw new Error('localStorage unavailable');
+          }),
+          setItem: vi.fn(() => {
+            throw new Error('localStorage unavailable');
+          }),
+          removeItem: vi.fn(() => {
+            throw new Error('localStorage unavailable');
+          }),
         },
         writable: true,
       });
-      
+
       // Should not throw and should work with session-only theme switching
       expect(() => {
         render(<ThemeIntegrationTest />);
       }).not.toThrow();
-      
+
       expect(screen.getByTestId('theme')).toHaveTextContent('system');
     });
 
@@ -430,10 +453,10 @@ describe('Theme Integration Tests', () => {
       // Remove matchMedia
       const originalMatchMedia = window.matchMedia;
       delete (window as any).matchMedia;
-      
+
       try {
         render(<ThemeIntegrationTest />);
-        
+
         // Should default to light theme
         expect(screen.getByTestId('system-theme')).toHaveTextContent('light');
       } finally {
@@ -444,7 +467,7 @@ describe('Theme Integration Tests', () => {
 
     it('cleans up event listeners on unmount', () => {
       const removeEventListenerSpy = vi.fn();
-      
+
       window.matchMedia = vi.fn().mockImplementation(() => ({
         matches: false,
         media: '',
@@ -455,11 +478,11 @@ describe('Theme Integration Tests', () => {
         removeEventListener: removeEventListenerSpy,
         dispatchEvent: vi.fn(),
       }));
-      
+
       const { unmount } = render(<ThemeIntegrationTest />);
-      
+
       unmount();
-      
+
       // Should have called removeEventListener for each media query
       expect(removeEventListenerSpy).toHaveBeenCalled();
     });

@@ -1,7 +1,7 @@
 /**
  * PaymentForm Component
  * Stripe Elements integration for secure payment processing
- * 
+ *
  * SECURITY NOTES:
  * - Uses Stripe Elements for PCI-compliant card input
  * - Card data never touches our servers (handled by Stripe)
@@ -11,11 +11,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import {
-  PaymentElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
+import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -203,15 +199,16 @@ export function PaymentForm({
  */
 function getUserFriendlyErrorMessage(stripeMessage: string): string {
   const errorMap: Record<string, string> = {
-    'card_declined': 'Your card was declined. Please try another payment method.',
-    'insufficient_funds': 'Your card has insufficient funds. Please try another card.',
-    'expired_card': 'Your card has expired. Please use a different card.',
-    'incorrect_cvc': 'The security code (CVC) is incorrect. Please check and try again.',
-    'processing_error': 'An error occurred while processing your card. Please try again.',
-    'incorrect_number': 'The card number is incorrect. Please check and try again.',
-    'invalid_expiry_month': 'The expiration month is invalid.',
-    'invalid_expiry_year': 'The expiration year is invalid.',
-    'authentication_required': 'Additional authentication is required. Please complete the verification.',
+    card_declined: 'Your card was declined. Please try another payment method.',
+    insufficient_funds: 'Your card has insufficient funds. Please try another card.',
+    expired_card: 'Your card has expired. Please use a different card.',
+    incorrect_cvc: 'The security code (CVC) is incorrect. Please check and try again.',
+    processing_error: 'An error occurred while processing your card. Please try again.',
+    incorrect_number: 'The card number is incorrect. Please check and try again.',
+    invalid_expiry_month: 'The expiration month is invalid.',
+    invalid_expiry_year: 'The expiration year is invalid.',
+    authentication_required:
+      'Additional authentication is required. Please complete the verification.',
   };
 
   // Check if the message contains any known error codes
@@ -222,5 +219,5 @@ function getUserFriendlyErrorMessage(stripeMessage: string): string {
   }
 
   // Default user-friendly message
-  return 'We couldn\'t process your payment. Please check your card details and try again.';
+  return "We couldn't process your payment. Please check your card details and try again.";
 }

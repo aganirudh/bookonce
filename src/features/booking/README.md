@@ -36,12 +36,12 @@ All booking-related TypeScript types are defined in `src/types/booking.ts` and e
 Import booking functionality from the feature barrel export:
 
 ```typescript
-import { 
-  Hotel, 
-  BookingRequest, 
+import {
+  Hotel,
+  BookingRequest,
   BookingConfirmation,
   CACHE_TTL,
-  ERROR_MESSAGES 
+  ERROR_MESSAGES,
 } from '@/features/booking';
 ```
 

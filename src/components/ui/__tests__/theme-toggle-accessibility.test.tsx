@@ -63,11 +63,11 @@ describe('ThemeToggle Accessibility', () => {
   describe('Keyboard Navigation', () => {
     it('is focusable with keyboard', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Focus with tab
       await user.tab();
       expect(toggle).toHaveFocus();
@@ -75,47 +75,47 @@ describe('ThemeToggle Accessibility', () => {
 
     it('can be activated with Enter key', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Focus and press Enter
       toggle.focus();
       await user.keyboard('{Enter}');
-      
+
       // Should have changed theme (we can't easily test the actual change without more setup)
       expect(toggle).toBeInTheDocument();
     });
 
     it('can be activated with Space key', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Focus and press Space
       toggle.focus();
       await user.keyboard(' ');
-      
+
       expect(toggle).toBeInTheDocument();
     });
 
     it('supports arrow key navigation in dropdown', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="dropdown" />);
-      
+
       const trigger = screen.getByRole('button');
-      
+
       // Open dropdown
       await user.click(trigger);
-      
+
       // Should have menu items
       const menuItems = screen.getAllByRole('menuitem');
       expect(menuItems.length).toBeGreaterThan(0);
-      
+
       // First item should be focusable
       expect(menuItems[0]).toBeInTheDocument();
     });
@@ -124,10 +124,10 @@ describe('ThemeToggle Accessibility', () => {
   describe('ARIA Attributes', () => {
     it('has proper aria-label for icon variant', () => {
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
       expect(toggle).toHaveAttribute('aria-label');
-      
+
       const ariaLabel = toggle.getAttribute('aria-label');
       expect(ariaLabel).toContain('Switch theme');
       expect(ariaLabel).toContain('Current:');
@@ -135,34 +135,34 @@ describe('ThemeToggle Accessibility', () => {
 
     it('has proper aria-label for dropdown variant', () => {
       render(<ThemeToggleWrapper variant="dropdown" />);
-      
+
       const trigger = screen.getByRole('button');
       expect(trigger).toHaveAttribute('aria-label');
-      
+
       const ariaLabel = trigger.getAttribute('aria-label');
       expect(ariaLabel).toContain('Theme selector');
     });
 
     it('has proper title attribute for tooltips', () => {
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
       expect(toggle).toHaveAttribute('title');
-      
+
       const title = toggle.getAttribute('title');
       expect(title).toContain('Current theme:');
     });
 
     it('dropdown has proper ARIA attributes', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="dropdown" />);
-      
+
       const trigger = screen.getByRole('button');
-      
+
       // Open dropdown
       await user.click(trigger);
-      
+
       // Check for proper ARIA attributes on menu items
       const menuItems = screen.getAllByRole('menuitem');
       menuItems.forEach(item => {
@@ -177,9 +177,9 @@ describe('ThemeToggle Accessibility', () => {
   describe('Screen Reader Support', () => {
     it('provides descriptive text for current theme state', () => {
       render(<ThemeToggleWrapper variant="button" showLabel={true} />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Should contain theme name in button text or aria-label
       const buttonText = toggle.textContent || toggle.getAttribute('aria-label') || '';
       expect(buttonText.toLowerCase()).toMatch(/(light|dark|system|high contrast)/);
@@ -187,15 +187,15 @@ describe('ThemeToggle Accessibility', () => {
 
     it('announces theme changes to screen readers', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
       const initialLabel = toggle.getAttribute('aria-label');
-      
+
       // Click to change theme
       await user.click(toggle);
-      
+
       // Wait for potential state update
       await waitFor(() => {
         const newLabel = toggle.getAttribute('aria-label');
@@ -205,20 +205,20 @@ describe('ThemeToggle Accessibility', () => {
 
     it('provides context about available options in dropdown', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="dropdown" />);
-      
+
       const trigger = screen.getByRole('button');
-      
+
       // Open dropdown
       await user.click(trigger);
-      
+
       // Check that each option has descriptive text
       const lightOption = screen.getByText('Light theme with bright backgrounds');
       const darkOption = screen.getByText('Dark theme with dark backgrounds');
       const highContrastOption = screen.getByText('High contrast theme for accessibility');
       const systemOption = screen.getByText('Follow system preference');
-      
+
       expect(lightOption).toBeInTheDocument();
       expect(darkOption).toBeInTheDocument();
       expect(highContrastOption).toBeInTheDocument();
@@ -229,30 +229,30 @@ describe('ThemeToggle Accessibility', () => {
   describe('Touch Target Size', () => {
     it('meets minimum touch target size requirements', () => {
       render(<ThemeToggleWrapper variant="icon" size="md" />);
-      
+
       const toggle = screen.getByRole('button');
       const styles = getComputedStyle(toggle);
-      
+
       // Should have minimum 44x44px touch target (or use touch-target class)
-      const hasMinSize = 
+      const hasMinSize =
         toggle.classList.contains('touch-target') ||
         (parseInt(styles.minWidth) >= 44 && parseInt(styles.minHeight) >= 44);
-      
+
       expect(hasMinSize).toBeTruthy();
     });
 
     it('maintains touch target size across different sizes', () => {
       const sizes = ['sm', 'md', 'lg'] as const;
-      
+
       sizes.forEach(size => {
         const { unmount } = render(<ThemeToggleWrapper variant="icon" size={size} />);
-        
+
         const toggle = screen.getByRole('button');
-        
+
         // Should be focusable and clickable regardless of size
         expect(toggle).toBeInTheDocument();
         expect(toggle.tabIndex).not.toBe(-1);
-        
+
         unmount();
       });
     });
@@ -273,9 +273,9 @@ describe('ThemeToggle Accessibility', () => {
       }));
 
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Should be visible and functional
       expect(toggle).toBeVisible();
       expect(toggle).not.toBeDisabled();
@@ -283,14 +283,14 @@ describe('ThemeToggle Accessibility', () => {
 
     it('includes high contrast option in dropdown', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="dropdown" />);
-      
+
       const trigger = screen.getByRole('button');
-      
+
       // Open dropdown
       await user.click(trigger);
-      
+
       // Should have high contrast option
       const highContrastOption = screen.getByText('High Contrast');
       expect(highContrastOption).toBeInTheDocument();
@@ -312,9 +312,9 @@ describe('ThemeToggle Accessibility', () => {
       }));
 
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Should still be functional even with reduced motion
       expect(toggle).toBeInTheDocument();
       expect(toggle).not.toBeDisabled();
@@ -335,9 +335,9 @@ describe('ThemeToggle Accessibility', () => {
 
     it('provides fallback when icons fail to load', () => {
       render(<ThemeToggleWrapper variant="button" showLabel={true} />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Should have text label as fallback
       expect(toggle.textContent).toBeTruthy();
     });
@@ -346,36 +346,36 @@ describe('ThemeToggle Accessibility', () => {
   describe('Focus Management', () => {
     it('maintains focus after theme change', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="icon" />);
-      
+
       const toggle = screen.getByRole('button');
-      
+
       // Focus the toggle
       toggle.focus();
       expect(toggle).toHaveFocus();
-      
+
       // Click to change theme
       await user.click(toggle);
-      
+
       // Should maintain focus
       expect(toggle).toHaveFocus();
     });
 
     it('properly manages focus in dropdown', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeToggleWrapper variant="dropdown" />);
-      
+
       const trigger = screen.getByRole('button');
-      
+
       // Open dropdown
       await user.click(trigger);
-      
+
       // Select an option
       const lightOption = screen.getByRole('menuitem', { name: /light/i });
       await user.click(lightOption);
-      
+
       // Focus should return to trigger
       await waitFor(() => {
         expect(trigger).toHaveFocus();

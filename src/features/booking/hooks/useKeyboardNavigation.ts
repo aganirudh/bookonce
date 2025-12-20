@@ -97,16 +97,13 @@ function isInputElement(target: EventTarget | null): boolean {
 /**
  * Hook for trapping focus within a container (for modals)
  */
-export function useFocusTrap(
-  containerRef: RefObject<HTMLElement>,
-  isActive: boolean = true
-) {
+export function useFocusTrap(containerRef: RefObject<HTMLElement>, isActive: boolean = true) {
   useEffect(() => {
     if (!isActive || !containerRef.current) return;
 
     const container = containerRef.current;
     const focusableElements = getFocusableElements(container);
-    
+
     if (focusableElements.length === 0) return;
 
     const firstElement = focusableElements[0];
@@ -152,12 +149,10 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
     '[tabindex]:not([tabindex="-1"])',
   ].join(',');
 
-  return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(
-    (el) => {
-      // Filter out hidden elements
-      return el.offsetParent !== null;
-    }
-  );
+  return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(el => {
+    // Filter out hidden elements
+    return el.offsetParent !== null;
+  });
 }
 
 /**
@@ -196,8 +191,8 @@ export function useArrowKeyNavigation(
       if (!itemsRef.current || itemsRef.current.length === 0) return;
 
       const items = itemsRef.current;
-      const currentIndex = items.findIndex((item) => item === document.activeElement);
-      
+      const currentIndex = items.findIndex(item => item === document.activeElement);
+
       if (currentIndex === -1) return;
 
       let nextIndex = currentIndex;

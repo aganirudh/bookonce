@@ -1,6 +1,6 @@
 /**
  * Free Geocoding Service
- * 
+ *
  * Uses OpenStreetMap Nominatim API - completely FREE, no API key required!
  * Please respect their usage policy: https://operations.osmfoundation.org/policies/nominatim/
  */
@@ -33,13 +33,13 @@ class FreeGeocodingService {
   private async waitForRateLimit(): Promise<void> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
+
     if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
-      await new Promise(resolve => 
+      await new Promise(resolve =>
         setTimeout(resolve, this.MIN_REQUEST_INTERVAL - timeSinceLastRequest)
       );
     }
-    
+
     this.lastRequestTime = Date.now();
   }
 
@@ -48,7 +48,7 @@ class FreeGeocodingService {
    */
   async search(query: string): Promise<GeocodingResult[]> {
     const cacheKey = `geocode_search_${query}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -59,7 +59,7 @@ class FreeGeocodingService {
 
     try {
       const url = `${this.BASE_URL}/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`;
-      
+
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'TravelEase Journey Planner',
@@ -88,7 +88,7 @@ class FreeGeocodingService {
    */
   async reverseGeocode(lat: number, lng: number): Promise<GeocodingResult> {
     const cacheKey = `geocode_reverse_${lat}_${lng}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -99,7 +99,7 @@ class FreeGeocodingService {
 
     try {
       const url = `${this.BASE_URL}/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
-      
+
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'TravelEase Journey Planner',

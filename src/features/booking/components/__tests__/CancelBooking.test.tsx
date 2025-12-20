@@ -124,21 +124,42 @@ describe('CancelBooking', () => {
   describe('Full Refund Scenarios', () => {
     it('should calculate 100% refund for flexible policy with 2+ days until check-in', () => {
       const booking = createMockBooking('flexible', 2);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('100%')).toBeInTheDocument();
       expect(screen.getByText('$1,150.00 USD')).toBeInTheDocument();
     });
 
     it('should calculate 100% refund for moderate policy with 5+ days until check-in', () => {
       const booking = createMockBooking('moderate', 7);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('100%')).toBeInTheDocument();
       expect(screen.getByText('$1,150.00 USD')).toBeInTheDocument();
     });
 
     it('should calculate 100% refund for strict policy with 14+ days until check-in', () => {
       const booking = createMockBooking('strict', 15);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('100%')).toBeInTheDocument();
       expect(screen.getByText('$1,150.00 USD')).toBeInTheDocument();
     });
@@ -147,14 +168,28 @@ describe('CancelBooking', () => {
   describe('Partial Refund Scenarios', () => {
     it('should calculate 50% refund for moderate policy with 3 days until check-in', () => {
       const booking = createMockBooking('moderate', 3);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('50%')).toBeInTheDocument();
       expect(screen.getByText('$575.00 USD')).toBeInTheDocument();
     });
 
     it('should calculate 50% refund for strict policy with 10 days until check-in', () => {
       const booking = createMockBooking('strict', 10);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('50%')).toBeInTheDocument();
       expect(screen.getByText('$575.00 USD')).toBeInTheDocument();
     });
@@ -163,23 +198,48 @@ describe('CancelBooking', () => {
   describe('No Refund Scenarios', () => {
     it('should calculate 0% refund for flexible policy with 0 days until check-in', () => {
       const booking = createMockBooking('flexible', 0);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('0%')).toBeInTheDocument();
       expect(screen.getByText('$0.00 USD')).toBeInTheDocument();
-      expect(screen.getByText(/non-refundable based on the cancellation policy/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/non-refundable based on the cancellation policy/i)
+      ).toBeInTheDocument();
     });
 
     it('should calculate 0% refund for non-refundable policy', () => {
       const booking = createMockBooking('non-refundable', 30);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('0%')).toBeInTheDocument();
       expect(screen.getByText('$0.00 USD')).toBeInTheDocument();
-      expect(screen.getByText(/non-refundable based on the cancellation policy/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/non-refundable based on the cancellation policy/i)
+      ).toBeInTheDocument();
     });
 
     it('should calculate 0% refund for moderate policy with 0 days until check-in', () => {
       const booking = createMockBooking('moderate', 0);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('0%')).toBeInTheDocument();
       expect(screen.getByText('$0.00 USD')).toBeInTheDocument();
     });
@@ -189,7 +249,14 @@ describe('CancelBooking', () => {
     it('should require reason selection before enabling cancel button', async () => {
       const booking = createMockBooking('flexible', 2);
       const user = userEvent.setup();
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       const cancelButton = screen.getByRole('button', { name: /cancel booking/i });
       expect(cancelButton).toBeDisabled();
       const reasonSelect = screen.getByRole('combobox');
@@ -204,7 +271,14 @@ describe('CancelBooking', () => {
     it('should show confirmation dialog before final cancellation', async () => {
       const booking = createMockBooking('flexible', 2);
       const user = userEvent.setup();
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       const reasonSelect = screen.getByRole('combobox');
       await user.click(reasonSelect);
       const changeOfPlans = await screen.findByRole('option', { name: /change of plans/i });
@@ -231,7 +305,14 @@ describe('CancelBooking', () => {
       });
       const booking = createMockBooking('flexible', 2);
       const user = userEvent.setup();
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       const reasonSelect = screen.getByRole('combobox');
       await user.click(reasonSelect);
       const changeOfPlans = await screen.findByRole('option', { name: /change of plans/i });
@@ -252,7 +333,14 @@ describe('CancelBooking', () => {
     it('should allow going back from confirmation dialog', async () => {
       const booking = createMockBooking('flexible', 2);
       const user = userEvent.setup();
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       const reasonSelect = screen.getByRole('combobox');
       await user.click(reasonSelect);
       const changeOfPlans = await screen.findByRole('option', { name: /change of plans/i });
@@ -274,9 +362,18 @@ describe('CancelBooking', () => {
   describe('Policy Display', () => {
     it('should display cancellation policy rules correctly', () => {
       const booking = createMockBooking('moderate', 7);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText(/moderate policy/i)).toBeInTheDocument();
-      expect(screen.getByText(/free cancellation up to 5 days before check-in/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/free cancellation up to 5 days before check-in/i)
+      ).toBeInTheDocument();
       expect(screen.getByText(/5\+ days before check-in: 100% refund/i)).toBeInTheDocument();
       expect(screen.getByText(/2\+ days before check-in: 50% refund/i)).toBeInTheDocument();
       expect(screen.getByText(/less than 1 day before check-in: 0% refund/i)).toBeInTheDocument();
@@ -284,7 +381,14 @@ describe('CancelBooking', () => {
 
     it('should display booking details correctly', () => {
       const booking = createMockBooking('flexible', 2);
-      render(<CancelBooking booking={booking} isOpen={true} onClose={mockOnClose} onCancellationComplete={mockOnCancellationComplete} />);
+      render(
+        <CancelBooking
+          booking={booking}
+          isOpen={true}
+          onClose={mockOnClose}
+          onCancellationComplete={mockOnCancellationComplete}
+        />
+      );
       expect(screen.getByText('Test Hotel')).toBeInTheDocument();
       expect(screen.getByText('Test City')).toBeInTheDocument();
       expect(screen.getByText('REF-001')).toBeInTheDocument();

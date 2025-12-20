@@ -101,12 +101,7 @@ describe('PricingSummary Component', () => {
   describe('Currency Conversion', () => {
     it('should display currency selector when onCurrencyChange is provided', () => {
       const mockOnCurrencyChange = vi.fn();
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          onCurrencyChange={mockOnCurrencyChange}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} onCurrencyChange={mockOnCurrencyChange} />);
 
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
@@ -120,13 +115,8 @@ describe('PricingSummary Component', () => {
     it('should call onCurrencyChange when currency is changed', async () => {
       const user = userEvent.setup();
       const mockOnCurrencyChange = vi.fn();
-      
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          onCurrencyChange={mockOnCurrencyChange}
-        />
-      );
+
+      render(<PricingSummary pricing={mockPricing} onCurrencyChange={mockOnCurrencyChange} />);
 
       const currencySelect = screen.getByRole('combobox');
       await user.click(currencySelect);
@@ -157,12 +147,7 @@ describe('PricingSummary Component', () => {
 
   describe('Cancellation Policy', () => {
     it('should display cancellation policy when provided', () => {
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          cancellationPolicy={mockCancellationPolicy}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} cancellationPolicy={mockCancellationPolicy} />);
 
       expect(screen.getByText('Cancellation Policy')).toBeInTheDocument();
       expect(screen.getByText('Flexible')).toBeInTheDocument();
@@ -182,12 +167,7 @@ describe('PricingSummary Component', () => {
         rules: [],
       };
 
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          cancellationPolicy={flexiblePolicy}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} cancellationPolicy={flexiblePolicy} />);
 
       expect(screen.getByText('Flexible')).toBeInTheDocument();
     });
@@ -199,12 +179,7 @@ describe('PricingSummary Component', () => {
         rules: [],
       };
 
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          cancellationPolicy={moderatePolicy}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} cancellationPolicy={moderatePolicy} />);
 
       expect(screen.getByText('Moderate')).toBeInTheDocument();
     });
@@ -216,12 +191,7 @@ describe('PricingSummary Component', () => {
         rules: [],
       };
 
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          cancellationPolicy={strictPolicy}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} cancellationPolicy={strictPolicy} />);
 
       expect(screen.getByText('Strict')).toBeInTheDocument();
     });
@@ -233,23 +203,13 @@ describe('PricingSummary Component', () => {
         rules: [],
       };
 
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          cancellationPolicy={nonRefundablePolicy}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} cancellationPolicy={nonRefundablePolicy} />);
 
       expect(screen.getByText('Non-Refundable')).toBeInTheDocument();
     });
 
     it('should display cancellation rules', () => {
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          cancellationPolicy={mockCancellationPolicy}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} cancellationPolicy={mockCancellationPolicy} />);
 
       expect(screen.getByText(/cancel 1\+ days before/i)).toBeInTheDocument();
       expect(screen.getByText(/100% refund/i)).toBeInTheDocument();
@@ -265,12 +225,7 @@ describe('PricingSummary Component', () => {
         ],
       };
 
-      render(
-        <PricingSummary
-          pricing={mockPricing}
-          cancellationPolicy={policyWithFees}
-        />
-      );
+      render(<PricingSummary pricing={mockPricing} cancellationPolicy={policyWithFees} />);
 
       expect(screen.getByText(/\$25\.00 fee/i)).toBeInTheDocument();
       expect(screen.getByText(/\$50\.00 fee/i)).toBeInTheDocument();
@@ -286,9 +241,7 @@ describe('PricingSummary Component', () => {
     });
 
     it('should not apply sticky class when sticky is false', () => {
-      const { container } = render(
-        <PricingSummary pricing={mockPricing} sticky={false} />
-      );
+      const { container } = render(<PricingSummary pricing={mockPricing} sticky={false} />);
 
       const card = container.querySelector('.sticky');
       expect(card).not.toBeInTheDocument();

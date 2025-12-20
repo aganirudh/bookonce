@@ -223,13 +223,13 @@ describe('detectXSS', () => {
 
 describe('detectSQLInjection', () => {
   it('should detect SQL keywords', () => {
-    expect(detectSQLInjection("SELECT * FROM users")).toBe(true);
-    expect(detectSQLInjection("DROP TABLE users")).toBe(true);
-    expect(detectSQLInjection("INSERT INTO users")).toBe(true);
+    expect(detectSQLInjection('SELECT * FROM users')).toBe(true);
+    expect(detectSQLInjection('DROP TABLE users')).toBe(true);
+    expect(detectSQLInjection('INSERT INTO users')).toBe(true);
   });
 
   it('should detect UNION attacks', () => {
-    expect(detectSQLInjection("1 UNION SELECT password")).toBe(true);
+    expect(detectSQLInjection('1 UNION SELECT password')).toBe(true);
   });
 
   it('should detect OR/AND attacks', () => {
@@ -239,11 +239,11 @@ describe('detectSQLInjection', () => {
 
   it('should detect SQL comments', () => {
     expect(detectSQLInjection("admin'--")).toBe(true);
-    expect(detectSQLInjection("user/*comment*/")).toBe(true);
+    expect(detectSQLInjection('user/*comment*/')).toBe(true);
   });
 
   it('should detect tautology attacks', () => {
-    expect(detectSQLInjection("OR 1=1")).toBe(true);
+    expect(detectSQLInjection('OR 1=1')).toBe(true);
   });
 
   it('should not flag safe content', () => {

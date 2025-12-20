@@ -58,7 +58,7 @@ export function SavedPaymentMethods({
 
       try {
         const authenticated = await authenticateForSavedCard();
-        
+
         if (authenticated) {
           onSelectMethod(methodId);
         } else {
@@ -108,12 +108,12 @@ export function SavedPaymentMethods({
       )}
 
       <div className="space-y-3">
-        {paymentMethods.map((method) => {
+        {paymentMethods.map(method => {
           const isSelected = selectedMethodId === method.id;
-          const isExpired = 
+          const isExpired =
             method.expiryYear < new Date().getFullYear() ||
-            (method.expiryYear === new Date().getFullYear() && 
-             method.expiryMonth < new Date().getMonth() + 1);
+            (method.expiryYear === new Date().getFullYear() &&
+              method.expiryMonth < new Date().getMonth() + 1);
 
           return (
             <Card
@@ -132,7 +132,8 @@ export function SavedPaymentMethods({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          {method.brand.charAt(0).toUpperCase() + method.brand.slice(1)} •••• {method.last4}
+                          {method.brand.charAt(0).toUpperCase() + method.brand.slice(1)} ••••{' '}
+                          {method.last4}
                         </span>
                         {method.isDefault && (
                           <Badge variant="secondary" className="text-xs">

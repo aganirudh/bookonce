@@ -120,12 +120,12 @@ describe('useFocusTrap', () => {
     const container = document.createElement('div');
     const button1 = document.createElement('button');
     const button2 = document.createElement('button');
-    
+
     button1.textContent = 'Button 1';
     button2.textContent = 'Button 2';
     button1.tabIndex = 0;
     button2.tabIndex = 0;
-    
+
     container.appendChild(button1);
     container.appendChild(button2);
     document.body.appendChild(container);
@@ -146,7 +146,7 @@ describe('useFocusTrap', () => {
     const container = document.createElement('div');
     const button = document.createElement('button');
     button.tabIndex = 0;
-    
+
     container.appendChild(button);
     document.body.appendChild(container);
 

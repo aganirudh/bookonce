@@ -63,11 +63,14 @@ export function DateSelector({
     }
 
     // Disable unavailable dates
-    if (unavailableDates.some(d => 
-      d.getFullYear() === date.getFullYear() &&
-      d.getMonth() === date.getMonth() &&
-      d.getDate() === date.getDate()
-    )) {
+    if (
+      unavailableDates.some(
+        d =>
+          d.getFullYear() === date.getFullYear() &&
+          d.getMonth() === date.getMonth() &&
+          d.getDate() === date.getDate()
+      )
+    ) {
       return true;
     }
 
@@ -75,7 +78,7 @@ export function DateSelector({
     if (tempCheckIn && !tempCheckOut) {
       const minCheckOut = addDays(tempCheckIn, minStay);
       const maxCheckOut = addDays(tempCheckIn, maxStay);
-      
+
       if (isBefore(date, minCheckOut) || isBefore(maxCheckOut, date)) {
         return true;
       }
@@ -107,8 +110,10 @@ export function DateSelector({
   const formatDateRange = (): string => {
     if (!checkInDate) return 'Select dates';
     if (!checkOutDate) return format(checkInDate, 'MMM dd, yyyy');
-    
-    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    const nights = Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
     return `${format(checkInDate, 'MMM dd')} - ${format(checkOutDate, 'MMM dd, yyyy')} (${nights} night${nights > 1 ? 's' : ''})`;
   };
 
@@ -136,7 +141,7 @@ export function DateSelector({
   // Mobile native date picker
   if (isMobile) {
     const minDate = format(today, 'yyyy-MM-dd');
-    const maxCheckOutDate = tempCheckIn 
+    const maxCheckOutDate = tempCheckIn
       ? format(addDays(tempCheckIn, maxStay), 'yyyy-MM-dd')
       : undefined;
     const minCheckOutDate = tempCheckIn
@@ -146,7 +151,9 @@ export function DateSelector({
     return (
       <div className={cn('w-full space-y-4', className)}>
         <div className="space-y-2">
-          <label htmlFor="check-in-date" className="text-sm font-medium">Check-in Date</label>
+          <label htmlFor="check-in-date" className="text-sm font-medium">
+            Check-in Date
+          </label>
           <input
             id="check-in-date"
             type="date"
@@ -165,10 +172,12 @@ export function DateSelector({
             )}
           />
         </div>
-        
+
         {tempCheckIn && (
           <div className="space-y-2">
-            <label htmlFor="check-out-date" className="text-sm font-medium">Check-out Date</label>
+            <label htmlFor="check-out-date" className="text-sm font-medium">
+              Check-out Date
+            </label>
             <input
               id="check-out-date"
               type="date"
@@ -192,8 +201,9 @@ export function DateSelector({
 
         {checkInDate && checkOutDate && (
           <div className="text-xs text-muted-foreground">
-            {Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24))} nights •
-            Check-in: {format(checkInDate, 'MMM dd')} • Check-out: {format(checkOutDate, 'MMM dd')}
+            {Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24))}{' '}
+            nights • Check-in: {format(checkInDate, 'MMM dd')} • Check-out:{' '}
+            {format(checkOutDate, 'MMM dd')}
           </div>
         )}
       </div>
@@ -222,7 +232,7 @@ export function DateSelector({
             {checkInDate && (
               <X
                 className="ml-auto h-4 w-4 opacity-50 hover:opacity-100"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   handleClear();
                 }}
@@ -238,7 +248,9 @@ export function DateSelector({
               <p className="text-xs text-muted-foreground">
                 {!tempCheckIn && 'Choose your check-in date'}
                 {tempCheckIn && !tempCheckOut && 'Choose your check-out date'}
-                {tempCheckIn && tempCheckOut && `${Math.ceil((tempCheckOut.getTime() - tempCheckIn.getTime()) / (1000 * 60 * 60 * 24))} nights selected`}
+                {tempCheckIn &&
+                  tempCheckOut &&
+                  `${Math.ceil((tempCheckOut.getTime() - tempCheckIn.getTime()) / (1000 * 60 * 60 * 24))} nights selected`}
               </p>
             </div>
 
@@ -268,11 +280,7 @@ export function DateSelector({
               >
                 Cancel
               </Button>
-              <Button
-                className="flex-1 min-h-[44px]"
-                onClick={handleApply}
-                disabled={!canApply}
-              >
+              <Button className="flex-1 min-h-[44px]" onClick={handleApply} disabled={!canApply}>
                 Apply
               </Button>
             </div>
@@ -282,8 +290,8 @@ export function DateSelector({
 
       {checkInDate && checkOutDate && (
         <div className="mt-2 text-xs text-muted-foreground">
-          Check-in: {format(checkInDate, 'EEEE, MMMM dd, yyyy')} • 
-          Check-out: {format(checkOutDate, 'EEEE, MMMM dd, yyyy')}
+          Check-in: {format(checkInDate, 'EEEE, MMMM dd, yyyy')} • Check-out:{' '}
+          {format(checkOutDate, 'EEEE, MMMM dd, yyyy')}
         </div>
       )}
     </div>

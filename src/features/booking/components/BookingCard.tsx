@@ -25,7 +25,8 @@ interface BookingCardProps {
 }
 
 export function BookingCard({ booking, onClick, onModify, onCancel }: BookingCardProps) {
-  const { hotel, checkInDate, checkOutDate, status, referenceNumber, roomDetails, pricing } = booking;
+  const { hotel, checkInDate, checkOutDate, status, referenceNumber, roomDetails, pricing } =
+    booking;
 
   // Calculate countdown to check-in
   const countdown = useMemo(() => {
@@ -63,7 +64,11 @@ export function BookingCard({ booking, onClick, onModify, onCancel }: BookingCar
   const getStatusBadge = () => {
     switch (status) {
       case 'confirmed':
-        return <Badge variant="default" className="bg-green-500">Confirmed</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-500">
+            Confirmed
+          </Badge>
+        );
       case 'pending':
         return <Badge variant="secondary">Pending</Badge>;
       case 'cancelled':
@@ -86,9 +91,7 @@ export function BookingCard({ booking, onClick, onModify, onCancel }: BookingCar
             alt={hotel.title}
             className="w-full h-40 object-cover rounded-md"
           />
-          <div className="absolute top-2 right-2">
-            {getStatusBadge()}
-          </div>
+          <div className="absolute top-2 right-2">{getStatusBadge()}</div>
         </div>
 
         {/* Hotel Info */}
@@ -105,7 +108,8 @@ export function BookingCard({ booking, onClick, onModify, onCancel }: BookingCar
           <div className="flex items-center text-sm">
             <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
             <span>
-              {format(new Date(checkInDate), 'MMM d')} - {format(new Date(checkOutDate), 'MMM d, yyyy')}
+              {format(new Date(checkInDate), 'MMM d')} -{' '}
+              {format(new Date(checkOutDate), 'MMM d, yyyy')}
             </span>
             <span className="text-muted-foreground ml-2">
               ({numberOfNights} night{numberOfNights > 1 ? 's' : ''})
@@ -127,47 +131,45 @@ export function BookingCard({ booking, onClick, onModify, onCancel }: BookingCar
           )}
 
           {/* Reference Number */}
-          <div className="text-xs text-muted-foreground">
-            Ref: {referenceNumber}
-          </div>
+          <div className="text-xs text-muted-foreground">Ref: {referenceNumber}</div>
         </div>
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex items-center justify-between">
         {/* Price */}
         <div>
-          <div className="text-2xl font-bold">
-            ${pricing.total.toFixed(2)}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {pricing.currency}
-          </div>
+          <div className="text-2xl font-bold">${pricing.total.toFixed(2)}</div>
+          <div className="text-xs text-muted-foreground">{pricing.currency}</div>
         </div>
 
         {/* Quick Actions */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+          <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
             <Button variant="ghost" size="icon">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => {
-              e.stopPropagation();
-              onClick?.();
-            }}>
+            <DropdownMenuItem
+              onClick={e => {
+                e.stopPropagation();
+                onClick?.();
+              }}
+            >
               View Details
             </DropdownMenuItem>
             {status === 'confirmed' && (
               <>
-                <DropdownMenuItem onClick={(e) => {
-                  e.stopPropagation();
-                  onModify?.();
-                }}>
+                <DropdownMenuItem
+                  onClick={e => {
+                    e.stopPropagation();
+                    onModify?.();
+                  }}
+                >
                   Modify Booking
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => {
+                <DropdownMenuItem
+                  onClick={e => {
                     e.stopPropagation();
                     onCancel?.();
                   }}

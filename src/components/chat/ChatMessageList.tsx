@@ -1,6 +1,6 @@
 /**
  * ChatMessageList Component
- * 
+ *
  * Displays the list of chat messages with proper styling and formatting.
  * Features:
  * - Chronological message ordering
@@ -8,7 +8,7 @@
  * - Timestamp display
  * - Empty state with welcome message
  * - Auto-scroll to latest message
- * 
+ *
  * Requirements: 3.4, 4.1, 4.2, 4.3
  */
 
@@ -36,13 +36,13 @@ export interface ChatMessageListProps {
 const formatTimestamp = (date: Date): string => {
   const now = new Date();
   const messageDate = new Date(date);
-  
+
   // Check if message is from today
-  const isToday = 
+  const isToday =
     messageDate.getDate() === now.getDate() &&
     messageDate.getMonth() === now.getMonth() &&
     messageDate.getFullYear() === now.getFullYear();
-  
+
   if (isToday) {
     // Show time only for today's messages
     return messageDate.toLocaleTimeString('en-US', {
@@ -68,49 +68,64 @@ const formatTimestamp = (date: Date): string => {
 
 const EmptyState: React.FC = () => {
   return (
-    <div 
+    <div
       className="flex flex-col items-center justify-center h-full p-8 text-center"
       role="region"
       aria-label="Welcome message"
     >
-      <div className="mb-4 p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600" aria-hidden="true">
+      <div
+        className="mb-4 p-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600"
+        aria-hidden="true"
+      >
         <Bot className="h-8 w-8 text-white" />
       </div>
-      
+
       <h3 className="text-xl font-semibold mb-2">
-        <span role="img" aria-label="Waving hand">👋</span> Welcome to Vagabond AI!
+        <span role="img" aria-label="Waving hand">
+          👋
+        </span>{' '}
+        Welcome to BookOnce AI!
       </h3>
-      
-      <p className="text-muted-foreground mb-6 max-w-md">
-        I can help you with:
-      </p>
-      
-      <ul className="text-sm text-muted-foreground space-y-2 text-left max-w-md" aria-label="Available assistance topics">
+
+      <p className="text-muted-foreground mb-6 max-w-md">I can help you with:</p>
+
+      <ul
+        className="text-sm text-muted-foreground space-y-2 text-left max-w-md"
+        aria-label="Available assistance topics"
+      >
         <li className="flex items-start gap-2">
-          <span className="text-blue-500 mt-0.5" aria-hidden="true">•</span>
+          <span className="text-blue-500 mt-0.5" aria-hidden="true">
+            •
+          </span>
           <span>Restaurant recommendations</span>
         </li>
         <li className="flex items-start gap-2">
-          <span className="text-blue-500 mt-0.5" aria-hidden="true">•</span>
+          <span className="text-blue-500 mt-0.5" aria-hidden="true">
+            •
+          </span>
           <span>Local events and activities</span>
         </li>
         <li className="flex items-start gap-2">
-          <span className="text-blue-500 mt-0.5" aria-hidden="true">•</span>
+          <span className="text-blue-500 mt-0.5" aria-hidden="true">
+            •
+          </span>
           <span>Travel planning and tips</span>
         </li>
         <li className="flex items-start gap-2">
-          <span className="text-blue-500 mt-0.5" aria-hidden="true">•</span>
+          <span className="text-blue-500 mt-0.5" aria-hidden="true">
+            •
+          </span>
           <span>Accommodation suggestions</span>
         </li>
         <li className="flex items-start gap-2">
-          <span className="text-blue-500 mt-0.5" aria-hidden="true">•</span>
+          <span className="text-blue-500 mt-0.5" aria-hidden="true">
+            •
+          </span>
           <span>General travel information</span>
         </li>
       </ul>
-      
-      <p className="text-sm text-muted-foreground mt-6 font-medium">
-        Ask me anything!
-      </p>
+
+      <p className="text-sm text-muted-foreground mt-6 font-medium">Ask me anything!</p>
     </div>
   );
 };
@@ -125,41 +140,39 @@ interface MessageItemProps {
 
 const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
   const isUser = message.role === 'user';
-  
+
   return (
     <div
       className={cn(
         'flex gap-3 p-4 rounded-lg transition-all',
         'animate-in slide-in-from-bottom-2 fade-in duration-300',
-        isUser ? 'bg-blue-50 ml-8' : 'bg-gray-50 mr-8'
+        isUser
+          ? 'bg-primary/10 border border-primary/20 ml-8 dark:bg-primary/20 dark:border-primary/30'
+          : 'bg-secondary/50 border border-border mr-8 dark:bg-secondary dark:border-border'
       )}
       role="article"
-      aria-label={`${isUser ? 'Your' : 'Vagabond AI'} message at ${formatTimestamp(message.timestamp)}`}
+      aria-label={`${isUser ? 'Your' : 'BookOnce AI'} message at ${formatTimestamp(message.timestamp)}`}
     >
       {/* Avatar */}
       <div
         className={cn(
           'shrink-0 h-8 w-8 rounded-full flex items-center justify-center',
-          isUser 
-            ? 'bg-blue-500 text-white' 
-            : 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+          isUser
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-gradient-to-br from-primary to-accent text-primary-foreground'
         )}
         aria-hidden="true"
       >
-        {isUser ? (
-          <User className="h-4 w-4" />
-        ) : (
-          <Bot className="h-4 w-4" />
-        )}
+        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
       </div>
-      
+
       {/* Message content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 mb-1">
           <span className="text-sm font-semibold" id={`message-${message.id}-sender`}>
-            {isUser ? 'You' : 'Vagabond AI'}
+            {isUser ? 'You' : 'BookOnce AI'}
           </span>
-          <time 
+          <time
             className="text-xs text-muted-foreground"
             dateTime={new Date(message.timestamp).toISOString()}
             aria-label={`Sent at ${formatTimestamp(message.timestamp)}`}
@@ -167,8 +180,8 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
             {formatTimestamp(message.timestamp)}
           </time>
         </div>
-        
-        <div 
+
+        <div
           className="text-sm whitespace-pre-wrap break-words"
           aria-labelledby={`message-${message.id}-sender`}
         >
@@ -183,10 +196,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
 // Main Component
 // ============================================================================
 
-export const ChatMessageList: React.FC<ChatMessageListProps> = ({
-  messages,
-  className,
-}) => {
+export const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages, className }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -221,10 +231,10 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         <EmptyState />
       ) : (
         <div className="flex flex-col gap-3 p-4">
-          {messages.map((message) => (
+          {messages.map(message => (
             <MessageItem key={message.id} message={message} />
           ))}
-          
+
           {/* Invisible element to scroll to */}
           <div ref={messagesEndRef} aria-hidden="true" />
         </div>

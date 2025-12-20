@@ -15,12 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Info } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { PricingDetails, CancellationPolicy } from '@/types/booking';
 
@@ -58,9 +53,9 @@ const CURRENCIES = [
 // ============================================================================
 
 function formatCurrency(amount: number, currency: string): string {
-  const currencyInfo = CURRENCIES.find((c) => c.code === currency);
+  const currencyInfo = CURRENCIES.find(c => c.code === currency);
   const symbol = currencyInfo?.symbol || currency;
-  
+
   return `${symbol}${amount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -74,7 +69,7 @@ function getCancellationPolicyBadge(type: CancellationPolicy['type']) {
     strict: { label: 'Strict', variant: 'outline' as const },
     'non-refundable': { label: 'Non-Refundable', variant: 'destructive' as const },
   };
-  
+
   return badges[type] || badges.moderate;
 }
 
@@ -90,9 +85,7 @@ export function PricingSummary({
   className,
   onCurrencyChange,
 }: PricingSummaryProps) {
-  const [selectedCurrency, setSelectedCurrency] = useState(
-    pricing?.currency || 'USD'
-  );
+  const [selectedCurrency, setSelectedCurrency] = useState(pricing?.currency || 'USD');
 
   const handleCurrencyChange = (currency: string) => {
     setSelectedCurrency(currency);
@@ -104,33 +97,42 @@ export function PricingSummary({
     ? selectedCurrency === pricing.currency
       ? pricing
       : pricing.convertedTotal
-      ? {
-          ...pricing,
-          baseRate: pricing.convertedTotal.amount / pricing.numberOfNights,
-          subtotal: pricing.convertedTotal.amount,
-          taxes: pricing.taxes.map((tax) => ({
-            ...tax,
-            amount: tax.amount * (pricing.convertedTotal?.rate || 1),
-          })),
-          fees: pricing.fees.map((fee) => ({
-            ...fee,
-            amount: fee.amount * (pricing.convertedTotal?.rate || 1),
-          })),
-          total: pricing.convertedTotal.amount,
-          currency: pricing.convertedTotal.currency,
-        }
-      : pricing
+        ? {
+            ...pricing,
+            baseRate: pricing.convertedTotal.amount / pricing.numberOfNights,
+            subtotal: pricing.convertedTotal.amount,
+            taxes: pricing.taxes.map(tax => ({
+              ...tax,
+              amount: tax.amount * (pricing.convertedTotal?.rate || 1),
+            })),
+            fees: pricing.fees.map(fee => ({
+              ...fee,
+              amount: fee.amount * (pricing.convertedTotal?.rate || 1),
+            })),
+            total: pricing.convertedTotal.amount,
+            currency: pricing.convertedTotal.currency,
+          }
+        : pricing
     : null;
 
   if (isLoading) {
     return (
-      <Card className={cn(sticky && 'sticky top-4', className)} role="region" aria-label="Pricing summary">
+      <Card
+        className={cn(sticky && 'sticky top-4', className)}
+        role="region"
+        aria-label="Pricing summary"
+      >
         <CardHeader>
           <CardTitle>Price Summary</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3" role="status" aria-live="polite" aria-label="Loading pricing information">
-            {[1, 2, 3, 4].map((i) => (
+          <div
+            className="space-y-3"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading pricing information"
+          >
+            {[1, 2, 3, 4].map(i => (
               <div key={i} className="flex justify-between">
                 <div className="h-4 w-24 bg-muted animate-pulse rounded" />
                 <div className="h-4 w-16 bg-muted animate-pulse rounded" />
@@ -144,7 +146,11 @@ export function PricingSummary({
 
   if (!pricing) {
     return (
-      <Card className={cn(sticky && 'sticky top-4', className)} role="region" aria-label="Pricing summary">
+      <Card
+        className={cn(sticky && 'sticky top-4', className)}
+        role="region"
+        aria-label="Pricing summary"
+      >
         <CardHeader>
           <CardTitle>Price Summary</CardTitle>
         </CardHeader>
@@ -162,7 +168,11 @@ export function PricingSummary({
     : null;
 
   return (
-    <Card className={cn(sticky && 'sticky top-4', className)} role="region" aria-label="Pricing summary">
+    <Card
+      className={cn(sticky && 'sticky top-4', className)}
+      role="region"
+      aria-label="Pricing summary"
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle id="pricing-summary-title">Price Summary</CardTitle>
@@ -172,7 +182,7 @@ export function PricingSummary({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CURRENCIES.map((currency) => (
+                {CURRENCIES.map(currency => (
                   <SelectItem key={currency.code} value={currency.code}>
                     {currency.code}
                   </SelectItem>
@@ -257,9 +267,16 @@ export function PricingSummary({
         <Separator />
 
         {/* Total */}
-        <div className="flex justify-between text-lg font-bold" role="status" aria-live="polite" aria-atomic="true">
+        <div
+          className="flex justify-between text-lg font-bold"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span>Total</span>
-          <span aria-label={`Total price: ${formatCurrency(displayPricing.total, displayPricing.currency)}`}>
+          <span
+            aria-label={`Total price: ${formatCurrency(displayPricing.total, displayPricing.currency)}`}
+          >
             {formatCurrency(displayPricing.total, displayPricing.currency)}
           </span>
         </div>
@@ -269,8 +286,8 @@ export function PricingSummary({
           <p className="text-xs text-muted-foreground">
             Original price: {formatCurrency(pricing.total, pricing.currency)}
             <br />
-            Exchange rate: 1 {pricing.currency} ={' '}
-            {pricing.convertedTotal.rate.toFixed(4)} {pricing.convertedTotal.currency}
+            Exchange rate: 1 {pricing.currency} = {pricing.convertedTotal.rate.toFixed(4)}{' '}
+            {pricing.convertedTotal.currency}
           </p>
         )}
 
@@ -283,26 +300,27 @@ export function PricingSummary({
                 <span className="text-sm font-medium">Cancellation Policy</span>
                 <Badge variant={policyBadge.variant}>{policyBadge.label}</Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {cancellationPolicy.description}
-              </p>
-              
+              <p className="text-xs text-muted-foreground">{cancellationPolicy.description}</p>
+
               {/* Cancellation Rules */}
               {cancellationPolicy.rules.length > 0 && (
                 <div className="space-y-1 pt-2">
                   {cancellationPolicy.rules.map((rule, index) => (
                     <div key={index} className="text-xs text-muted-foreground">
-                      • {rule.daysBeforeCheckIn > 0 ? (
+                      •{' '}
+                      {rule.daysBeforeCheckIn > 0 ? (
                         <>
-                          Cancel {rule.daysBeforeCheckIn}+ days before:{' '}
-                          {rule.refundPercentage}% refund
-                          {rule.fee && ` (${formatCurrency(rule.fee, displayPricing.currency)} fee)`}
+                          Cancel {rule.daysBeforeCheckIn}+ days before: {rule.refundPercentage}%
+                          refund
+                          {rule.fee &&
+                            ` (${formatCurrency(rule.fee, displayPricing.currency)} fee)`}
                         </>
                       ) : (
                         <>
                           Cancel within {Math.abs(rule.daysBeforeCheckIn)} days:{' '}
                           {rule.refundPercentage}% refund
-                          {rule.fee && ` (${formatCurrency(rule.fee, displayPricing.currency)} fee)`}
+                          {rule.fee &&
+                            ` (${formatCurrency(rule.fee, displayPricing.currency)} fee)`}
                         </>
                       )}
                     </div>
@@ -315,9 +333,7 @@ export function PricingSummary({
 
         {/* Additional Info */}
         <div className="pt-2 space-y-1">
-          <p className="text-xs text-muted-foreground">
-            • Prices include all taxes and fees
-          </p>
+          <p className="text-xs text-muted-foreground">• Prices include all taxes and fees</p>
           <p className="text-xs text-muted-foreground">
             • Payment will be processed in {displayPricing.currency}
           </p>

@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Play, Pause, Lock, Unlock, Volume2 } from "lucide-react";
-import { useState } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Play, Pause, Lock, Unlock, Volume2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface Echo {
   id: number;
@@ -43,7 +43,7 @@ const EchoModal = ({ echo, isOpen, onClose, isNearby }: EchoModalProps) => {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md z-[70] glass-strong rounded-3xl overflow-hidden shadow-lg"
           >
             {/* Header */}
@@ -83,16 +83,16 @@ const EchoModal = ({ echo, isOpen, onClose, isNearby }: EchoModalProps) => {
               </div>
 
               {/* Waveform Visualization */}
-              <div className={`relative p-6 rounded-2xl bg-secondary/50 ${!isNearby ? "blur-sm" : ""}`}>
+              <div
+                className={`relative p-6 rounded-2xl bg-secondary/50 ${!isNearby ? 'blur-sm' : ''}`}
+              >
                 <div className="flex items-center justify-center gap-1 h-16">
                   {Array.from({ length: 40 }).map((_, i) => (
                     <motion.div
                       key={i}
                       className="w-1 bg-purple-500 rounded-full"
                       animate={{
-                        height: isPlaying && isNearby
-                          ? [8, Math.random() * 50 + 10, 8]
-                          : 8,
+                        height: isPlaying && isNearby ? [8, Math.random() * 50 + 10, 8] : 8,
                       }}
                       transition={{
                         duration: 0.5,
@@ -106,7 +106,7 @@ const EchoModal = ({ echo, isOpen, onClose, isNearby }: EchoModalProps) => {
 
                 {/* Duration */}
                 <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-                  <span>{isPlaying ? "0:12" : "0:00"}</span>
+                  <span>{isPlaying ? '0:12' : '0:00'}</span>
                   <span>{echo.duration}</span>
                 </div>
 
@@ -130,34 +130,34 @@ const EchoModal = ({ echo, isOpen, onClose, isNearby }: EchoModalProps) => {
                   disabled={!isNearby}
                   className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
                     isNearby
-                      ? "bg-gradient-accent text-primary-foreground shadow-glow"
-                      : "bg-secondary text-muted-foreground cursor-not-allowed"
+                      ? 'bg-gradient-accent text-primary-foreground shadow-glow'
+                      : 'bg-secondary text-muted-foreground cursor-not-allowed'
                   }`}
                 >
-                  {isPlaying ? (
-                    <Pause className="w-6 h-6" />
-                  ) : (
-                    <Play className="w-6 h-6 ml-1" />
-                  )}
+                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
                 </motion.button>
               </div>
 
               {/* Transcript */}
-              <div className={`space-y-2 ${!isNearby ? "blur-md select-none" : ""}`}>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Transcript</p>
-                <p className="text-sm text-foreground leading-relaxed">
-                  "{echo.transcript}"
+              <div className={`space-y-2 ${!isNearby ? 'blur-md select-none' : ''}`}>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Transcript
                 </p>
+                <p className="text-sm text-foreground leading-relaxed">"{echo.transcript}"</p>
               </div>
 
               {/* Status */}
-              <div className={`flex items-center gap-2 px-4 py-3 rounded-xl ${
-                isNearby ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"
-              }`}>
+              <div
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl ${
+                  isNearby ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+                }`}
+              >
                 {isNearby ? (
                   <>
                     <Unlock className="w-4 h-4" />
-                    <span className="text-sm font-medium">You're nearby - Full access unlocked</span>
+                    <span className="text-sm font-medium">
+                      You're nearby - Full access unlocked
+                    </span>
                   </>
                 ) : (
                   <>

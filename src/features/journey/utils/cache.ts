@@ -25,7 +25,7 @@ class SimpleCache {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -78,7 +78,10 @@ export const cacheStore = new SimpleCache();
 
 // Clean up expired entries every 5 minutes
 if (typeof window !== 'undefined') {
-  setInterval(() => {
-    cacheStore.cleanExpired();
-  }, 5 * 60 * 1000);
+  setInterval(
+    () => {
+      cacheStore.cleanExpired();
+    },
+    5 * 60 * 1000
+  );
 }

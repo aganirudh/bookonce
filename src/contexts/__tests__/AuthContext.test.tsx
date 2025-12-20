@@ -31,9 +31,7 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Wrapper component for hooks
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <AuthProvider>{children}</AuthProvider>
-);
+const wrapper = ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>;
 
 describe('AuthContext', () => {
   beforeEach(() => {
@@ -121,12 +119,7 @@ describe('AuthContext', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
-        await result.current.register(
-          'newuser@example.com',
-          'password123',
-          'New',
-          'User'
-        );
+        await result.current.register('newuser@example.com', 'password123', 'New', 'User');
       });
 
       expect(result.current.user).toBeTruthy();
@@ -140,12 +133,7 @@ describe('AuthContext', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
-        await result.current.register(
-          'newuser@example.com',
-          'password123',
-          'New',
-          'User'
-        );
+        await result.current.register('newuser@example.com', 'password123', 'New', 'User');
       });
 
       expect(result.current.user?.notificationPreferences).toBeDefined();
@@ -232,7 +220,7 @@ describe('AuthContext', () => {
       });
 
       const oldToken = getAccessToken();
-      
+
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });

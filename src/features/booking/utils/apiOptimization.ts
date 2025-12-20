@@ -17,7 +17,7 @@ export function compressRequestPayload<T extends Record<string, any>>(
   }
 
   const compressed: Partial<T> = {};
-  fieldsToKeep.forEach((field) => {
+  fieldsToKeep.forEach(field => {
     if (field in payload) {
       compressed[field as keyof T] = payload[field];
     }
@@ -56,7 +56,7 @@ export function reduceResponsePayload<T>(
 
   // Limit array sizes
   if (options?.limitArrays) {
-    Object.keys(reduced).forEach((key) => {
+    Object.keys(reduced).forEach(key => {
       if (Array.isArray(reduced[key]) && reduced[key].length > options.limitArrays!) {
         reduced[key] = reduced[key].slice(0, options.limitArrays);
       }
@@ -79,7 +79,7 @@ export function optimizeAvailabilityResponse(
 
   return {
     ...response,
-    rooms: response.rooms.map((room) => ({
+    rooms: response.rooms.map(room => ({
       ...room,
       // Limit images to first 2 on mobile
       images: room.images.slice(0, 2),
@@ -119,11 +119,7 @@ export class PrefetchManager {
   /**
    * Prefetch data for a given key
    */
-  async prefetch<T>(
-    key: string,
-    fetchFn: () => Promise<T>,
-    force = false
-  ): Promise<void> {
+  async prefetch<T>(key: string, fetchFn: () => Promise<T>, force = false): Promise<void> {
     // Check if already prefetching
     if (this.prefetchQueue.has(key) && !force) {
       return;
@@ -137,12 +133,12 @@ export class PrefetchManager {
 
     // Start prefetch
     const promise = fetchFn()
-      .then((data) => {
+      .then(data => {
         this.prefetchCache.set(key, { data, timestamp: Date.now() });
         this.prefetchQueue.delete(key);
         return data;
       })
-      .catch((error) => {
+      .catch(error => {
         console.error(`Prefetch failed for ${key}:`, error);
         this.prefetchQueue.delete(key);
         throw error;

@@ -1,6 +1,15 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, MapPin, Calendar, Zap, Palmtree, Sparkles, Navigation, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search,
+  MapPin,
+  Calendar,
+  Zap,
+  Palmtree,
+  Sparkles,
+  Navigation,
+  Loader2,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface HeroEnhancedProps {
   onPlanJourney: (params: JourneyParams) => void;
@@ -10,16 +19,18 @@ export interface JourneyParams {
   source: string;
   destination: string;
   departureDate: string;
+  departureTime?: string;
   returnDate?: string;
   mode: 'urgent' | 'fun';
   guests: number;
 }
 
 const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
-  const [source, setSource] = useState("");
-  const [destination, setDestination] = useState("");
-  const [departureDate, setDepartureDate] = useState("");
-  const [returnDate, setReturnDate] = useState("");
+  const [source, setSource] = useState('');
+  const [destination, setDestination] = useState('');
+  const [departureDate, setDepartureDate] = useState('');
+  const [departureTime, setDepartureTime] = useState('');
+  const [returnDate, setReturnDate] = useState('');
   const [mode, setMode] = useState<'urgent' | 'fun'>('fun');
   const [guests, setGuests] = useState(1);
   const [isPlanning, setIsPlanning] = useState(false);
@@ -35,9 +46,9 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
     setIsLoadingLocation(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        async position => {
           const { latitude, longitude } = position.coords;
-          
+
           // Try to get city name from coordinates (reverse geocoding)
           // For now, use coordinates as fallback
           try {
@@ -50,14 +61,14 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
           }
           setIsLoadingLocation(false);
         },
-        (error) => {
-          console.error("Error getting location:", error);
-          setSource("Your Location");
+        error => {
+          console.error('Error getting location:', error);
+          setSource('Your Location');
           setIsLoadingLocation(false);
         }
       );
     } else {
-      setSource("Your Location");
+      setSource('Your Location');
       setIsLoadingLocation(false);
     }
   };
@@ -66,17 +77,15 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
   const getCityFromCoords = async (lat: number, lng: number): Promise<string> => {
     // Mock city detection - in production use Google Geocoding API
     const cities = [
-      { name: "Mumbai", lat: 19.0760, lng: 72.8777, radius: 0.5 },
-      { name: "Delhi", lat: 28.7041, lng: 77.1025, radius: 0.5 },
-      { name: "Bangalore", lat: 12.9716, lng: 77.5946, radius: 0.5 },
-      { name: "Goa", lat: 15.2993, lng: 74.1240, radius: 0.5 },
-      { name: "Jaipur", lat: 26.9124, lng: 75.7873, radius: 0.5 },
+      { name: 'Mumbai', lat: 19.076, lng: 72.8777, radius: 0.5 },
+      { name: 'Delhi', lat: 28.7041, lng: 77.1025, radius: 0.5 },
+      { name: 'Bangalore', lat: 12.9716, lng: 77.5946, radius: 0.5 },
+      { name: 'Goa', lat: 15.2993, lng: 74.124, radius: 0.5 },
+      { name: 'Jaipur', lat: 26.9124, lng: 75.7873, radius: 0.5 },
     ];
 
     for (const city of cities) {
-      const distance = Math.sqrt(
-        Math.pow(lat - city.lat, 2) + Math.pow(lng - city.lng, 2)
-      );
+      const distance = Math.sqrt(Math.pow(lat - city.lat, 2) + Math.pow(lng - city.lng, 2));
       if (distance < city.radius) {
         return city.name;
       }
@@ -87,21 +96,28 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
 
   const handlePlanJourney = async () => {
     if (!source || !destination || !departureDate) {
-      alert("Please fill in source, destination, and departure date");
+      alert('Please fill in source, destination, and departure date');
+      return;
+    }
+
+    // Validate time for urgent mode
+    if (mode === 'urgent' && !departureTime) {
+      alert('Please specify departure time for urgent mode');
       return;
     }
 
     setIsPlanning(true);
-    
+
     // Simulate AI planning delay
     setTimeout(() => {
       onPlanJourney({
         source,
         destination,
         departureDate,
+        departureTime: departureTime || undefined,
         returnDate,
         mode,
-        guests
+        guests,
       });
       setIsPlanning(false);
     }, 1500);
@@ -134,7 +150,9 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6"
           >
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Complete Door-to-Door Journey Planning</span>
+            <span className="text-sm font-medium text-foreground">
+              Complete Door-to-Door Journey Planning
+            </span>
           </motion.div>
 
           <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 leading-tight">
@@ -144,7 +162,8 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
           </h1>
 
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            From your doorstep to destination. We handle flights, trains, local transport, hotels, and everything in between.
+            From your doorstep to destination. We handle flights, trains, local transport, hotels,
+            and everything in between.
           </p>
         </motion.div>
 
@@ -200,9 +219,11 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
               </div>
               <input
                 type="text"
-                placeholder={isLoadingLocation ? "Detecting your location..." : "From: Your location"}
+                placeholder={
+                  isLoadingLocation ? 'Detecting your location...' : 'From: Your location'
+                }
                 value={source}
-                onChange={(e) => setSource(e.target.value)}
+                onChange={e => setSource(e.target.value)}
                 disabled={isLoadingLocation}
                 className="w-full pl-12 pr-24 py-4 bg-secondary/50 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all disabled:opacity-50"
               />
@@ -211,7 +232,7 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
                 disabled={isLoadingLocation}
                 className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 bg-primary/10 hover:bg-primary/20 rounded-lg text-primary text-xs font-medium transition-all disabled:opacity-50"
               >
-                {isLoadingLocation ? "..." : "Refresh"}
+                {isLoadingLocation ? '...' : 'Refresh'}
               </button>
             </div>
 
@@ -224,7 +245,7 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
                 type="text"
                 placeholder="To: Where do you want to go?"
                 value={destination}
-                onChange={(e) => setDestination(e.target.value)}
+                onChange={e => setDestination(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 bg-secondary/50 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               />
             </div>
@@ -238,7 +259,7 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
                 type="date"
                 placeholder="Departure"
                 value={departureDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
+                onChange={e => setDepartureDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
                 className="w-full pl-12 pr-4 py-4 bg-secondary/50 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               />
@@ -253,12 +274,46 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
                 type="date"
                 placeholder="Return (Optional)"
                 value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
+                onChange={e => setReturnDate(e.target.value)}
                 min={departureDate || new Date().toISOString().split('T')[0]}
                 className="w-full pl-12 pr-4 py-4 bg-secondary/50 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               />
             </div>
           </div>
+
+          {/* Departure Time - Show only in Urgent Mode */}
+          <AnimatePresence>
+            {mode === 'urgent' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-4"
+              >
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="time"
+                    placeholder="Departure Time"
+                    value={departureTime}
+                    onChange={e => setDepartureTime(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-800 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-red-600 dark:text-red-400">
+                    Required for urgent mode
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"
+            style={{ display: 'none' }}
+          ></div>
 
           {/* Guests */}
           <div className="flex items-center justify-between mb-6 px-4">
@@ -317,7 +372,8 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
 
           {/* Info Text */}
           <p className="text-xs text-muted-foreground mt-4 text-center">
-            ✨ AI-powered routing • 🚗 Local transport • ✈️ Flights & trains • 🏨 Hotels • 🛡️ Safety monitoring
+            ✨ AI-powered routing • 🚗 Local transport • ✈️ Flights & trains • 🏨 Hotels • 🛡️ Safety
+            monitoring
           </p>
         </motion.div>
 
@@ -329,10 +385,10 @@ const HeroEnhanced = ({ onPlanJourney }: HeroEnhancedProps) => {
           className="flex flex-wrap justify-center gap-8 md:gap-16 mt-12"
         >
           {[
-            { value: "1-Click", label: "Complete Booking" },
-            { value: "24/7", label: "Local Guardian" },
-            { value: "100%", label: "Door-to-Door" },
-          ].map((stat) => (
+            { value: '1-Click', label: 'Complete Booking' },
+            { value: '24/7', label: 'Local Guardian' },
+            { value: '100%', label: 'Door-to-Door' },
+          ].map(stat => (
             <div key={stat.label} className="text-center">
               <div className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>

@@ -81,9 +81,7 @@ export function CreateAccountDialog({
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Account Created!</h3>
-            <p className="text-muted-foreground">
-              You can now access your bookings anytime.
-            </p>
+            <p className="text-muted-foreground">You can now access your bookings anytime.</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -103,13 +101,7 @@ export function CreateAccountDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              disabled
-              className="bg-muted"
-            />
+            <Input id="email" type="email" value={email} disabled className="bg-muted" />
           </div>
 
           <div className="space-y-2">
@@ -118,7 +110,7 @@ export function CreateAccountDialog({
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               placeholder="At least 8 characters"
               required
               minLength={8}
@@ -131,7 +123,7 @@ export function CreateAccountDialog({
               id="confirmPassword"
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={e => setConfirmPassword(e.target.value)}
               placeholder="Re-enter your password"
               required
             />
@@ -154,11 +146,7 @@ export function CreateAccountDialog({
             >
               Skip for Now
             </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full sm:w-auto"
-            >
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
           </DialogFooter>

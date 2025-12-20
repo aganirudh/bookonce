@@ -175,8 +175,8 @@ export default function BookingConfirmation() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-4">
             <CheckCircle2 className="h-12 w-12 text-green-600" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Booking Confirmed!</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Booking Confirmed!</h1>
+          <p className="text-lg text-muted-foreground">
             Your reservation has been successfully confirmed
           </p>
         </div>

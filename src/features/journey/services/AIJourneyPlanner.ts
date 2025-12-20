@@ -3,7 +3,7 @@ import type { MultiModalRoute, RouteSegment, Location } from '@/types/journey';
 
 /**
  * AI-Powered Journey Planner
- * 
+ *
  * This service uses AI and internet search to plan complete door-to-door journeys.
  * For hackathon: Uses mock data with intelligent routing logic
  * For production: Connect to Google Maps API, flight APIs, OpenAI, etc.
@@ -17,6 +17,8 @@ export class AIJourneyPlanner {
     urgentRoute: MultiModalRoute;
     funRoute: MultiModalRoute;
     destination: Location;
+    returnUrgentRoute?: MultiModalRoute;
+    returnFunRoute?: MultiModalRoute;
   }> {
     // Simulate AI processing time
     await this.delay(1000);
@@ -28,7 +30,7 @@ export class AIJourneyPlanner {
     // Calculate distance to determine transport type
     const distance = this.calculateDistance(sourceLocation, destLocation);
 
-    // Generate both routes
+    // Generate outbound routes
     const urgentRoute = await this.generateRoute(
       sourceLocation,
       destLocation,
@@ -45,10 +47,34 @@ export class AIJourneyPlanner {
       params.departureDate
     );
 
+    // Generate return routes if return date is provided
+    let returnUrgentRoute: MultiModalRoute | undefined;
+    let returnFunRoute: MultiModalRoute | undefined;
+
+    if (params.returnDate) {
+      returnUrgentRoute = await this.generateRoute(
+        destLocation,
+        sourceLocation,
+        'urgent',
+        distance,
+        params.returnDate
+      );
+
+      returnFunRoute = await this.generateRoute(
+        destLocation,
+        sourceLocation,
+        'fun',
+        distance,
+        params.returnDate
+      );
+    }
+
     return {
       urgentRoute,
       funRoute,
-      destination: destLocation
+      destination: destLocation,
+      returnUrgentRoute,
+      returnFunRoute,
     };
   }
 
@@ -58,7 +84,9 @@ export class AIJourneyPlanner {
    */
   private async parseLocation(locationStr: string): Promise<Location> {
     // Mock location parsing
-    const cityMatch = locationStr.match(/(Mumbai|Delhi|Bangalore|Goa|Jaipur|Kolkata|Chennai|Hyderabad)/i);
+    const cityMatch = locationStr.match(
+      /(Mumbai|Delhi|Bangalore|Goa|Jaipur|Kolkata|Chennai|Hyderabad)/i
+    );
     const city = cityMatch ? cityMatch[0] : locationStr;
 
     // Mock coordinates (in production, use Geocoding API)
@@ -69,7 +97,7 @@ export class AIJourneyPlanner {
       city: city,
       country: 'India',
       coordinates,
-      timezone: 'Asia/Kolkata'
+      timezone: 'Asia/Kolkata',
     };
   }
 
@@ -78,14 +106,14 @@ export class AIJourneyPlanner {
    */
   private getMockCoordinates(city: string): { lat: number; lng: number } {
     const coords: Record<string, { lat: number; lng: number }> = {
-      'Mumbai': { lat: 19.0760, lng: 72.8777 },
-      'Delhi': { lat: 28.7041, lng: 77.1025 },
-      'Bangalore': { lat: 12.9716, lng: 77.5946 },
-      'Goa': { lat: 15.2993, lng: 74.1240 },
-      'Jaipur': { lat: 26.9124, lng: 75.7873 },
-      'Kolkata': { lat: 22.5726, lng: 88.3639 },
-      'Chennai': { lat: 13.0827, lng: 80.2707 },
-      'Hyderabad': { lat: 17.3850, lng: 78.4867 },
+      Mumbai: { lat: 19.076, lng: 72.8777 },
+      Delhi: { lat: 28.7041, lng: 77.1025 },
+      Bangalore: { lat: 12.9716, lng: 77.5946 },
+      Goa: { lat: 15.2993, lng: 74.124 },
+      Jaipur: { lat: 26.9124, lng: 75.7873 },
+      Kolkata: { lat: 22.5726, lng: 88.3639 },
+      Chennai: { lat: 13.0827, lng: 80.2707 },
+      Hyderabad: { lat: 17.385, lng: 78.4867 },
     };
 
     return coords[city] || { lat: 20.5937, lng: 78.9629 }; // Default to India center
@@ -98,13 +126,14 @@ export class AIJourneyPlanner {
     const R = 6371; // Earth's radius in km
     const dLat = this.toRad(to.coordinates.lat - from.coordinates.lat);
     const dLon = this.toRad(to.coordinates.lng - from.coordinates.lng);
-    
-    const a = 
+
+    const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRad(from.coordinates.lat)) * 
-      Math.cos(this.toRad(to.coordinates.lat)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    
+      Math.cos(this.toRad(from.coordinates.lat)) *
+        Math.cos(this.toRad(to.coordinates.lat)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -130,7 +159,7 @@ export class AIJourneyPlanner {
     // Determine if inter-city or intra-city
     if (distance > 100) {
       // Inter-city journey: Need flight/train
-      
+
       // 1. Local transport to airport/station
       const toAirport = this.generateLocalTransport(
         from,
@@ -164,7 +193,6 @@ export class AIJourneyPlanner {
       segments.push(fromAirport);
       currentTime = fromAirport.arrivalTime;
       totalCost += fromAirport.cost;
-
     } else {
       // Intra-city: Only local transport
       const localRoute = this.generateLocalTransport(from, to, currentTime, mode);
@@ -174,13 +202,15 @@ export class AIJourneyPlanner {
 
     // Calculate total duration
     const totalDuration = Math.floor(
-      (segments[segments.length - 1].arrivalTime.getTime() - segments[0].departureTime.getTime()) / 60000
+      (segments[segments.length - 1].arrivalTime.getTime() - segments[0].departureTime.getTime()) /
+        60000
     );
 
     // Add highlights based on mode
-    const highlights = mode === 'urgent' 
-      ? ['Fastest route', 'Direct connections', 'Premium options']
-      : ['Scenic route', 'Budget-friendly', 'Local experiences', 'Comfortable journey'];
+    const highlights =
+      mode === 'urgent'
+        ? ['Fastest route', 'Direct connections', 'Premium options']
+        : ['Scenic route', 'Budget-friendly', 'Local experiences', 'Comfortable journey'];
 
     return {
       id: `route-${mode}-${Date.now()}`,
@@ -189,7 +219,7 @@ export class AIJourneyPlanner {
       totalCost,
       mode,
       highlights,
-      carbonFootprint: this.calculateCarbonFootprint(segments)
+      carbonFootprint: this.calculateCarbonFootprint(segments),
     };
   }
 
@@ -202,12 +232,13 @@ export class AIJourneyPlanner {
     startTime: Date,
     mode: 'urgent' | 'fun'
   ): RouteSegment {
-    const transportOptions = mode === 'urgent'
-      ? [{ type: 'taxi' as const, duration: 30, cost: 300 }]
-      : [
-          { type: 'metro' as const, duration: 45, cost: 60 },
-          { type: 'bus' as const, duration: 50, cost: 40 },
-        ];
+    const transportOptions =
+      mode === 'urgent'
+        ? [{ type: 'taxi' as const, duration: 30, cost: 300 }]
+        : [
+            { type: 'metro' as const, duration: 45, cost: 60 },
+            { type: 'bus' as const, duration: 50, cost: 40 },
+          ];
 
     const selected = transportOptions[Math.floor(Math.random() * transportOptions.length)];
     const arrivalTime = new Date(startTime.getTime() + selected.duration * 60000);
@@ -221,10 +252,11 @@ export class AIJourneyPlanner {
       arrivalTime,
       duration: selected.duration,
       cost: selected.cost,
-      provider: selected.type === 'taxi' ? 'Uber' : selected.type === 'metro' ? 'Metro Rail' : 'City Bus',
+      provider:
+        selected.type === 'taxi' ? 'Uber' : selected.type === 'metro' ? 'Metro Rail' : 'City Bus',
       bookingRequired: selected.type === 'taxi',
       instructions: `Take ${selected.type} from ${from.address} to ${to.address}`,
-      distance: 15
+      distance: 15,
     };
   }
 
@@ -259,7 +291,7 @@ export class AIJourneyPlanner {
         provider: mode === 'urgent' ? 'Air India Express' : 'IndiGo',
         bookingRequired: true,
         instructions: `Flight from ${from.city} to ${to.city}`,
-        distance
+        distance,
       };
     } else {
       // Train
@@ -279,7 +311,7 @@ export class AIJourneyPlanner {
         provider: 'Indian Railways',
         bookingRequired: true,
         instructions: `Train from ${from.city} to ${to.city}`,
-        distance
+        distance,
       };
     }
   }

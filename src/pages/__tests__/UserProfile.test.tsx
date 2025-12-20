@@ -77,7 +77,7 @@ describe('UserProfile', () => {
     );
 
     const emailToggle = screen.getByRole('switch', { name: /email notifications/i });
-    
+
     // Initially enabled
     expect(emailToggle).toBeChecked();
 
@@ -98,7 +98,7 @@ describe('UserProfile', () => {
     );
 
     const pushToggle = screen.getByRole('switch', { name: /push notifications/i });
-    
+
     // Initially disabled
     expect(pushToggle).not.toBeChecked();
 
@@ -135,7 +135,7 @@ describe('UserProfile', () => {
     );
 
     const emailToggle = screen.getByRole('switch', { name: /email notifications/i });
-    
+
     // Disable email notifications
     fireEvent.click(emailToggle);
 
@@ -156,9 +156,7 @@ describe('UserProfile', () => {
 
     // Find the booking confirmation email toggle
     const switches = screen.getAllByRole('switch');
-    const bookingConfirmationSwitch = switches.find(
-      (sw) => sw.id === 'email-booking_confirmation'
-    );
+    const bookingConfirmationSwitch = switches.find(sw => sw.id === 'email-booking_confirmation');
 
     expect(bookingConfirmationSwitch).toBeDefined();
     expect(bookingConfirmationSwitch).toBeChecked(); // Default is enabled
@@ -176,7 +174,7 @@ describe('UserProfile', () => {
     );
 
     const saveButton = screen.getByRole('button', { name: /save preferences/i });
-    
+
     fireEvent.click(saveButton);
 
     await waitFor(() => {
@@ -186,7 +184,7 @@ describe('UserProfile', () => {
     // Check localStorage
     const stored = localStorage.getItem('notificationPreferences');
     expect(stored).toBeTruthy();
-    
+
     const preferences = JSON.parse(stored!);
     expect(preferences).toHaveProperty('email');
     expect(preferences).toHaveProperty('push');
@@ -200,7 +198,7 @@ describe('UserProfile', () => {
     );
 
     const saveButton = screen.getByRole('button', { name: /save preferences/i });
-    
+
     fireEvent.click(saveButton);
 
     // Should show "Saving..." text
@@ -222,7 +220,7 @@ describe('UserProfile', () => {
     );
 
     const saveButton = screen.getByRole('button', { name: /save preferences/i });
-    
+
     fireEvent.click(saveButton);
 
     await waitFor(() => {
@@ -274,9 +272,13 @@ describe('UserProfile', () => {
       </MockRouter>
     );
 
-    expect(screen.getByText(/receive confirmation when your booking is complete/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/receive confirmation when your booking is complete/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/get notified when your booking is modified/i)).toBeInTheDocument();
-    expect(screen.getByText(/receive confirmation when a booking is cancelled/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/receive confirmation when a booking is cancelled/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/get reminded 24 hours before your check-in/i)).toBeInTheDocument();
   });
 });

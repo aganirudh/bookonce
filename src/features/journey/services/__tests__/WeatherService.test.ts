@@ -27,7 +27,7 @@ describe('WeatherService', () => {
     it('should support different sizes', () => {
       const url2x = weatherService.getWeatherIconUrl('01d', '2x');
       const url4x = weatherService.getWeatherIconUrl('01d', '4x');
-      
+
       expect(url2x).toBe('https://openweathermap.org/img/wn/01d@2x.png');
       expect(url4x).toBe('https://openweathermap.org/img/wn/01d@4x.png');
     });
@@ -76,7 +76,7 @@ describe('WeatherService', () => {
       };
 
       const recommendations = weatherService.getWeatherRecommendations(weather);
-      
+
       expect(recommendations.suitable).toBe(true);
       expect(recommendations.message).toContain('great for sightseeing');
       expect(recommendations.suggestions.length).toBeGreaterThan(0);
@@ -106,7 +106,7 @@ describe('WeatherService', () => {
       };
 
       const recommendations = weatherService.getWeatherRecommendations(weather);
-      
+
       expect(recommendations.warnings.length).toBeGreaterThan(0);
       expect(recommendations.warnings.some(w => w.includes('hot'))).toBe(true);
       expect(recommendations.suggestions.some(s => s.includes('water'))).toBe(true);
@@ -136,7 +136,7 @@ describe('WeatherService', () => {
       };
 
       const recommendations = weatherService.getWeatherRecommendations(weather);
-      
+
       expect(recommendations.warnings.some(w => w.includes('Rain'))).toBe(true);
       expect(recommendations.suggestions.some(s => s.includes('umbrella'))).toBe(true);
     });
@@ -165,7 +165,7 @@ describe('WeatherService', () => {
       };
 
       const recommendations = weatherService.getWeatherRecommendations(weather);
-      
+
       expect(recommendations.suitable).toBe(false);
     });
   });
@@ -210,7 +210,7 @@ describe('WeatherService', () => {
       const originalKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
       import.meta.env.VITE_OPENWEATHER_API_KEY = '';
 
-      await expect(weatherService.getCurrentWeather(19.0760, 72.8777)).rejects.toThrow();
+      await expect(weatherService.getCurrentWeather(19.076, 72.8777)).rejects.toThrow();
 
       // Restore key
       import.meta.env.VITE_OPENWEATHER_API_KEY = originalKey;

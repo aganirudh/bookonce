@@ -47,7 +47,7 @@ Object.defineProperty(window, 'matchMedia', {
 // Test component that displays theme state
 function ThemeDisplay() {
   const { theme, resolvedTheme, setTheme } = useTheme();
-  
+
   return (
     <div>
       <div data-testid="current-theme">{theme}</div>
@@ -88,7 +88,7 @@ describe('Core Theme System Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocalStorage.getItem.mockReturnValue(null);
-    
+
     // Clear document classes
     document.documentElement.className = '';
     document.body.className = '';
@@ -106,18 +106,18 @@ describe('Core Theme System Tests', () => {
   describe('Basic Theme Functionality', () => {
     it('initializes with system theme by default', () => {
       render(<ThemeTestApp />);
-      
+
       expect(screen.getByTestId('current-theme')).toHaveTextContent('system');
       expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
     });
 
     it('allows setting light theme', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       await user.click(screen.getByTestId('set-light'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
         expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
@@ -126,11 +126,11 @@ describe('Core Theme System Tests', () => {
 
     it('allows setting dark theme', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       await user.click(screen.getByTestId('set-dark'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
         expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
@@ -139,11 +139,11 @@ describe('Core Theme System Tests', () => {
 
     it('allows setting high contrast theme', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       await user.click(screen.getByTestId('set-high-contrast'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('current-theme')).toHaveTextContent('high-contrast');
         expect(screen.getByTestId('resolved-theme')).toHaveTextContent('high-contrast');
@@ -152,13 +152,13 @@ describe('Core Theme System Tests', () => {
 
     it('allows setting system theme', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       // First set to dark, then back to system
       await user.click(screen.getByTestId('set-dark'));
       await user.click(screen.getByTestId('set-system'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('current-theme')).toHaveTextContent('system');
         expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
@@ -169,11 +169,11 @@ describe('Core Theme System Tests', () => {
   describe('Theme Persistence', () => {
     it('saves theme preference to localStorage', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       await user.click(screen.getByTestId('set-dark'));
-      
+
       await waitFor(() => {
         expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
           'vagabond-theme-preference',
@@ -188,18 +188,18 @@ describe('Core Theme System Tests', () => {
         timestamp: Date.now(),
       };
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(preference));
-      
+
       render(<ThemeTestApp />);
-      
+
       expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
       expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
     });
 
     it('handles invalid localStorage data gracefully', () => {
       mockLocalStorage.getItem.mockReturnValue('invalid-json');
-      
+
       render(<ThemeTestApp />);
-      
+
       // Should fall back to system theme
       expect(screen.getByTestId('current-theme')).toHaveTextContent('system');
     });
@@ -208,11 +208,11 @@ describe('Core Theme System Tests', () => {
   describe('DOM Integration', () => {
     it('applies theme classes to document root', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       await user.click(screen.getByTestId('set-dark'));
-      
+
       await waitFor(() => {
         expect(document.documentElement).toHaveClass('dark');
         expect(document.body).toHaveClass('dark');
@@ -221,11 +221,11 @@ describe('Core Theme System Tests', () => {
 
     it('sets data attributes for accessibility', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       await user.click(screen.getByTestId('set-high-contrast'));
-      
+
       await waitFor(() => {
         expect(document.documentElement).toHaveAttribute('data-theme', 'high-contrast');
         expect(document.documentElement).toHaveAttribute('data-high-contrast', 'true');
@@ -235,19 +235,19 @@ describe('Core Theme System Tests', () => {
 
     it('removes old theme classes when switching themes', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       // Set to dark first
       await user.click(screen.getByTestId('set-dark'));
-      
+
       await waitFor(() => {
         expect(document.documentElement).toHaveClass('dark');
       });
-      
+
       // Switch to light
       await user.click(screen.getByTestId('set-light'));
-      
+
       await waitFor(() => {
         expect(document.documentElement).toHaveClass('light');
         expect(document.documentElement).not.toHaveClass('dark');
@@ -258,19 +258,19 @@ describe('Core Theme System Tests', () => {
   describe('ThemeToggle Integration', () => {
     it('renders theme toggle component', () => {
       render(<ThemeTestApp />);
-      
+
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       expect(toggle).toBeInTheDocument();
     });
 
     it('opens dropdown menu when clicked', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(toggle);
-      
+
       // Should show menu items
       expect(screen.getByText('Light')).toBeInTheDocument();
       expect(screen.getByText('Dark')).toBeInTheDocument();
@@ -280,15 +280,15 @@ describe('Core Theme System Tests', () => {
 
     it('changes theme when dropdown option is selected', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(toggle);
-      
+
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
       await user.click(darkOption);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
         expect(document.documentElement).toHaveClass('dark');
@@ -299,27 +299,27 @@ describe('Core Theme System Tests', () => {
   describe('Component Theming', () => {
     it('ensures components are visible in all themes', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       const testButton = screen.getByText('Test Button');
       const testInput = screen.getByPlaceholderText('Test Input');
-      
+
       // Test in light theme
       expect(testButton).toBeVisible();
       expect(testInput).toBeVisible();
-      
+
       // Test in dark theme
       await user.click(screen.getByTestId('set-dark'));
-      
+
       await waitFor(() => {
         expect(testButton).toBeVisible();
         expect(testInput).toBeVisible();
       });
-      
+
       // Test in high contrast theme
       await user.click(screen.getByTestId('set-high-contrast'));
-      
+
       await waitFor(() => {
         expect(testButton).toBeVisible();
         expect(testInput).toBeVisible();
@@ -330,30 +330,30 @@ describe('Core Theme System Tests', () => {
   describe('Accessibility', () => {
     it('maintains focus visibility across theme changes', async () => {
       const user = userEvent.setup();
-      
+
       render(<ThemeTestApp />);
-      
+
       const testButton = screen.getByText('Test Button');
-      
+
       // Focus the button
       testButton.focus();
       expect(testButton).toHaveFocus();
-      
+
       // Change theme
       await user.click(screen.getByTestId('set-dark'));
-      
+
       // Button should still be focusable
       await waitFor(() => {
         expect(testButton).toBeVisible();
       });
-      
+
       testButton.focus();
       expect(testButton).toHaveFocus();
     });
 
     it('provides proper ARIA labels on theme toggle', () => {
       render(<ThemeTestApp />);
-      
+
       const toggle = screen.getByRole('button', { name: /theme selector/i });
       expect(toggle).toHaveAttribute('aria-label');
       expect(toggle.getAttribute('aria-label')).toContain('Theme selector');
@@ -363,14 +363,14 @@ describe('Core Theme System Tests', () => {
   describe('Error Handling', () => {
     it('handles localStorage errors gracefully', async () => {
       const user = userEvent.setup();
-      
+
       // Mock localStorage to throw errors
       mockLocalStorage.setItem.mockImplementation(() => {
         throw new Error('localStorage unavailable');
       });
-      
+
       render(<ThemeTestApp />);
-      
+
       // Should not throw when setting theme
       expect(() => {
         user.click(screen.getByTestId('set-dark'));
@@ -393,13 +393,13 @@ describe('Core Theme System Tests', () => {
     it('does not cause excessive re-renders on theme change', async () => {
       const user = userEvent.setup();
       let renderCount = 0;
-      
+
       function CountingComponent() {
         renderCount++;
         const { theme } = useTheme();
         return <div data-testid="render-count">{theme}</div>;
       }
-      
+
       function TestApp() {
         return (
           <ThemeProvider>
@@ -411,18 +411,18 @@ describe('Core Theme System Tests', () => {
           </ThemeProvider>
         );
       }
-      
+
       render(<TestApp />);
-      
+
       const initialRenderCount = renderCount;
-      
+
       // Change theme
       await user.click(screen.getByTestId('set-dark'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('render-count')).toHaveTextContent('dark');
       });
-      
+
       // Should have rendered only once more for the theme change
       expect(renderCount).toBeLessThanOrEqual(initialRenderCount + 2);
     });

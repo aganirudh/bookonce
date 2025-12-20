@@ -39,9 +39,7 @@ describe('End-to-End Booking Flow', () => {
   const renderWithProviders = (component: React.ReactElement) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          {component}
-        </BrowserRouter>
+        <BrowserRouter>{component}</BrowserRouter>
       </QueryClientProvider>
     );
   };

@@ -1,6 +1,6 @@
 /**
  * Smart Routing Service
- * 
+ *
  * Intelligently determines the best transportation mode based on:
  * - Distance between locations
  * - Available transport options
@@ -43,7 +43,7 @@ class SmartRoutingService {
   private readonly WALKING_DISTANCE = 2000; // 2 km
   private readonly LOCAL_DISTANCE = 50000; // 50 km (within city)
   private readonly INTERCITY_DISTANCE = 300000; // 300 km
-  
+
   // Cost estimates (INR)
   private readonly COSTS = {
     walk: 0,
@@ -351,12 +351,7 @@ class SmartRoutingService {
   /**
    * Calculate distance between two points (Haversine formula)
    */
-  private calculateDistance(
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number
-  ): number {
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371e3; // Earth's radius in meters
     const φ1 = (lat1 * Math.PI) / 180;
     const φ2 = (lat2 * Math.PI) / 180;

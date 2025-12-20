@@ -122,13 +122,7 @@ describe('BookingModal Integration Tests', () => {
 
   describe('Modal Opening and Initialization', () => {
     it('should initialize booking when modal opens', async () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       await waitFor(() => {
         const state = useBookingStore.getState();
@@ -139,25 +133,13 @@ describe('BookingModal Integration Tests', () => {
     });
 
     it('should display hotel name in modal', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       expect(screen.getByText('Test Hotel')).toBeInTheDocument();
     });
 
     it('should show progress indicator', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       expect(screen.getByText(/Step 1 of 5/)).toBeInTheDocument();
     });
@@ -165,26 +147,14 @@ describe('BookingModal Integration Tests', () => {
 
   describe('Step Navigation', () => {
     it('should not show back button on first step', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       const backButtons = screen.queryAllByRole('button', { name: /back/i });
       expect(backButtons).toHaveLength(0);
     });
 
     it('should disable continue button when dates not selected', () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       const continueButton = screen.getByRole('button', { name: /continue/i });
       expect(continueButton).toBeDisabled();
@@ -193,13 +163,7 @@ describe('BookingModal Integration Tests', () => {
     it('should enable continue button when dates are selected', async () => {
       const user = userEvent.setup();
 
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       // Simulate date selection
       const { setDates } = useBookingStore.getState();
@@ -274,13 +238,7 @@ describe('BookingModal Integration Tests', () => {
         new Error('Availability check failed')
       );
 
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       const { setDates } = useBookingStore.getState();
       const checkIn = new Date('2024-12-20');
@@ -296,13 +254,7 @@ describe('BookingModal Integration Tests', () => {
     });
 
     it('should show retry button when error occurs', async () => {
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       // Set an error
       const { setError } = useBookingStore.getState();
@@ -318,14 +270,8 @@ describe('BookingModal Integration Tests', () => {
   describe('Instant Booking Indicators', () => {
     it('should display instant confirmation message for instant booking hotels', async () => {
       const { startBooking, updateBookingStep } = useBookingStore.getState();
-      
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       // Initialize booking and move to processing step
       startBooking(mockHotel);
@@ -337,15 +283,10 @@ describe('BookingModal Integration Tests', () => {
     });
 
     it('should display instant booking badge in payment step', async () => {
-      const { startBooking, updateBookingStep, setDates, selectRoom, setGuestInfo } = useBookingStore.getState();
-      
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      const { startBooking, updateBookingStep, setDates, selectRoom, setGuestInfo } =
+        useBookingStore.getState();
+
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       // Set up booking state
       startBooking(mockHotel);
@@ -367,14 +308,8 @@ describe('BookingModal Integration Tests', () => {
 
     it('should display estimated time for non-instant booking hotels', async () => {
       const { startBooking, updateBookingStep } = useBookingStore.getState();
-      
-      render(
-        <BookingModal
-          hotel={mockHotelNonInstant}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+
+      render(<BookingModal hotel={mockHotelNonInstant} isOpen={true} onClose={mockOnClose} />);
 
       // Initialize booking and move to processing step
       startBooking(mockHotelNonInstant);
@@ -387,14 +322,8 @@ describe('BookingModal Integration Tests', () => {
 
     it('should show 30 second confirmation time for instant bookings', async () => {
       const { startBooking, updateBookingStep } = useBookingStore.getState();
-      
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       // Initialize booking and move to processing step
       startBooking(mockHotel);
@@ -410,13 +339,7 @@ describe('BookingModal Integration Tests', () => {
     it('should call onClose when close button clicked', async () => {
       const user = userEvent.setup();
 
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       const closeButton = screen.getByRole('button', { name: /close/i });
       await user.click(closeButton);
@@ -427,13 +350,7 @@ describe('BookingModal Integration Tests', () => {
     it('should cleanup booking state when modal closes', async () => {
       const user = userEvent.setup();
 
-      render(
-        <BookingModal
-          hotel={mockHotel}
-          isOpen={true}
-          onClose={mockOnClose}
-        />
-      );
+      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
       // Initialize booking
       const { startBooking } = useBookingStore.getState();

@@ -11,15 +11,18 @@ export function registerServiceWorker(): void {
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/service-worker.js')
-        .then((registration) => {
+        .then(registration => {
           console.log('Service Worker registered:', registration.scope);
 
           // Check for updates periodically
-          setInterval(() => {
-            registration.update();
-          }, 60 * 60 * 1000); // Check every hour
+          setInterval(
+            () => {
+              registration.update();
+            },
+            60 * 60 * 1000
+          ); // Check every hour
         })
-        .catch((error) => {
+        .catch(error => {
           console.error('Service Worker registration failed:', error);
         });
     });
@@ -33,13 +36,13 @@ export function unregisterServiceWorker(): Promise<boolean> {
   if ('serviceWorker' in navigator) {
     return navigator.serviceWorker
       .getRegistration()
-      .then((registration) => {
+      .then(registration => {
         if (registration) {
           return registration.unregister();
         }
         return false;
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('Service Worker unregistration failed:', error);
         return false;
       });
@@ -52,10 +55,8 @@ export function unregisterServiceWorker(): Promise<boolean> {
  */
 export function clearServiceWorkerCache(): Promise<void> {
   if ('serviceWorker' in navigator && 'caches' in window) {
-    return caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => caches.delete(cacheName))
-      ).then(() => {
+    return caches.keys().then(cacheNames => {
+      return Promise.all(cacheNames.map(cacheName => caches.delete(cacheName))).then(() => {
         console.log('All caches cleared');
       });
     });
@@ -73,10 +74,7 @@ export function isOffline(): boolean {
 /**
  * Add event listeners for online/offline status
  */
-export function addNetworkListeners(
-  onOnline?: () => void,
-  onOffline?: () => void
-): () => void {
+export function addNetworkListeners(onOnline?: () => void, onOffline?: () => void): () => void {
   const handleOnline = () => {
     console.log('Network: Online');
     onOnline?.();

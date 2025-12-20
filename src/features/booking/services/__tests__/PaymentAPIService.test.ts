@@ -14,7 +14,7 @@ global.fetch = mockFetch;
 vi.mock('@stripe/stripe-js', () => ({
   loadStripe: vi.fn(() =>
     Promise.resolve({
-      confirmCardPayment: vi.fn((clientSecret) =>
+      confirmCardPayment: vi.fn(clientSecret =>
         Promise.resolve({
           paymentIntent: {
             id: 'pi_test_confirmed',
@@ -92,9 +92,9 @@ describe('PaymentAPIService', () => {
         json: async () => ({ message: 'Invalid amount' }),
       });
 
-      await expect(
-        service.createPaymentIntent(0, 'usd', { userId: 'user_123' })
-      ).rejects.toThrow('Invalid amount');
+      await expect(service.createPaymentIntent(0, 'usd', { userId: 'user_123' })).rejects.toThrow(
+        'Invalid amount'
+      );
     });
 
     it('should enforce rate limiting', async () => {
@@ -120,9 +120,9 @@ describe('PaymentAPIService', () => {
       }
 
       // 6th attempt should fail due to rate limit
-      await expect(
-        service.createPaymentIntent(10000, 'usd', metadata)
-      ).rejects.toThrow(/Rate limit exceeded/);
+      await expect(service.createPaymentIntent(10000, 'usd', metadata)).rejects.toThrow(
+        /Rate limit exceeded/
+      );
     });
 
     it('should reset rate limit after window expires', async () => {
@@ -208,15 +208,15 @@ describe('PaymentAPIService', () => {
         json: async () => ({ message: 'Card declined' }),
       });
 
-      await expect(
-        service.confirmPayment('pi_test_123', 'pm_test_card')
-      ).rejects.toThrow('Card declined');
+      await expect(service.confirmPayment('pi_test_123', 'pm_test_card')).rejects.toThrow(
+        'Card declined'
+      );
     });
 
     it('should handle Stripe not loading', async () => {
       // Create a service with a failing Stripe promise
       const failingService = new PaymentAPIService('invalid_key', '/api');
-      
+
       // Mock loadStripe to return null
       vi.doMock('@stripe/stripe-js', () => ({
         loadStripe: vi.fn(() => Promise.resolve(null)),
@@ -317,9 +317,9 @@ describe('PaymentAPIService', () => {
         json: async () => ({ message: 'Refund already processed' }),
       });
 
-      await expect(
-        service.processRefund('pi_test_123', 10000, 'Duplicate refund')
-      ).rejects.toThrow('Refund already processed');
+      await expect(service.processRefund('pi_test_123', 10000, 'Duplicate refund')).rejects.toThrow(
+        'Refund already processed'
+      );
     });
   });
 
@@ -389,9 +389,9 @@ describe('PaymentAPIService', () => {
         json: async () => ({ message: 'User not found' }),
       });
 
-      await expect(
-        service.getSavedPaymentMethods('invalid_user')
-      ).rejects.toThrow('User not found');
+      await expect(service.getSavedPaymentMethods('invalid_user')).rejects.toThrow(
+        'User not found'
+      );
     });
   });
 
@@ -429,9 +429,9 @@ describe('PaymentAPIService', () => {
       }
 
       // User 1 should be rate limited
-      await expect(
-        service.createPaymentIntent(10000, 'usd', { userId: 'user_1' })
-      ).rejects.toThrow(/Rate limit exceeded/);
+      await expect(service.createPaymentIntent(10000, 'usd', { userId: 'user_1' })).rejects.toThrow(
+        /Rate limit exceeded/
+      );
 
       // User 2 should still be able to make requests
       const result = await service.createPaymentIntent(10000, 'usd', {
@@ -460,9 +460,9 @@ describe('PaymentAPIService', () => {
       }
 
       // Guest should be rate limited
-      await expect(
-        service.createPaymentIntent(10000, 'usd', {})
-      ).rejects.toThrow(/Rate limit exceeded/);
+      await expect(service.createPaymentIntent(10000, 'usd', {})).rejects.toThrow(
+        /Rate limit exceeded/
+      );
     });
   });
 });

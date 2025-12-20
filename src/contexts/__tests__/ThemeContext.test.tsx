@@ -35,7 +35,7 @@ Object.defineProperty(window, 'matchMedia', {
 // Test component that uses the theme context
 function TestComponent() {
   const { theme, resolvedTheme, systemTheme, setTheme } = useTheme();
-  
+
   return (
     <div>
       <div data-testid="theme">{theme}</div>

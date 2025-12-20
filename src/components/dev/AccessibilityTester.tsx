@@ -27,12 +27,8 @@ interface AccessibilityTesterProps {
 export function AccessibilityTester({ defaultVisible = false }: AccessibilityTesterProps) {
   const [isVisible, setIsVisible] = useState(defaultVisible);
   const [contrastChecks, setContrastChecks] = useState<ContrastCheck[]>([]);
-  const { theme, resolvedTheme, systemPrefersHighContrast, systemPrefersReducedMotion } = useTheme();
-
-  // Only render in development
-  if (process.env.NODE_ENV !== 'development') {
-    return null;
-  }
+  const { theme, resolvedTheme, systemPrefersHighContrast, systemPrefersReducedMotion } =
+    useTheme();
 
   /**
    * Run contrast checks when theme changes
@@ -51,6 +47,11 @@ export function AccessibilityTester({ defaultVisible = false }: AccessibilityTes
 
     return () => clearTimeout(timeout);
   }, [resolvedTheme]);
+
+  // Only render in development
+  if (process.env.NODE_ENV !== 'development') {
+    return null;
+  }
 
   /**
    * Run all accessibility tests
@@ -125,7 +126,7 @@ export function AccessibilityTester({ defaultVisible = false }: AccessibilityTes
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
             {/* Theme Info */}
             <div className="space-y-2">
@@ -157,12 +158,12 @@ export function AccessibilityTester({ defaultVisible = false }: AccessibilityTes
                   Run Tests
                 </Button>
               </div>
-              
+
               <div className="space-y-2">
                 {contrastChecks.map((check, index) => {
                   const StatusIcon = getContrastIcon(check);
                   const status = getContrastStatus(check);
-                  
+
                   return (
                     <motion.div
                       key={index}
@@ -171,29 +172,28 @@ export function AccessibilityTester({ defaultVisible = false }: AccessibilityTes
                       transition={{ delay: index * 0.05 }}
                       className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
                     >
-                      <StatusIcon 
-                        className={`h-4 w-4 shrink-0 ${
-                          status === 'success' ? 'text-green-600' :
-                          status === 'warning' ? 'text-yellow-600' :
-                          'text-red-600'
-                        }`}
+                      <StatusIcon
+                        className={`h-4 w-4 shrink-0 ${status === 'success'
+                            ? 'text-green-600'
+                            : status === 'warning'
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
+                          }`}
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium truncate">
-                          {check.property}
-                        </div>
+                        <div className="text-xs font-medium truncate">{check.property}</div>
                         <div className="text-xs text-muted-foreground">
                           {check.ratio.toFixed(2)}:1
                         </div>
                       </div>
                       <div className="flex gap-1">
-                        <Badge 
+                        <Badge
                           variant={check.meetsAA ? 'default' : 'destructive'}
                           className="text-xs px-1 py-0"
                         >
                           AA
                         </Badge>
-                        <Badge 
+                        <Badge
                           variant={check.meetsAAA ? 'default' : 'secondary'}
                           className="text-xs px-1 py-0"
                         >
@@ -237,7 +237,9 @@ export function AccessibilityTester({ defaultVisible = false }: AccessibilityTes
                 <Button
                   onClick={() => {
                     // Focus the first focusable element
-                    const focusable = document.querySelector('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement;
+                    const focusable = document.querySelector(
+                      'button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                    ) as HTMLElement;
                     focusable?.focus();
                   }}
                   size="sm"

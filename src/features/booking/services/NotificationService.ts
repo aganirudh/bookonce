@@ -4,7 +4,10 @@
  */
 
 import type { BookingConfirmation, NotificationType, Hotel } from '@/types/booking';
-import { isEmailNotificationEnabled, isPushNotificationEnabled } from '../utils/notificationPreferences';
+import {
+  isEmailNotificationEnabled,
+  isPushNotificationEnabled,
+} from '../utils/notificationPreferences';
 
 /**
  * Email template configuration
@@ -28,10 +31,7 @@ export class NotificationService {
   /**
    * Send booking confirmation email
    */
-  async sendBookingConfirmation(
-    booking: BookingConfirmation,
-    email: string
-  ): Promise<void> {
+  async sendBookingConfirmation(booking: BookingConfirmation, email: string): Promise<void> {
     // Check if email notifications are enabled for this type
     if (!isEmailNotificationEnabled('booking_confirmation')) {
       console.log('Booking confirmation email notifications are disabled');
@@ -49,7 +49,7 @@ export class NotificationService {
       });
 
       console.log(`Booking confirmation email sent to ${email}`);
-      
+
       // Send push notification if enabled
       if (isPushNotificationEnabled('booking_confirmation') && booking.guestInfo.email) {
         await this.sendPushNotification(
@@ -68,10 +68,7 @@ export class NotificationService {
   /**
    * Send modification confirmation email
    */
-  async sendModificationConfirmation(
-    booking: BookingConfirmation,
-    email: string
-  ): Promise<void> {
+  async sendModificationConfirmation(booking: BookingConfirmation, email: string): Promise<void> {
     // Check if email notifications are enabled for this type
     if (!isEmailNotificationEnabled('booking_modification')) {
       console.log('Booking modification email notifications are disabled');
@@ -89,7 +86,7 @@ export class NotificationService {
       });
 
       console.log(`Modification confirmation email sent to ${email}`);
-      
+
       // Send push notification if enabled
       if (isPushNotificationEnabled('booking_modification') && booking.guestInfo.email) {
         await this.sendPushNotification(
@@ -130,7 +127,7 @@ export class NotificationService {
       });
 
       console.log(`Cancellation confirmation email sent to ${email}`);
-      
+
       // Send push notification if enabled
       if (isPushNotificationEnabled('booking_cancellation') && booking.guestInfo.email) {
         await this.sendPushNotification(
@@ -167,7 +164,7 @@ export class NotificationService {
       });
 
       console.log(`Check-in reminder email sent to ${email}`);
-      
+
       // Send push notification if enabled
       if (isPushNotificationEnabled('check_in_reminder') && booking.guestInfo.email) {
         await this.sendPushNotification(
@@ -277,12 +274,12 @@ export class NotificationService {
       }
 
       if (pushEnabled && booking.guestInfo.email) {
-        await this.sendPushNotification(
-          booking.guestInfo.email,
-          'Booking Status Update',
-          message,
-          { bookingId: booking.bookingId, type: 'booking_status_change', oldStatus, newStatus }
-        );
+        await this.sendPushNotification(booking.guestInfo.email, 'Booking Status Update', message, {
+          bookingId: booking.bookingId,
+          type: 'booking_status_change',
+          oldStatus,
+          newStatus,
+        });
       }
     } catch (error) {
       console.error('Failed to send booking status change notification:', error);
@@ -312,22 +309,27 @@ export class NotificationService {
 
     try {
       if (emailEnabled) {
-        const alternativesHtml = alternativeHotels.length > 0
-          ? `
+        const alternativesHtml =
+          alternativeHotels.length > 0
+            ? `
             <div style="margin-top: 20px;">
               <h3>Alternative Hotels</h3>
               <p>We've found similar hotels in the area:</p>
-              ${alternativeHotels.map(hotel => `
+              ${alternativeHotels
+                .map(
+                  hotel => `
                 <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px;">
                   <h4>${hotel.title}</h4>
                   <p>${hotel.location}</p>
                   <p>Rating: ⭐ ${hotel.rating} (${hotel.reviews} reviews)</p>
                   <p>From $${hotel.price}/night</p>
                 </div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
           `
-          : '';
+            : '';
 
         const html = `
           <!DOCTYPE html>
@@ -363,9 +365,10 @@ export class NotificationService {
           </html>
         `;
 
-        const alternativesText = alternativeHotels.length > 0
-          ? `\n\nAlternative Hotels:\n${alternativeHotels.map(h => `- ${h.title} (${h.location}) - $${h.price}/night - Rating: ${h.rating}`).join('\n')}`
-          : '';
+        const alternativesText =
+          alternativeHotels.length > 0
+            ? `\n\nAlternative Hotels:\n${alternativeHotels.map(h => `- ${h.title} (${h.location}) - $${h.price}/night - Rating: ${h.rating}`).join('\n')}`
+            : '';
 
         await this.sendEmail({
           to: email,
@@ -407,7 +410,7 @@ export class NotificationService {
     // In production, this would call a backend API that integrates with
     // SendGrid, AWS SES, or similar email service
     // For now, we'll simulate the API call
-    
+
     const response = await fetch(`${this.apiEndpoint}/email`, {
       method: 'POST',
       headers: {
@@ -515,14 +518,22 @@ export class NotificationService {
               <h2 style="margin-top: 0;">Pricing Summary</h2>
               <div class="label">Subtotal</div>
               <div class="value">$${booking.pricing.subtotal.toFixed(2)}</div>
-              ${booking.pricing.taxes.map(tax => `
+              ${booking.pricing.taxes
+                .map(
+                  tax => `
                 <div class="label">${tax.name}</div>
                 <div class="value">$${tax.amount.toFixed(2)}</div>
-              `).join('')}
-              ${booking.pricing.fees.map(fee => `
+              `
+                )
+                .join('')}
+              ${booking.pricing.fees
+                .map(
+                  fee => `
                 <div class="label">${fee.name}</div>
                 <div class="value">$${fee.amount.toFixed(2)}</div>
-              `).join('')}
+              `
+                )
+                .join('')}
               <hr style="margin: 15px 0; border: none; border-top: 2px solid #e5e7eb;">
               <div class="total">Total: $${booking.pricing.total.toFixed(2)} ${booking.pricing.currency}</div>
             </div>

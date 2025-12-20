@@ -1,123 +1,92 @@
-import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
-import Navbar from "@/components/Navbar";
-import JourneySearchCard, { JourneySearchParams } from "@/components/JourneySearchCard";
-import HotelGrid from "@/components/HotelGrid";
-import VibeSidebar from "@/components/VibeSidebar";
-import MapView from "@/components/MapView";
-import EchoModal from "@/components/EchoModal";
-import LocalShadowWidget from "@/components/LocalShadowWidget";
-import SafetyMesh from "@/components/SafetyMesh";
-import FloatingControls from "@/components/FloatingControls";
-import VanishingDestinations from "@/components/VanishingDestinations";
-import { ContextLayerPanel } from "@/components/ContextLayer";
+import { useState, useEffect } from 'react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { motion } from 'framer-motion';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import JourneySearchCard, { JourneySearchParams } from '@/components/JourneySearchCard';
+import MapView from '@/components/MapView';
+import SquaresBackground from '@/components/SquaresBackground';
+import TextType from '@/components/TextType';
+import EchoModal from '@/components/EchoModal';
+import LocalShadowWidget from '@/components/LocalShadowWidget';
+import SafetyMesh from '@/components/SafetyMesh';
+import VanishingDestinations from '@/components/VanishingDestinations';
+import { ContextLayerPanel } from '@/components/ContextLayer';
 
-import hotelsData from "@/data/hotels.json";
-import echoesData from "@/data/echoes.json";
+import echoesData from '@/data/echoes.json';
+// Hyperspeed background removed to disable landing animations/background image
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
+
   // State
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isVibeOpen, setIsVibeOpen] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isSafetyOpen, setIsSafetyOpen] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [isNearby, setIsNearby] = useState(true);
   const [isContextOpen, setIsContextOpen] = useState(false);
-  const [instantBookingOnly, setInstantBookingOnly] = useState(false);
-  
+
   // Echo Modal State
-  const [selectedEcho, setSelectedEcho] = useState<typeof echoesData[0] | null>(null);
+  const [selectedEcho, setSelectedEcho] = useState<(typeof echoesData)[0] | null>(null);
   const [isEchoModalOpen, setIsEchoModalOpen] = useState(false);
 
-  // Vibe Sliders
-  const [energy, setEnergy] = useState(5);
-  const [social, setSocial] = useState(5);
-  const [budget, setBudget] = useState(5);
+  // Get destination from URL params (from Stays page)
+  const initialDestination = searchParams.get('to');
+  const initialDestinationName = searchParams.get('destination');
 
   // High contrast mode when offline
   useEffect(() => {
     if (isOffline) {
-      document.documentElement.classList.add("high-contrast");
+      document.documentElement.classList.add('high-contrast');
     } else {
-      document.documentElement.classList.remove("high-contrast");
+      document.documentElement.classList.remove('high-contrast');
     }
   }, [isOffline]);
 
-  // Filter hotels based on vibe sliders
-  const filteredHotels = useMemo(() => {
-    type HotelType = typeof hotelsData[0];
-    let hotels: HotelType[] = [...hotelsData];
+  // Theme for adaptive light/dark styles
+  const { resolvedTheme } = useTheme();
 
-    // Filter by search query
-    if (searchQuery) {
-      hotels = hotels.filter(
-        (hotel) =>
-          hotel.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          hotel.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          hotel.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    // Filter by instant booking
-    if (instantBookingOnly) {
-      hotels = hotels.filter((hotel) => hotel.instantBooking === true);
-    }
-
-    // Score and sort by vibe match
-    const scoredHotels = hotels
-      .map((hotel) => {
-        const energyDiff = Math.abs(hotel.energy - energy);
-        const socialDiff = Math.abs(hotel.social - social);
-        const budgetDiff = Math.abs(hotel.budget - budget);
-        const score = energyDiff + socialDiff + budgetDiff;
-        return { ...hotel, vibeScore: score };
-      })
-      .sort((a, b) => a.vibeScore - b.vibeScore);
-
-    // Filter out hotels that are too far from vibe preferences
-    const threshold = 12; // Allows some flexibility
-    const filtered = scoredHotels.filter((hotel) => hotel.vibeScore <= threshold);
-
-    return filtered;
-  }, [searchQuery, energy, social, budget, instantBookingOnly]);
-
-  const handleEchoClick = (echo: typeof echoesData[0]) => {
+  const handleEchoClick = (echo: (typeof echoesData)[0]) => {
     setSelectedEcho(echo);
     setIsEchoModalOpen(true);
   };
 
+  const navigate = useNavigate();
+
   const handleJourneyExplore = (params: JourneySearchParams) => {
-    console.log("Journey search params:", params);
-    // TODO: Implement door-to-door journey planning
-    alert(`Planning journey from ${params.source} to ${params.destination}`);
+    console.log('Journey search params:', params);
+    // Navigate to journey planner with search parameters
+    const searchParams = new URLSearchParams({
+      from: params.source,
+      to: params.destination,
+      departure: params.departureDate,
+      return: params.returnDate,
+      guests: params.guests.toString(),
+    });
+    navigate(`/journey?${searchParams.toString()}`);
   };
 
   return (
-    <div className={`min-h-screen bg-background transition-colors duration-500 ${isOffline ? "high-contrast" : ""}`}>
+    <div
+      className={`min-h-screen bg-background transition-colors duration-500 ${isOffline ? 'high-contrast' : ''}`}
+    >
       {/* Navigation */}
-      <Navbar 
-        onSafetyClick={() => setIsSafetyOpen(true)} 
+      <Navbar
+        onSafetyClick={() => setIsSafetyOpen(true)}
         isOffline={isOffline}
-        onContextClick={() => setIsContextOpen(!isContextOpen)}
         onMapClick={() => setIsMapOpen(true)}
       />
 
       {/* Hero Section with Journey Search */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80')",
-          }}
-        />
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background pointer-events-none" />
+      <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden overflow-y-visible">
+        {/* Background and animations removed — show plain page background */}
+        {/* Squares background animation (subtle, theme-friendly) */}
+        <div className="absolute inset-0">
+          <SquaresBackground />
+        </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-24 overflow-visible">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -128,75 +97,57 @@ const Index = () => {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-6"
+              className={`inline-flex items-center justify-center px-4 py-2 rounded-md mb-6 ${resolvedTheme === 'light'
+                  ? 'bg-[#f5f7fa] text-[#5b6e7a] border border-[#e1e8ed]'
+                  : 'bg-white/10 text-white'
+                }`}
             >
-              <span className="text-sm font-medium text-white">✨ AI-Powered Travel</span>
+              <span className={`text-sm font-medium ${resolvedTheme === 'light' ? 'text-[#5b6e7a]' : 'text-white'}`}>
+                Complete door-to-door journey planning • One Click • Zero Hassle
+              </span>
             </motion.div>
 
-            <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight">
-              Travel That
+            <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 leading-tight">
+              <TextType
+                texts={['Plan']}
+                typingSpeed={60}
+                deletingSpeed={30}
+                pause={1000}
+                loop={false}
+                className="text-foreground"
+              />
               <br />
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Adapts to You
-              </span>
+              <TextType
+                texts={['Your Escape']}
+                typingSpeed={80}
+                deletingSpeed={30}
+                pause={1800}
+                loop={false}
+                className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"
+              />
             </h1>
 
-            <p className="text-base md:text-lg text-white/80 max-w-2xl mx-auto mb-8">
-              The world's first bio-adaptive travel platform. Your journey evolves with your mood, energy, and desires.
+            <p
+              className={`text-base md:text-lg ${resolvedTheme === 'light' ? 'text-[#5b6e7a]' : 'text-muted-foreground'
+                } max-w-2xl mx-auto mb-8`}
+            >
+              Plan unforgettable trips with personalised recommendations and seamless booking.
             </p>
           </motion.div>
 
           {/* Journey Search Card */}
-          <JourneySearchCard onExplore={handleJourneyExplore} />
+          <JourneySearchCard
+            onExplore={handleJourneyExplore}
+            initialDestination={initialDestination || undefined}
+            initialDestinationName={initialDestinationName || undefined}
+          />
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-wrap justify-center gap-8 md:gap-16 mt-12"
-          >
-            {[
-              { value: "50K+", label: "Destinations" },
-              { value: "2M+", label: "Happy Travelers" },
-              { value: "4.9", label: "App Rating" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-white">{stat.value}</div>
-                <div className="text-sm text-white/70">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
+          {/* Stats removed per request */}
         </div>
       </section>
 
       {/* Main Content */}
       <main className="relative">
-        {/* Floating Controls */}
-        <FloatingControls
-          onVibeClick={() => setIsVibeOpen(!isVibeOpen)}
-          isVibeOpen={isVibeOpen}
-          instantBookingOnly={instantBookingOnly}
-          onInstantBookingToggle={() => setInstantBookingOnly(!instantBookingOnly)}
-        />
-
-        {/* Vibe Sidebar */}
-        <VibeSidebar
-          isOpen={isVibeOpen}
-          onClose={() => setIsVibeOpen(false)}
-          energy={energy}
-          social={social}
-          budget={budget}
-          onEnergyChange={(val) => setEnergy(val[0])}
-          onSocialChange={(val) => setSocial(val[0])}
-          onBudgetChange={(val) => setBudget(val[0])}
-        />
-
-        {/* Hotel Grid */}
-        <div className={`transition-all duration-300 ${isVibeOpen ? "lg:ml-96" : ""} ${isContextOpen ? "lg:mr-96" : ""}`}>
-          <HotelGrid hotels={filteredHotels} searchQuery={searchQuery} />
-        </div>
-
         {/* Vanishing Destinations - Last Mile of Civilization */}
         <VanishingDestinations />
 
@@ -205,21 +156,30 @@ const Index = () => {
           <div className="max-w-7xl mx-auto text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-xl bg-gradient-accent flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">V</span>
+                <span className="text-primary-foreground font-bold text-sm">BO</span>
               </div>
-              <span className="font-serif text-xl font-semibold text-foreground">Vagabond</span>
+              <span className="font-serif text-xl font-semibold text-foreground">BookOnce</span>
             </div>
             <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
-              The world's first bio-adaptive travel platform. Your journey evolves with you.
+              Book your perfect journey in one place. Complete travel booking platform for modern
+              travelers.
             </p>
             <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">About</a>
-              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="#" className="hover:text-foreground transition-colors">Contact</a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                About
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                Privacy
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                Terms
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                Contact
+              </a>
             </div>
             <p className="text-xs text-muted-foreground mt-8">
-              © 2024 Vagabond. Built for hackathon demonstration.
+              © 2024 BookOnce. Built for hackathon demonstration.
             </p>
           </div>
         </footer>
@@ -229,10 +189,7 @@ const Index = () => {
       <LocalShadowWidget />
 
       {/* Context Layer Panel */}
-      <ContextLayerPanel 
-        isOpen={isContextOpen} 
-        onClose={() => setIsContextOpen(false)} 
-      />
+      <ContextLayerPanel isOpen={isContextOpen} onClose={() => setIsContextOpen(false)} />
 
       {/* Map View (Modal) */}
       <MapView

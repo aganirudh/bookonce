@@ -19,7 +19,8 @@ describe('ChatMessageList Component', () => {
     {
       id: '2',
       role: 'assistant',
-      content: 'Of course! I\'d be happy to help you find a restaurant. What type of cuisine are you interested in?',
+      content:
+        "Of course! I'd be happy to help you find a restaurant. What type of cuisine are you interested in?",
       timestamp: new Date('2024-01-01T12:00:05'),
     },
     {
@@ -63,7 +64,7 @@ describe('ChatMessageList Component', () => {
 
       const userMessage = screen.getByText('Hello, can you help me find a restaurant?');
       const messageContainer = userMessage.closest('.bg-blue-50');
-      
+
       expect(messageContainer).toBeInTheDocument();
       expect(screen.getAllByText('You').length).toBeGreaterThan(0);
     });
@@ -73,7 +74,7 @@ describe('ChatMessageList Component', () => {
 
       const aiMessage = screen.getByText(/Of course! I'd be happy to help/);
       const messageContainer = aiMessage.closest('.bg-gray-50');
-      
+
       expect(messageContainer).toBeInTheDocument();
       expect(screen.getByText('Vagabond AI')).toBeInTheDocument();
     });

@@ -1,6 +1,6 @@
 /**
  * Real-Time Transit Component
- * 
+ *
  * Shows transit steps with real-time links (100% FREE!)
  */
 
@@ -70,12 +70,8 @@ export function RealTimeTransit({ steps, googleMapsLink, realTimeApps }: RealTim
       <Card className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-blue-900 mb-1">
-              🗺️ Get Real-Time Directions
-            </h3>
-            <p className="text-sm text-blue-700">
-              Open in Google Maps for live transit updates
-            </p>
+            <h3 className="font-semibold text-blue-900 mb-1">🗺️ Get Real-Time Directions</h3>
+            <p className="text-sm text-blue-700">Open in Google Maps for live transit updates</p>
           </div>
           <Button
             onClick={() => window.open(googleMapsLink, '_blank')}
@@ -91,10 +87,7 @@ export function RealTimeTransit({ steps, googleMapsLink, realTimeApps }: RealTim
       {/* Transit Steps */}
       <div className="space-y-3">
         {steps.map((step, index) => (
-          <Card
-            key={index}
-            className={`p-4 border-2 ${getModeColor(step.mode)}`}
-          >
+          <Card key={index} className={`p-4 border-2 ${getModeColor(step.mode)}`}>
             <div className="flex items-start gap-3">
               {/* Step Number & Icon */}
               <div className="flex-shrink-0">
@@ -107,9 +100,7 @@ export function RealTimeTransit({ steps, googleMapsLink, realTimeApps }: RealTim
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-semibold capitalize">{step.mode}</h4>
-                  {step.line && (
-                    <Badge variant="secondary">{step.line}</Badge>
-                  )}
+                  {step.line && <Badge variant="secondary">{step.line}</Badge>}
                   <span className="text-sm text-muted-foreground">
                     {step.duration} min • {(step.distance / 1000).toFixed(1)} km
                   </span>
@@ -188,9 +179,7 @@ export function RealTimeTransit({ steps, googleMapsLink, realTimeApps }: RealTim
             >
               <div>
                 <p className="font-medium text-sm">{app.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {app.description}
-                </p>
+                <p className="text-xs text-muted-foreground">{app.description}</p>
               </div>
               <div className="flex items-center gap-2">
                 {app.free && (
@@ -207,9 +196,7 @@ export function RealTimeTransit({ steps, googleMapsLink, realTimeApps }: RealTim
 
       {/* Tips */}
       <Card className="p-4 bg-yellow-50 border-yellow-200">
-        <h4 className="font-semibold text-yellow-900 mb-2">
-          💡 Pro Tips for Real-Time Transit
-        </h4>
+        <h4 className="font-semibold text-yellow-900 mb-2">💡 Pro Tips for Real-Time Transit</h4>
         <ul className="text-sm space-y-1 text-yellow-800">
           <li>• Download city metro/bus app before traveling</li>
           <li>• Google Maps shows live bus/metro locations</li>

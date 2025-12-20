@@ -1,11 +1,11 @@
 /**
  * Google Maps Service
- * 
+ *
  * Wrapper for Google Maps APIs with error handling, retry logic, and caching
  * Required APIs: Maps JavaScript API, Places API, Directions API, Distance Matrix API, Geocoding API
  */
 
-/// <reference path="../../../types/google-maps.d.ts" />
+import type { } from '../../../types/google-maps.d.ts';
 
 import { cacheStore } from '../utils/cache';
 
@@ -115,10 +115,10 @@ class GoogleMapsService {
 
   // Cache durations (in milliseconds)
   private readonly CACHE_DURATION = {
-    directions: 15 * 60 * 1000,  // 15 minutes
-    distance: 30 * 60 * 1000,    // 30 minutes
-    geocoding: 60 * 60 * 1000,   // 1 hour
-    places: 60 * 60 * 1000,      // 1 hour
+    directions: 15 * 60 * 1000, // 15 minutes
+    distance: 30 * 60 * 1000, // 30 minutes
+    geocoding: 60 * 60 * 1000, // 1 hour
+    places: 60 * 60 * 1000, // 1 hour
   };
 
   /**
@@ -129,7 +129,9 @@ class GoogleMapsService {
     if (this.loadPromise) return this.loadPromise;
 
     if (!this.API_KEY) {
-      throw new Error('Google Maps API key not configured. Please add VITE_GOOGLE_MAPS_API_KEY to .env');
+      throw new Error(
+        'Google Maps API key not configured. Please add VITE_GOOGLE_MAPS_API_KEY to .env'
+      );
     }
 
     this.loadPromise = new Promise((resolve, reject) => {
@@ -172,7 +174,7 @@ class GoogleMapsService {
     }
 
     const cacheKey = `directions_${request.origin.coordinates.lat}_${request.origin.coordinates.lng}_${request.destination.coordinates.lat}_${request.destination.coordinates.lng}_${request.mode}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -240,7 +242,7 @@ class GoogleMapsService {
     await this.loadGoogleMaps();
 
     const cacheKey = `distance_${JSON.stringify(request)}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -251,10 +253,10 @@ class GoogleMapsService {
       const service = new google.maps.DistanceMatrixService();
 
       const origins = request.origins.map(
-        (loc) => new google.maps.LatLng(loc.coordinates.lat, loc.coordinates.lng)
+        loc => new google.maps.LatLng(loc.coordinates.lat, loc.coordinates.lng)
       );
       const destinations = request.destinations.map(
-        (loc) => new google.maps.LatLng(loc.coordinates.lat, loc.coordinates.lng)
+        loc => new google.maps.LatLng(loc.coordinates.lat, loc.coordinates.lng)
       );
 
       const result = await new Promise<any>((resolve, reject) => {
@@ -293,7 +295,7 @@ class GoogleMapsService {
     await this.loadGoogleMaps();
 
     const cacheKey = `geocode_${address}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -336,7 +338,7 @@ class GoogleMapsService {
     await this.loadGoogleMaps();
 
     const cacheKey = `reverse_geocode_${lat}_${lng}`;
-    
+
     // Check cache
     const cached = cacheStore.get(cacheKey);
     if (cached) {
@@ -396,42 +398,42 @@ class GoogleMapsService {
    */
   private parseDirectionsResult(result: any): DirectionsResult {
     return {
-      routes: result.routes.map((route) => ({
-        legs: route.legs.map((leg) => ({
-          steps: leg.steps.map((step) => ({
+      routes: result.routes.map(route => ({
+        legs: route.legs.map(leg => ({
+          steps: leg.steps.map(step => ({
             travelMode: step.travel_mode as 'WALKING' | 'TRANSIT' | 'DRIVING',
             instructions: step.instructions,
             duration: step.duration?.value ? step.duration.value / 60 : 0, // Convert to minutes
             distance: step.distance?.value || 0,
             transitDetails: step.transit
               ? {
-                  line: {
-                    name: step.transit.line.name || '',
-                    shortName: step.transit.line.short_name || '',
-                    vehicle: {
-                      type: step.transit.line.vehicle.type || '',
-                      name: step.transit.line.vehicle.name || '',
-                      icon: step.transit.line.vehicle.icon || '',
-                    },
+                line: {
+                  name: step.transit.line.name || '',
+                  shortName: step.transit.line.short_name || '',
+                  vehicle: {
+                    type: step.transit.line.vehicle.type || '',
+                    name: step.transit.line.vehicle.name || '',
+                    icon: step.transit.line.vehicle.icon || '',
                   },
-                  departureStop: {
-                    name: step.transit.departure_stop.name,
-                    location: {
-                      lat: step.transit.departure_stop.location.lat(),
-                      lng: step.transit.departure_stop.location.lng(),
-                    },
+                },
+                departureStop: {
+                  name: step.transit.departure_stop.name,
+                  location: {
+                    lat: step.transit.departure_stop.location.lat(),
+                    lng: step.transit.departure_stop.location.lng(),
                   },
-                  arrivalStop: {
-                    name: step.transit.arrival_stop.name,
-                    location: {
-                      lat: step.transit.arrival_stop.location.lat(),
-                      lng: step.transit.arrival_stop.location.lng(),
-                    },
+                },
+                arrivalStop: {
+                  name: step.transit.arrival_stop.name,
+                  location: {
+                    lat: step.transit.arrival_stop.location.lat(),
+                    lng: step.transit.arrival_stop.location.lng(),
                   },
-                  departureTime: new Date(step.transit.departure_time.value),
-                  arrivalTime: new Date(step.transit.arrival_time.value),
-                  numStops: step.transit.num_stops || 0,
-                }
+                },
+                departureTime: new Date(step.transit.departure_time.value),
+                arrivalTime: new Date(step.transit.arrival_time.value),
+                numStops: step.transit.num_stops || 0,
+              }
               : undefined,
           })),
           duration: leg.duration?.value ? leg.duration.value / 60 : 0,
@@ -468,12 +470,10 @@ class GoogleMapsService {
   /**
    * Parse Distance Matrix API result
    */
-  private parseDistanceMatrixResult(
-    result: any
-  ): DistanceMatrixResult {
+  private parseDistanceMatrixResult(result: any): DistanceMatrixResult {
     return {
-      rows: result.rows.map((row) => ({
-        elements: row.elements.map((element) => ({
+      rows: result.rows.map(row => ({
+        elements: row.elements.map(element => ({
           distance: {
             value: element.distance?.value || 0,
             text: element.distance?.text || '',
@@ -493,11 +493,11 @@ class GoogleMapsService {
    */
   private parseGeocoderResult(result: any): Location {
     const addressComponents = result.address_components;
-    
+
     let city = '';
     let country = '';
 
-    addressComponents.forEach((component) => {
+    addressComponents.forEach(component => {
       if (component.types.includes('locality')) {
         city = component.long_name;
       }
@@ -523,20 +523,20 @@ class GoogleMapsService {
    */
   private async handleError(error: any, defaultMessage: string): Promise<never> {
     const errorMessage = error instanceof Error ? error.message : defaultMessage;
-    
+
     // Check for specific error types
     if (errorMessage.includes('OVER_QUERY_LIMIT')) {
       throw new Error('API rate limit exceeded. Please try again later.');
     }
-    
+
     if (errorMessage.includes('REQUEST_DENIED')) {
       throw new Error('API request denied. Please check your API key configuration.');
     }
-    
+
     if (errorMessage.includes('INVALID_REQUEST')) {
       throw new Error('Invalid request. Please check your input parameters.');
     }
-    
+
     throw new Error(errorMessage);
   }
 }

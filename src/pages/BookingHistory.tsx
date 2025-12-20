@@ -3,7 +3,8 @@
  * Displays user's booking history with filtering, search, and sorting
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import { BookingCard, BookingDetails } from '@/features/booking/components';
 import { bookingAPIService } from '@/features/booking/services/BookingAPIService';
 import type { BookingConfirmation } from '@/types/booking';
 
-type BookingFilter = 'all' | 'upcoming' | 'past' | 'cancelled';
+type BookingFilter = 'all' | 'upcoming' | 'past' | 'cancelled' | 'sold';
 type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc' | 'status';
 
 export default function BookingHistory() {
@@ -46,6 +47,22 @@ export default function BookingHistory() {
     retry: 2,
   });
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Auto-open latest booking if redirected from payment
+  useEffect(() => {
+    if (searchParams.get('newBooking') === 'true' && bookings.length > 0) {
+      // Assuming the first booking is the latest one since default sort is date-desc
+      // If the API doesn't return sorted, we might need to sort here finding the max createdAt/checkIn
+      const latestBooking = bookings[0]; // Simplified for demo
+      setSelectedBooking(latestBooking);
+
+      // Clean up the URL
+      searchParams.delete('newBooking');
+      setSearchParams(searchParams);
+    }
+  }, [bookings, searchParams, setSearchParams]);
+
   // Filter bookings based on status
   const filteredByStatus = useMemo(() => {
     const now = new Date();
@@ -53,18 +70,16 @@ export default function BookingHistory() {
     switch (filter) {
       case 'upcoming':
         return bookings.filter(
-          (booking) =>
-            booking.status !== 'cancelled' &&
-            new Date(booking.checkInDate) >= now
+          booking => booking.status !== 'cancelled' && new Date(booking.checkInDate) >= now
         );
       case 'past':
         return bookings.filter(
-          (booking) =>
-            booking.status !== 'cancelled' &&
-            new Date(booking.checkOutDate) < now
+          booking => booking.status !== 'cancelled' && new Date(booking.checkOutDate) < now
         );
       case 'cancelled':
-        return bookings.filter((booking) => booking.status === 'cancelled');
+        return bookings.filter(booking => booking.status === 'cancelled');
+      case 'sold':
+        return bookings.filter(booking => booking.status === 'market_listed');
       default:
         return bookings;
     }
@@ -76,7 +91,7 @@ export default function BookingHistory() {
 
     const query = searchQuery.toLowerCase();
     return filteredByStatus.filter(
-      (booking) =>
+      booking =>
         booking.hotel.title.toLowerCase().includes(query) ||
         booking.hotel.location.toLowerCase().includes(query) ||
         booking.referenceNumber.toLowerCase().includes(query)
@@ -90,13 +105,11 @@ export default function BookingHistory() {
     switch (sortBy) {
       case 'date-desc':
         return sorted.sort(
-          (a, b) =>
-            new Date(b.checkInDate).getTime() - new Date(a.checkInDate).getTime()
+          (a, b) => new Date(b.checkInDate).getTime() - new Date(a.checkInDate).getTime()
         );
       case 'date-asc':
         return sorted.sort(
-          (a, b) =>
-            new Date(a.checkInDate).getTime() - new Date(b.checkInDate).getTime()
+          (a, b) => new Date(a.checkInDate).getTime() - new Date(b.checkInDate).getTime()
         );
       case 'price-desc':
         return sorted.sort((a, b) => b.pricing.total - a.pricing.total);
@@ -131,16 +144,14 @@ export default function BookingHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="border-b bg-card">
+      <div className="border-b bg-card shrink-0">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold">My Bookings</h1>
-              <p className="text-muted-foreground mt-1">
-                Manage your hotel reservations
-              </p>
+              <p className="text-muted-foreground mt-1">Manage your hotel reservations</p>
             </div>
             <Button
               variant="outline"
@@ -160,12 +171,12 @@ export default function BookingHistory() {
               <Input
                 placeholder="Search by hotel, location, or reference number..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
             <div className="flex gap-2">
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+              <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
                 <SelectTrigger className="w-[180px]">
                   <SlidersHorizontal className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Sort by" />
@@ -193,99 +204,103 @@ export default function BookingHistory() {
       </div>
 
       {/* Tabs and Content */}
-      <div className="container mx-auto px-4 py-6">
-        <Tabs value={filter} onValueChange={(value) => setFilter(value as BookingFilter)}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="all">
-              All
-              {filter === 'all' && bookings.length > 0 && (
-                <span className="ml-2 text-xs">({bookings.length})</span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="upcoming">
-              Upcoming
-              {filter === 'upcoming' && sortedBookings.length > 0 && (
-                <span className="ml-2 text-xs">({sortedBookings.length})</span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="past">
-              Past
-              {filter === 'past' && sortedBookings.length > 0 && (
-                <span className="ml-2 text-xs">({sortedBookings.length})</span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="cancelled">
-              Cancelled
-              {filter === 'cancelled' && sortedBookings.length > 0 && (
-                <span className="ml-2 text-xs">({sortedBookings.length})</span>
-              )}
-            </TabsTrigger>
-          </TabsList>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="container mx-auto px-4 py-6 h-full flex flex-col">
+          <Tabs value={filter} onValueChange={value => setFilter(value as BookingFilter)} className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-4 mb-6 shrink-0">
+              <TabsTrigger value="all">
+                All
+                {filter === 'all' && bookings.length > 0 && (
+                  <span className="ml-2 text-xs">({bookings.length})</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="upcoming">
+                Upcoming
+                {filter === 'upcoming' && sortedBookings.length > 0 && (
+                  <span className="ml-2 text-xs">({sortedBookings.length})</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="past">
+                Past
+                {filter === 'past' && sortedBookings.length > 0 && (
+                  <span className="ml-2 text-xs">({sortedBookings.length})</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="cancelled">
+                Cancelled
+                {filter === 'cancelled' && sortedBookings.length > 0 && (
+                  <span className="ml-2 text-xs">({sortedBookings.length})</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="sold">
+                Sold (Market)
+                {filter === 'sold' && sortedBookings.length > 0 && (
+                  <span className="ml-2 text-xs">({sortedBookings.length})</span>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value={filter} className="mt-0">
-            {/* Loading State */}
-            {isLoading && (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">Loading bookings...</p>
+            <TabsContent value={filter} className="flex-1 min-h-0 overflow-y-auto mt-0 data-[state=inactive]:hidden">
+              {/* Loading State */}
+              {isLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">Loading bookings...</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Error State */}
-            {error && (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center max-w-md">
-                  <p className="text-destructive mb-4">
-                    Failed to load bookings. Please try again.
-                  </p>
-                  <Button onClick={handleRefresh} variant="outline">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Retry
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!isLoading && !error && sortedBookings.length === 0 && (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center max-w-md">
-                  <p className="text-muted-foreground mb-2">
-                    {searchQuery
-                      ? 'No bookings match your search'
-                      : filter === 'all'
-                      ? 'No bookings yet'
-                      : `No ${filter} bookings`}
-                  </p>
-                  {searchQuery && (
-                    <Button
-                      variant="link"
-                      onClick={() => setSearchQuery('')}
-                      className="mt-2"
-                    >
-                      Clear search
+              {/* Error State */}
+              {error && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center max-w-md">
+                    <p className="text-destructive mb-4">
+                      Failed to load bookings. Please try again.
+                    </p>
+                    <Button onClick={handleRefresh} variant="outline">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Retry
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Bookings List */}
-            {!isLoading && !error && sortedBookings.length > 0 && (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {sortedBookings.map((booking) => (
-                  <BookingCard
-                    key={booking.bookingId}
-                    booking={booking}
-                    onClick={() => handleBookingClick(booking)}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+              {/* Empty State */}
+              {!isLoading && !error && sortedBookings.length === 0 && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center max-w-md">
+                    <p className="text-muted-foreground mb-2">
+                      {searchQuery
+                        ? 'No bookings match your search'
+                        : filter === 'all'
+                          ? 'No bookings yet'
+                          : `No ${filter} bookings`}
+                    </p>
+                    {searchQuery && (
+                      <Button variant="link" onClick={() => setSearchQuery('')} className="mt-2">
+                        Clear search
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Bookings List */}
+              {!isLoading && !error && sortedBookings.length > 0 && (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pb-4">
+                  {sortedBookings.map(booking => (
+                    <BookingCard
+                      key={booking.bookingId}
+                      booking={booking}
+                      onClick={() => handleBookingClick(booking)}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Booking Details Modal */}

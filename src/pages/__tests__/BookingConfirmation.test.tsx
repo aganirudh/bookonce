@@ -79,12 +79,8 @@ const mockBooking: BookingConfirmationType = {
     baseRate: 420,
     numberOfNights: 5,
     subtotal: 2100,
-    taxes: [
-      { name: 'Hotel Tax', amount: 252, percentage: 12 },
-    ],
-    fees: [
-      { name: 'Service Fee', amount: 25, description: 'Booking service fee' },
-    ],
+    taxes: [{ name: 'Hotel Tax', amount: 252, percentage: 12 }],
+    fees: [{ name: 'Service Fee', amount: 25, description: 'Booking service fee' }],
     total: 2377,
     currency: 'USD',
   },
@@ -142,9 +138,7 @@ describe('BookingConfirmation Page', () => {
 
   describe('Error State', () => {
     it('should display error message when booking not found', async () => {
-      vi.mocked(bookingAPIService.getBooking).mockRejectedValue(
-        new Error('Booking not found')
-      );
+      vi.mocked(bookingAPIService.getBooking).mockRejectedValue(new Error('Booking not found'));
 
       renderWithProviders();
 
@@ -160,9 +154,7 @@ describe('BookingConfirmation Page', () => {
 
     it('should navigate to home when return button clicked', async () => {
       const user = userEvent.setup();
-      vi.mocked(bookingAPIService.getBooking).mockRejectedValue(
-        new Error('Booking not found')
-      );
+      vi.mocked(bookingAPIService.getBooking).mockRejectedValue(new Error('Booking not found'));
 
       renderWithProviders();
 
@@ -307,9 +299,7 @@ describe('BookingConfirmation Page', () => {
       renderWithProviders();
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/A confirmation email has been sent to/)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/A confirmation email has been sent to/)).toBeInTheDocument();
       });
 
       expect(screen.getAllByText('john.doe@example.com').length).toBeGreaterThan(0);

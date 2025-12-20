@@ -12,6 +12,14 @@ export interface JourneyContext {
   intent: 'urgent' | 'leisure';
   visitor: 'first-time' | 'returning';
   departureTime: string;
+  endangeredPlaces?: Array<{
+    name: string;
+    location: string;
+    threatLevel: string;
+    yearsRemaining: number;
+    estimatedCost: number;
+  }>;
+  totalEndangeredPlacesCost?: number;
 }
 
 // Transportation Types

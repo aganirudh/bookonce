@@ -2,16 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Sparkles, 
-  Route, 
-  Clock, 
-  MapPin, 
-  ArrowRight,
-  Plane,
-  Bus,
-  Footprints
-} from 'lucide-react';
+import { Sparkles, Route, Clock, MapPin, ArrowRight, Plane, Bus, Footprints } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AIJourneyPreview: React.FC = () => {
@@ -30,7 +21,7 @@ const AIJourneyPreview: React.FC = () => {
         {/* Demo Journey Steps */}
         <div className="space-y-3">
           <h3 className="font-semibold text-gray-800 mb-3">✨ Sample Journey: Mumbai → Goa</h3>
-          
+
           {/* Step 1 */}
           <div className="flex items-center gap-4 p-3 bg-white rounded-lg border border-green-200">
             <div className="p-2 rounded-full bg-green-100 text-green-800">
@@ -117,8 +108,8 @@ const AIJourneyPreview: React.FC = () => {
         {/* CTA */}
         <div className="text-center pt-4">
           <Link to="/ai-journey">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               <Sparkles className="h-5 w-5 mr-2" />

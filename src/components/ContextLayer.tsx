@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, Info, CheckCircle, X, ChevronRight, Zap } from "lucide-react";
-import { useState } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, Info, CheckCircle, X, ChevronRight, Zap } from 'lucide-react';
+import { useState } from 'react';
 
 interface ContextAlert {
   id: string;
@@ -20,11 +20,11 @@ interface ContextLayerBadgeProps {
 }
 
 const severityColors: Record<string, string> = {
-  high: "bg-red-500/90 text-white border-red-400",
-  moderate: "bg-amber-500/90 text-white border-amber-400",
-  low: "bg-blue-500/90 text-white border-blue-400",
-  info: "bg-indigo-500/90 text-white border-indigo-400",
-  positive: "bg-emerald-500/90 text-white border-emerald-400",
+  high: 'bg-red-500/90 text-white border-red-400',
+  moderate: 'bg-amber-500/90 text-white border-amber-400',
+  low: 'bg-blue-500/90 text-white border-blue-400',
+  info: 'bg-indigo-500/90 text-white border-indigo-400',
+  positive: 'bg-emerald-500/90 text-white border-emerald-400',
 };
 
 const severityPulse: Record<string, boolean> = {
@@ -89,7 +89,7 @@ export const ContextLayerBadge = ({ alert, compact = false }: ContextLayerBadgeP
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
               className="bg-card rounded-2xl overflow-hidden max-w-md w-full shadow-heavy"
             >
               {/* Header */}
@@ -164,13 +164,13 @@ interface ContextLayerPanelProps {
 export const ContextLayerPanel = ({ isOpen, onClose }: ContextLayerPanelProps) => {
   const globalAlerts = [
     {
-      region: "Your Search Area",
+      region: 'Your Search Area',
       alerts: [
-        { icon: "🌡️", title: "Heat Advisory", severity: "moderate", count: 3 },
-        { icon: "🎉", title: "Local Events", severity: "info", count: 5 },
-        { icon: "🚧", title: "Disruptions", severity: "high", count: 2 },
-      ]
-    }
+        { icon: '🌡️', title: 'Heat Advisory', severity: 'moderate', count: 3 },
+        { icon: '🎉', title: 'Local Events', severity: 'info', count: 5 },
+        { icon: '🚧', title: 'Disruptions', severity: 'high', count: 2 },
+      ],
+    },
   ];
 
   return (
@@ -180,48 +180,50 @@ export const ContextLayerPanel = ({ isOpen, onClose }: ContextLayerPanelProps) =
           initial={{ opacity: 0, x: 300 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 300 }}
-          className="fixed right-4 top-24 bottom-4 w-80 z-40"
+          className="fixed top-4 right-4 z-[9999] w-80 h-96"
         >
-          <div className="glass-strong rounded-2xl h-full overflow-hidden shadow-heavy">
+          <div className="bg-background border border-border rounded-2xl h-full overflow-hidden shadow-2xl flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b border-border">
+            <div className="p-3 border-b border-border bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/20 dark:to-blue-950/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-accent flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-primary-foreground" />
+                  <div className="p-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-blue-600">
+                    <Zap className="w-3 h-3 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Context Layer</h3>
+                    <h3 className="font-semibold text-xs">Context Layer</h3>
                     <p className="text-xs text-muted-foreground">Real-time intelligence</p>
                   </div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-xl hover:bg-secondary transition-colors"
+                  className="p-1 rounded-lg hover:bg-secondary/50 transition-colors"
                 >
-                  <X className="w-4 h-4 text-muted-foreground" />
+                  <X className="w-3 h-3 text-muted-foreground" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(100%-80px)]">
+            <div className="p-3 space-y-3 overflow-y-auto flex-1">
               {/* Live Status */}
-              <div className="glass-card p-4">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="p-3 rounded-xl bg-secondary/30 border border-border">
+                <div className="flex items-center gap-2 mb-2">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  <span className="text-sm font-medium text-foreground">Live Monitoring Active</span>
+                  <span className="text-xs font-medium text-foreground">
+                    Live Monitoring Active
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Scanning 847 data sources for disruptions, events, and opportunities in your search area.
+                  Scanning 847 data sources for disruptions, events, and opportunities.
                 </p>
               </div>
 
               {/* Alert Summary */}
-              {globalAlerts.map((group) => (
+              {globalAlerts.map(group => (
                 <div key={group.region}>
                   <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                     {group.region}
@@ -230,18 +232,21 @@ export const ContextLayerPanel = ({ isOpen, onClose }: ContextLayerPanelProps) =
                     {group.alerts.map((alert, idx) => (
                       <motion.div
                         key={idx}
-                        whileHover={{ x: 4 }}
-                        className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
+                        whileHover={{ x: 2 }}
+                        className="flex items-center justify-between p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">{alert.icon}</span>
-                          <span className="text-sm text-foreground">{alert.title}</span>
+                          <span className="text-base">{alert.icon}</span>
+                          <span className="text-xs text-foreground">{alert.title}</span>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          alert.severity === 'high' ? 'bg-red-500/20 text-red-600' :
-                          alert.severity === 'moderate' ? 'bg-amber-500/20 text-amber-600' :
-                          'bg-blue-500/20 text-blue-600'
-                        }`}>
+                        <span
+                          className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${alert.severity === 'high'
+                              ? 'bg-red-500/20 text-red-600'
+                              : alert.severity === 'moderate'
+                                ? 'bg-amber-500/20 text-amber-600'
+                                : 'bg-blue-500/20 text-blue-600'
+                            }`}
+                        >
                           {alert.count}
                         </span>
                       </motion.div>
@@ -251,16 +256,21 @@ export const ContextLayerPanel = ({ isOpen, onClose }: ContextLayerPanelProps) =
               ))}
 
               {/* What We Monitor */}
-              <div className="pt-4 border-t border-border">
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+              <div className="pt-3 border-t border-border">
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                   What We Monitor
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {[
-                    "Road Closures", "Local Events", "Weather Alerts",
-                    "Crowd Levels", "Health Advisories", "Power Outages",
-                    "Price Surges", "Air Quality"
-                  ].map((item) => (
+                    'Road Closures',
+                    'Local Events',
+                    'Weather Alerts',
+                    'Crowd Levels',
+                    'Health Advisories',
+                    'Power Outages',
+                    'Price Surges',
+                    'Air Quality',
+                  ].map(item => (
                     <div key={item} className="flex items-center gap-1.5 text-muted-foreground">
                       <CheckCircle className="w-3 h-3 text-emerald-500" />
                       <span>{item}</span>

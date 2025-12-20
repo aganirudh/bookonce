@@ -150,7 +150,7 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
   async createReservation(request: BookingRequest): Promise<BookingConfirmation> {
     // Get hotel details first to check instant booking capability
     const hotel = await this.getHotelDetails(request.hotelId.toString());
-    
+
     // Simulate different confirmation times based on instant booking capability
     if (hotel.instantBooking) {
       // Instant booking: confirm within 30 seconds (simulate 1-3 seconds)
@@ -171,7 +171,9 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
     // Calculate pricing
     const checkIn = new Date(request.checkInDate);
     const checkOut = new Date(request.checkOutDate);
-    const numberOfNights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    const numberOfNights = Math.ceil(
+      (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     const baseRate = 150; // Mock base rate
     const subtotal = baseRate * numberOfNights;
@@ -183,12 +185,8 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
       baseRate,
       numberOfNights,
       subtotal,
-      taxes: [
-        { name: 'Hotel Tax', amount: taxAmount, percentage: 12 },
-      ],
-      fees: [
-        { name: 'Service Fee', amount: serviceFee, description: 'Booking service fee' },
-      ],
+      taxes: [{ name: 'Hotel Tax', amount: taxAmount, percentage: 12 }],
+      fees: [{ name: 'Service Fee', amount: serviceFee, description: 'Booking service fee' }],
       total,
       currency: 'USD',
     };
@@ -263,7 +261,7 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
         checkInDate: newCheckInDate,
         checkOutDate: newCheckOutDate,
       });
-      
+
       const room = availability.rooms.find(r => r.id === changes.roomId);
       if (room) {
         newRoomDetails = room;
@@ -273,7 +271,9 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
     // Recalculate pricing with new dates/room
     const checkIn = new Date(newCheckInDate);
     const checkOut = new Date(newCheckOutDate);
-    const numberOfNights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    const numberOfNights = Math.ceil(
+      (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     const baseRate = newRoomDetails.basePrice;
     const subtotal = baseRate * numberOfNights;
@@ -285,12 +285,8 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
       baseRate,
       numberOfNights,
       subtotal,
-      taxes: [
-        { name: 'Hotel Tax', amount: taxAmount, percentage: 12 },
-      ],
-      fees: [
-        { name: 'Service Fee', amount: serviceFee, description: 'Booking service fee' },
-      ],
+      taxes: [{ name: 'Hotel Tax', amount: taxAmount, percentage: 12 }],
+      fees: [{ name: 'Service Fee', amount: serviceFee, description: 'Booking service fee' }],
       total,
       currency: 'USD',
     };
@@ -326,14 +322,16 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
     // Calculate refund based on cancellation policy
     const checkInDate = new Date(booking.checkInDate);
     const now = new Date();
-    const daysUntilCheckIn = Math.ceil((checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilCheckIn = Math.ceil(
+      (checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     let refundPercentage = 0;
     if (booking.hotel.cancellationPolicy) {
       const applicableRule = booking.hotel.cancellationPolicy.rules
         .sort((a, b) => b.daysBeforeCheckIn - a.daysBeforeCheckIn)
         .find(rule => daysUntilCheckIn >= rule.daysBeforeCheckIn);
-      
+
       refundPercentage = applicableRule?.refundPercentage || 0;
     }
 

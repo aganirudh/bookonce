@@ -26,9 +26,7 @@ const JourneyTypeCard = ({
     <Card
       className={cn(
         'relative p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02]',
-        selected
-          ? 'ring-2 ring-primary shadow-xl'
-          : 'hover:ring-1 hover:ring-primary/50'
+        selected ? 'ring-2 ring-primary shadow-xl' : 'hover:ring-1 hover:ring-primary/50'
       )}
       onClick={onClick}
     >

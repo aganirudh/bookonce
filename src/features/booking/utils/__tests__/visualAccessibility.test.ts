@@ -82,7 +82,7 @@ describe('Visual Accessibility', () => {
       const color = '#AAAAAA';
       const background = '#FFFFFF';
       const result = getAccessibleColor(color, background, 4.5);
-      
+
       // Verify the result meets the target ratio
       const ratio = getContrastRatio(result, background);
       expect(ratio).toBeGreaterThanOrEqual(4.5);
@@ -92,7 +92,7 @@ describe('Visual Accessibility', () => {
   describe('meetsTouchTargetSize', () => {
     it('should check if element meets minimum touch target size', () => {
       const element = document.createElement('button');
-      
+
       // Mock getBoundingClientRect to return specific dimensions
       element.getBoundingClientRect = vi.fn(() => ({
         width: 44,
@@ -112,7 +112,7 @@ describe('Visual Accessibility', () => {
 
     it('should fail for elements below minimum size', () => {
       const element = document.createElement('button');
-      
+
       // Mock getBoundingClientRect to return small dimensions
       element.getBoundingClientRect = vi.fn(() => ({
         width: 30,

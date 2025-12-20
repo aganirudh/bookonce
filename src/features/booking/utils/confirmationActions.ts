@@ -44,18 +44,18 @@ export function downloadPDFConfirmation(booking: BookingConfirmation): void {
       <div class="section">
         <h2>Stay Details</h2>
         <div class="label">Check-in</div>
-        <div class="value">${new Date(booking.checkInDate).toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        <div class="value">${new Date(booking.checkInDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
         })} at ${booking.hotel.checkInTime || '3:00 PM'}</div>
         <div class="label">Check-out</div>
-        <div class="value">${new Date(booking.checkOutDate).toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        <div class="value">${new Date(booking.checkOutDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
         })} at ${booking.hotel.checkOutTime || '11:00 AM'}</div>
         <div class="label">Number of Nights</div>
         <div class="value">${booking.pricing.numberOfNights}</div>
@@ -82,14 +82,22 @@ export function downloadPDFConfirmation(booking: BookingConfirmation): void {
         <h2>Pricing Summary</h2>
         <div class="label">Subtotal</div>
         <div class="value">$${booking.pricing.subtotal.toFixed(2)}</div>
-        ${booking.pricing.taxes.map(tax => `
+        ${booking.pricing.taxes
+          .map(
+            tax => `
           <div class="label">${tax.name}</div>
           <div class="value">$${tax.amount.toFixed(2)}</div>
-        `).join('')}
-        ${booking.pricing.fees.map(fee => `
+        `
+          )
+          .join('')}
+        ${booking.pricing.fees
+          .map(
+            fee => `
           <div class="label">${fee.name}</div>
           <div class="value">$${fee.amount.toFixed(2)}</div>
-        `).join('')}
+        `
+          )
+          .join('')}
         <hr style="margin: 15px 0;">
         <div class="label">Total</div>
         <div class="total">$${booking.pricing.total.toFixed(2)} ${booking.pricing.currency}</div>

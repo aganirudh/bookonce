@@ -42,7 +42,7 @@ describe('Index Page - Instant Booking Filter', () => {
 
   it('should render the instant booking filter button', () => {
     renderIndex();
-    
+
     // The instant booking filter button should be present (Zap icon button)
     const buttons = screen.getAllByRole('button');
     expect(buttons.length).toBeGreaterThan(0);
@@ -64,7 +64,7 @@ describe('Index Page - Instant Booking Filter', () => {
 
   it('should show all hotels when instant booking filter is off', () => {
     renderIndex();
-    
+
     // Verify hotels are displayed
     const hotelCards = screen.getAllByText(/book now/i);
     expect(hotelCards.length).toBeGreaterThan(0);

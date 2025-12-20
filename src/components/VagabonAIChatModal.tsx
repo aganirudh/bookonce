@@ -1,6 +1,6 @@
 /**
  * VagabonAIChatModal Component
- * 
+ *
  * Main modal component for the Vagabon AI Assistant chat interface.
  * Features:
  * - Responsive design (full screen on mobile, centered on desktop)
@@ -9,17 +9,12 @@
  * - Fixed input area at bottom
  * - Error handling and loading states
  * - Animations and polish
- * 
+ *
  * Requirements: 1.2, 1.3, 1.4, 1.5, 6.1, 6.2, 6.4
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,16 +39,8 @@ import { cn } from '@/lib/utils';
 // ============================================================================
 
 export const VagabonAIChatModal: React.FC = () => {
-  const {
-    messages,
-    isLoading,
-    error,
-    isOpen,
-    setOpen,
-    clearMessages,
-    sendMessage,
-    setError,
-  } = useChatStore();
+  const { messages, isLoading, error, isOpen, setOpen, clearMessages, sendMessage, setError } =
+    useChatStore();
 
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -68,9 +55,7 @@ export const VagabonAIChatModal: React.FC = () => {
       // Focus the input when modal opens
       // Small delay to ensure the modal is fully rendered
       const timer = setTimeout(() => {
-        const input = document.querySelector<HTMLTextAreaElement>(
-          '[aria-label="Message input"]'
-        );
+        const input = document.querySelector<HTMLTextAreaElement>('[aria-label="Message input"]');
         if (input) {
           input.focus();
         }
@@ -88,10 +73,11 @@ export const VagabonAIChatModal: React.FC = () => {
     // Announce new messages to screen readers
     if (messages.length > 0 && announcementRef.current) {
       const lastMessage = messages[messages.length - 1];
-      const announcement = lastMessage.role === 'user' 
-        ? `You said: ${lastMessage.content}`
-        : `Vagabond AI replied: ${lastMessage.content}`;
-      
+      const announcement =
+        lastMessage.role === 'user'
+          ? `You said: ${lastMessage.content}`
+          : `Vagabond AI replied: ${lastMessage.content}`;
+
       announcementRef.current.textContent = announcement;
     }
   }, [messages]);
@@ -250,9 +236,15 @@ export const VagabonAIChatModal: React.FC = () => {
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">Thinking</span>
                   <span className="flex gap-1" aria-hidden="true">
-                    <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
-                    <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
-                    <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+                    <span className="animate-bounce" style={{ animationDelay: '0ms' }}>
+                      .
+                    </span>
+                    <span className="animate-bounce" style={{ animationDelay: '150ms' }}>
+                      .
+                    </span>
+                    <span className="animate-bounce" style={{ animationDelay: '300ms' }}>
+                      .
+                    </span>
                   </span>
                 </div>
               </div>
@@ -276,16 +268,17 @@ export const VagabonAIChatModal: React.FC = () => {
       </Dialog>
 
       {/* Clear Chat Confirmation Dialog */}
-      <AlertDialog
-        open={showClearConfirmation}
-        onOpenChange={setShowClearConfirmation}
-      >
-        <AlertDialogContent role="alertdialog" aria-labelledby="clear-dialog-title" aria-describedby="clear-dialog-description">
+      <AlertDialog open={showClearConfirmation} onOpenChange={setShowClearConfirmation}>
+        <AlertDialogContent
+          role="alertdialog"
+          aria-labelledby="clear-dialog-title"
+          aria-describedby="clear-dialog-description"
+        >
           <AlertDialogHeader>
             <AlertDialogTitle id="clear-dialog-title">Clear chat history?</AlertDialogTitle>
             <AlertDialogDescription id="clear-dialog-description">
-              This will delete all messages in your current conversation. This
-              action cannot be undone.
+              This will delete all messages in your current conversation. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

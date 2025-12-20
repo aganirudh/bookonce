@@ -67,12 +67,12 @@ export function CancelBooking({
     // Find applicable rule based on days until check-in
     const applicableRule = hotel.cancellationPolicy.rules
       .sort((a, b) => b.daysBeforeCheckIn - a.daysBeforeCheckIn)
-      .find((rule) => daysUntilCheckIn >= rule.daysBeforeCheckIn);
+      .find(rule => daysUntilCheckIn >= rule.daysBeforeCheckIn);
 
     if (!applicableRule) {
       // No rule found, use the most restrictive (0 days)
       const mostRestrictive = hotel.cancellationPolicy.rules.find(
-        (rule) => rule.daysBeforeCheckIn === 0
+        rule => rule.daysBeforeCheckIn === 0
       );
       const percentage = mostRestrictive?.refundPercentage || 0;
       const fee = mostRestrictive?.fee || 0;
@@ -151,38 +151,39 @@ export function CancelBooking({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <XCircle className="h-5 w-5 text-destructive" />
+      <DialogContent className="max-w-xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <XCircle className="h-4 w-4 text-destructive" />
             Cancel Booking
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs">
             Review the cancellation policy and refund details before proceeding
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-3 overflow-y-auto flex-1 pr-2">
           {/* Booking Summary */}
-          <div className="rounded-lg border p-4 space-y-2">
+          <div className="rounded-lg border p-3 space-y-2">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-semibold">{hotel.title}</h3>
-                <p className="text-sm text-muted-foreground">{hotel.location}</p>
+                <h3 className="font-semibold text-sm">{hotel.title}</h3>
+                <p className="text-xs text-muted-foreground">{hotel.location}</p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-muted-foreground">Reference</div>
-                <div className="font-mono text-sm">{referenceNumber}</div>
+                <div className="text-xs text-muted-foreground">Reference</div>
+                <div className="font-mono text-xs">{referenceNumber}</div>
               </div>
             </div>
             <Separator />
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 text-xs">
+              <Calendar className="h-3 w-3 text-muted-foreground" />
               <span>
-                {format(new Date(checkInDate), 'MMM d, yyyy')} - {format(new Date(booking.checkOutDate), 'MMM d, yyyy')}
+                {format(new Date(checkInDate), 'MMM d, yyyy')} -{' '}
+                {format(new Date(booking.checkOutDate), 'MMM d, yyyy')}
               </span>
             </div>
-            <div className="text-sm">
+            <div className="text-xs">
               <span className="text-muted-foreground">Total Paid:</span>{' '}
               <span className="font-semibold">
                 ${pricing.total.toFixed(2)} {pricing.currency}
@@ -192,19 +193,21 @@ export function CancelBooking({
 
           {/* Cancellation Policy */}
           <div>
-            <h3 className="font-semibold mb-2">Cancellation Policy</h3>
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>{getPolicyDescription()}</AlertTitle>
-              <AlertDescription className="mt-2">
+            <h3 className="font-semibold text-sm mb-2">Cancellation Policy</h3>
+            <Alert className="py-2">
+              <AlertTriangle className="h-3 w-3" />
+              <AlertTitle className="text-xs">{getPolicyDescription()}</AlertTitle>
+              <AlertDescription className="mt-1">
                 <div className="space-y-1">
                   {hotel.cancellationPolicy?.rules
                     .sort((a, b) => b.daysBeforeCheckIn - a.daysBeforeCheckIn)
                     .map((rule: CancellationRule, index: number) => (
-                      <div key={index} className="text-sm">
-                        • {rule.daysBeforeCheckIn > 0 ? (
+                      <div key={index} className="text-xs">
+                        •{' '}
+                        {rule.daysBeforeCheckIn > 0 ? (
                           <>
-                            {rule.daysBeforeCheckIn}+ days before check-in: {rule.refundPercentage}% refund
+                            {rule.daysBeforeCheckIn}+ days before check-in: {rule.refundPercentage}%
+                            refund
                             {rule.fee && ` (minus $${rule.fee} fee)`}
                           </>
                         ) : (
@@ -221,13 +224,13 @@ export function CancelBooking({
           </div>
 
           {/* Refund Calculation */}
-          <div className="rounded-lg border p-4 space-y-3">
+          <div className="rounded-lg border p-3 space-y-2">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-muted-foreground" />
-              <h3 className="font-semibold">Refund Calculation</h3>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-semibold text-sm">Refund Calculation</h3>
             </div>
             <Separator />
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Days until check-in:</span>
                 <span className="font-medium">{daysUntilCheckIn} days</span>
@@ -247,7 +250,7 @@ export function CancelBooking({
                 </div>
               )}
               <Separator />
-              <div className="flex justify-between text-lg font-semibold">
+              <div className="flex justify-between text-sm font-semibold">
                 <span>Refund amount:</span>
                 <span className={refundDetails.amount > 0 ? 'text-green-600' : 'text-destructive'}>
                   ${refundDetails.amount.toFixed(2)} {pricing.currency}
@@ -255,9 +258,9 @@ export function CancelBooking({
               </div>
             </div>
             {refundDetails.amount === 0 && (
-              <Alert variant="destructive" className="mt-3">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
+              <Alert variant="destructive" className="mt-2 py-2">
+                <AlertTriangle className="h-3 w-3" />
+                <AlertDescription className="text-xs">
                   This booking is non-refundable based on the cancellation policy and timing.
                 </AlertDescription>
               </Alert>
@@ -267,13 +270,13 @@ export function CancelBooking({
           {/* Reason Selection */}
           {!showConfirmation && (
             <div className="space-y-2">
-              <Label htmlFor="reason">Reason for cancellation *</Label>
+              <Label htmlFor="reason" className="text-xs">Reason for cancellation *</Label>
               <Select value={selectedReason} onValueChange={setSelectedReason}>
                 <SelectTrigger id="reason">
                   <SelectValue placeholder="Select a reason" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CANCELLATION_REASONS.map((reason) => (
+                  {CANCELLATION_REASONS.map(reason => (
                     <SelectItem key={reason} value={reason}>
                       {reason}
                     </SelectItem>
@@ -285,29 +288,31 @@ export function CancelBooking({
 
           {/* Final Confirmation Warning */}
           {showConfirmation && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Are you absolutely sure?</AlertTitle>
-              <AlertDescription>
+            <Alert variant="destructive" className="py-2">
+              <AlertTriangle className="h-3 w-3" />
+              <AlertTitle className="text-xs">Are you absolutely sure?</AlertTitle>
+              <AlertDescription className="text-xs">
                 This action cannot be undone. Your booking will be cancelled and you will receive a
-                refund of ${refundDetails.amount.toFixed(2)} {pricing.currency} within 5-10 business days.
+                refund of ${refundDetails.amount.toFixed(2)} {pricing.currency} within 5-10 business
+                days.
               </AlertDescription>
             </Alert>
           )}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 flex-shrink-0 pt-3 border-t">
           {!showConfirmation ? (
             <>
-              <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
+              <Button variant="outline" onClick={handleClose} disabled={isSubmitting} size="sm">
                 Keep Booking
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleSubmit}
                 disabled={!selectedReason || isSubmitting}
+                size="sm"
               >
-                <XCircle className="h-4 w-4 mr-2" />
+                <XCircle className="h-3 w-3 mr-1" />
                 Cancel Booking
               </Button>
             </>
@@ -317,10 +322,11 @@ export function CancelBooking({
                 variant="outline"
                 onClick={() => setShowConfirmation(false)}
                 disabled={isSubmitting}
+                size="sm"
               >
                 Go Back
               </Button>
-              <Button variant="destructive" onClick={handleConfirm} disabled={isSubmitting}>
+              <Button variant="destructive" onClick={handleConfirm} disabled={isSubmitting} size="sm">
                 {isSubmitting ? 'Processing...' : 'Confirm Cancellation'}
               </Button>
             </>

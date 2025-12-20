@@ -20,7 +20,7 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Mock matchMedia
-const createMatchMediaMock = (responses: Record<string, boolean>) => 
+const createMatchMediaMock = (responses: Record<string, boolean>) =>
   vi.fn().mockImplementation(query => ({
     matches: responses[query] || false,
     media: query,
@@ -41,7 +41,7 @@ describe('useTheme Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocalStorage.getItem.mockReturnValue(null);
-    
+
     // Default matchMedia responses
     window.matchMedia = createMatchMediaMock({
       '(prefers-color-scheme: dark)': false,
@@ -288,7 +288,7 @@ describe('useTheme Hook', () => {
       // Verify the saved data structure
       const savedData = mockLocalStorage.setItem.mock.calls[0][1];
       const parsedData = JSON.parse(savedData);
-      
+
       expect(parsedData).toHaveProperty('theme', 'dark');
       expect(parsedData).toHaveProperty('timestamp');
       expect(typeof parsedData.timestamp).toBe('number');
@@ -320,7 +320,7 @@ describe('useTheme Hook', () => {
   describe('System Preference Changes', () => {
     it('updates system theme when media query changes', async () => {
       let darkModeListener: ((e: MediaQueryListEvent) => void) | null = null;
-      
+
       // Mock matchMedia with listener capture
       window.matchMedia = vi.fn().mockImplementation(query => ({
         matches: query === '(prefers-color-scheme: dark)' ? false : false,
@@ -358,7 +358,7 @@ describe('useTheme Hook', () => {
 
     it('updates resolved theme when on system preference and system changes', async () => {
       let darkModeListener: ((e: MediaQueryListEvent) => void) | null = null;
-      
+
       window.matchMedia = vi.fn().mockImplementation(query => ({
         matches: false,
         media: query,
@@ -396,7 +396,7 @@ describe('useTheme Hook', () => {
 
     it('does not update resolved theme when on explicit theme and system changes', async () => {
       let darkModeListener: ((e: MediaQueryListEvent) => void) | null = null;
-      
+
       window.matchMedia = vi.fn().mockImplementation(query => ({
         matches: false,
         media: query,

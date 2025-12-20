@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { Globe, Clock, Search } from "lucide-react";
-import { useState, useEffect } from "react";
+import { motion } from 'framer-motion';
+import { Globe, Clock, Search } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface TimezoneData {
   country: string;
@@ -12,65 +12,66 @@ interface TimezoneData {
 
 // Major cities with their timezones
 const CITIES = [
-  { country: "United States", city: "New York", timezone: "America/New_York" },
-  { country: "United States", city: "Los Angeles", timezone: "America/Los_Angeles" },
-  { country: "United States", city: "Chicago", timezone: "America/Chicago" },
-  { country: "United Kingdom", city: "London", timezone: "Europe/London" },
-  { country: "France", city: "Paris", timezone: "Europe/Paris" },
-  { country: "Germany", city: "Berlin", timezone: "Europe/Berlin" },
-  { country: "Japan", city: "Tokyo", timezone: "Asia/Tokyo" },
-  { country: "China", city: "Shanghai", timezone: "Asia/Shanghai" },
-  { country: "China", city: "Hong Kong", timezone: "Asia/Hong_Kong" },
-  { country: "Singapore", city: "Singapore", timezone: "Asia/Singapore" },
-  { country: "India", city: "Mumbai", timezone: "Asia/Kolkata" },
-  { country: "India", city: "Delhi", timezone: "Asia/Kolkata" },
-  { country: "Australia", city: "Sydney", timezone: "Australia/Sydney" },
-  { country: "Australia", city: "Melbourne", timezone: "Australia/Melbourne" },
-  { country: "Canada", city: "Toronto", timezone: "America/Toronto" },
-  { country: "Canada", city: "Vancouver", timezone: "America/Vancouver" },
-  { country: "Brazil", city: "São Paulo", timezone: "America/Sao_Paulo" },
-  { country: "Mexico", city: "Mexico City", timezone: "America/Mexico_City" },
-  { country: "Russia", city: "Moscow", timezone: "Europe/Moscow" },
-  { country: "South Korea", city: "Seoul", timezone: "Asia/Seoul" },
-  { country: "UAE", city: "Dubai", timezone: "Asia/Dubai" },
-  { country: "Thailand", city: "Bangkok", timezone: "Asia/Bangkok" },
-  { country: "Indonesia", city: "Jakarta", timezone: "Asia/Jakarta" },
-  { country: "Turkey", city: "Istanbul", timezone: "Europe/Istanbul" },
-  { country: "South Africa", city: "Johannesburg", timezone: "Africa/Johannesburg" },
+  { country: 'United States', city: 'New York', timezone: 'America/New_York' },
+  { country: 'United States', city: 'Los Angeles', timezone: 'America/Los_Angeles' },
+  { country: 'United States', city: 'Chicago', timezone: 'America/Chicago' },
+  { country: 'United Kingdom', city: 'London', timezone: 'Europe/London' },
+  { country: 'France', city: 'Paris', timezone: 'Europe/Paris' },
+  { country: 'Germany', city: 'Berlin', timezone: 'Europe/Berlin' },
+  { country: 'Japan', city: 'Tokyo', timezone: 'Asia/Tokyo' },
+  { country: 'China', city: 'Shanghai', timezone: 'Asia/Shanghai' },
+  { country: 'China', city: 'Hong Kong', timezone: 'Asia/Hong_Kong' },
+  { country: 'Singapore', city: 'Singapore', timezone: 'Asia/Singapore' },
+  { country: 'India', city: 'Mumbai', timezone: 'Asia/Kolkata' },
+  { country: 'India', city: 'Delhi', timezone: 'Asia/Kolkata' },
+  { country: 'Australia', city: 'Sydney', timezone: 'Australia/Sydney' },
+  { country: 'Australia', city: 'Melbourne', timezone: 'Australia/Melbourne' },
+  { country: 'Canada', city: 'Toronto', timezone: 'America/Toronto' },
+  { country: 'Canada', city: 'Vancouver', timezone: 'America/Vancouver' },
+  { country: 'Brazil', city: 'São Paulo', timezone: 'America/Sao_Paulo' },
+  { country: 'Mexico', city: 'Mexico City', timezone: 'America/Mexico_City' },
+  { country: 'Russia', city: 'Moscow', timezone: 'Europe/Moscow' },
+  { country: 'South Korea', city: 'Seoul', timezone: 'Asia/Seoul' },
+  { country: 'UAE', city: 'Dubai', timezone: 'Asia/Dubai' },
+  { country: 'Thailand', city: 'Bangkok', timezone: 'Asia/Bangkok' },
+  { country: 'Indonesia', city: 'Jakarta', timezone: 'Asia/Jakarta' },
+  { country: 'Turkey', city: 'Istanbul', timezone: 'Europe/Istanbul' },
+  { country: 'South Africa', city: 'Johannesburg', timezone: 'Africa/Johannesburg' },
 ];
 
 const TimeZoneConverter = () => {
   const [selectedCities, setSelectedCities] = useState<string[]>([
-    "America/New_York",
-    "Europe/London",
-    "Asia/Tokyo",
+    'America/New_York',
+    'Europe/London',
+    'Asia/Tokyo',
   ]);
   const [times, setTimes] = useState<TimezoneData[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const getTimeInTimezone = (timezone: string): TimezoneData => {
     const now = new Date();
-    const city = CITIES.find((c) => c.timezone === timezone);
-    
-    const timeString = now.toLocaleTimeString("en-US", {
+    const city = CITIES.find(c => c.timezone === timezone);
+
+    const timeString = now.toLocaleTimeString('en-US', {
       timeZone: timezone,
-      hour: "2-digit",
-      minute: "2-digit",
+      hour: '2-digit',
+      minute: '2-digit',
       hour12: true,
     });
 
-    const offset = now
-      .toLocaleTimeString("en-US", {
-        timeZone: timezone,
-        timeZoneName: "short",
-      })
-      .split(" ")
-      .pop() || "";
+    const offset =
+      now
+        .toLocaleTimeString('en-US', {
+          timeZone: timezone,
+          timeZoneName: 'short',
+        })
+        .split(' ')
+        .pop() || '';
 
     return {
-      country: city?.country || "",
-      city: city?.city || "",
+      country: city?.country || '',
+      city: city?.city || '',
       timezone,
       time: timeString,
       offset,
@@ -79,7 +80,7 @@ const TimeZoneConverter = () => {
 
   useEffect(() => {
     const updateTimes = () => {
-      const newTimes = selectedCities.map((tz) => getTimeInTimezone(tz));
+      const newTimes = selectedCities.map(tz => getTimeInTimezone(tz));
       setTimes(newTimes);
     };
 
@@ -89,7 +90,7 @@ const TimeZoneConverter = () => {
   }, [selectedCities]);
 
   const filteredCities = CITIES.filter(
-    (city) =>
+    city =>
       (city.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
         city.country.toLowerCase().includes(searchQuery.toLowerCase())) &&
       !selectedCities.includes(city.timezone)
@@ -99,12 +100,12 @@ const TimeZoneConverter = () => {
     if (selectedCities.length < 5 && !selectedCities.includes(timezone)) {
       setSelectedCities([...selectedCities, timezone]);
     }
-    setSearchQuery("");
+    setSearchQuery('');
     setShowSuggestions(false);
   };
 
   const removeCity = (timezone: string) => {
-    setSelectedCities(selectedCities.filter((tz) => tz !== timezone));
+    setSelectedCities(selectedCities.filter(tz => tz !== timezone));
   };
 
   return (
@@ -125,7 +126,7 @@ const TimeZoneConverter = () => {
             type="text"
             placeholder="Search cities..."
             value={searchQuery}
-            onChange={(e) => {
+            onChange={e => {
               setSearchQuery(e.target.value);
               setShowSuggestions(true);
             }}
@@ -140,20 +141,20 @@ const TimeZoneConverter = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-full mt-1 w-full bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50"
+            className="absolute top-full mt-1 w-full bg-card rounded-xl shadow-xl border border-border overflow-hidden z-50"
           >
-            {filteredCities.map((city) => (
+            {filteredCities.map(city => (
               <button
                 key={city.timezone}
                 onClick={() => addCity(city.timezone)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
+                className="w-full px-4 py-3 text-left hover:bg-secondary transition-colors flex items-center gap-3"
               >
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 shrink-0">
                   <Clock className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm text-foreground">{city.city}</div>
-                  <div className="text-xs text-gray-500 truncate">{city.country}</div>
+                  <div className="text-xs text-muted-foreground truncate">{city.country}</div>
                 </div>
               </button>
             ))}
@@ -170,7 +171,7 @@ const TimeZoneConverter = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
             className={`flex items-center justify-between p-3 rounded-xl ${
-              index === 0 ? "bg-primary/10" : "bg-secondary/30"
+              index === 0 ? 'bg-primary/10' : 'bg-secondary/30'
             }`}
           >
             <div className="flex-1">
@@ -184,12 +185,7 @@ const TimeZoneConverter = () => {
                   onClick={() => removeCity(data.timezone)}
                   className="text-muted-foreground hover:text-destructive transition-colors"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -206,7 +202,8 @@ const TimeZoneConverter = () => {
 
       {selectedCities.length < 5 && (
         <p className="text-xs text-muted-foreground text-center">
-          Add up to {5 - selectedCities.length} more {selectedCities.length === 4 ? "city" : "cities"}
+          Add up to {5 - selectedCities.length} more{' '}
+          {selectedCities.length === 4 ? 'city' : 'cities'}
         </p>
       )}
     </div>

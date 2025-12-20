@@ -1,9 +1,9 @@
-import { motion } from "framer-motion";
-import { Star, MapPin, Wifi, Coffee, Waves, Mountain, AlertTriangle, Zap } from "lucide-react";
-import { ContextLayerBadge } from "./ContextLayer";
-import contextData from "@/data/context-alerts.json";
-import { Hotel } from "@/types/booking";
-import { Button } from "@/components/ui/button";
+import { motion } from 'framer-motion';
+import { Star, MapPin, Wifi, Coffee, Waves, Mountain, AlertTriangle, Zap } from 'lucide-react';
+import { ContextLayerBadge } from './ContextLayer';
+import contextData from '@/data/context-alerts.json';
+import { Hotel } from '@/types/booking';
+import { Button } from '@/components/ui/button';
 
 interface HotelCardProps {
   hotel: Hotel;
@@ -12,29 +12,29 @@ interface HotelCardProps {
 }
 
 const amenityIcons: Record<string, typeof Wifi> = {
-  "Spa": Waves,
-  "Lake View": Mountain,
-  "Private Dock": Waves,
-  "Fine Dining": Coffee,
-  "City View": Mountain,
-  "Smart Home": Wifi,
-  "Rooftop Bar": Coffee,
-  "Gym": Mountain,
-  "Hot Spring": Waves,
-  "Meditation Garden": Mountain,
-  "Private Beach": Waves,
-  "Water Villa": Waves,
-  "Gear Storage": Mountain,
-  "Guide Services": Mountain,
-  "Art Gallery": Coffee,
-  "Rooftop Pool": Waves,
-  "Northern Lights View": Mountain,
-  "Sauna": Waves,
-  "Co-working": Wifi,
-  "Bar": Coffee,
-  "Stargazing": Mountain,
-  "Wildlife Tours": Mountain,
-  "Zip Line": Mountain,
+  Spa: Waves,
+  'Lake View': Mountain,
+  'Private Dock': Waves,
+  'Fine Dining': Coffee,
+  'City View': Mountain,
+  'Smart Home': Wifi,
+  'Rooftop Bar': Coffee,
+  Gym: Mountain,
+  'Hot Spring': Waves,
+  'Meditation Garden': Mountain,
+  'Private Beach': Waves,
+  'Water Villa': Waves,
+  'Gear Storage': Mountain,
+  'Guide Services': Mountain,
+  'Art Gallery': Coffee,
+  'Rooftop Pool': Waves,
+  'Northern Lights View': Mountain,
+  Sauna: Waves,
+  'Co-working': Wifi,
+  Bar: Coffee,
+  Stargazing: Mountain,
+  'Wildlife Tours': Mountain,
+  'Zip Line': Mountain,
 };
 
 const HotelCard = ({ hotel, index, onBookingClick }: HotelCardProps) => {
@@ -60,10 +60,10 @@ const HotelCard = ({ hotel, index, onBookingClick }: HotelCardProps) => {
       <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
         {/* Context Layer Alert Badge */}
         {alert && <ContextLayerBadge alert={alert} />}
-        
+
         {/* Instant Booking Badge - Compact */}
         {hotel.instantBooking && (
-          <div 
+          <div
             className="flex items-center justify-center glass-strong rounded-full w-7 h-7 bg-green-500/90 text-white"
             title="Instant Booking Available"
           >
@@ -82,7 +82,7 @@ const HotelCard = ({ hotel, index, onBookingClick }: HotelCardProps) => {
           transition={{ duration: 0.6 }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
+
         {/* Price Badge */}
         <div className="absolute top-4 right-4 glass-strong rounded-xl px-3 py-1.5">
           <span className="text-foreground font-semibold">${hotel.price}</span>
@@ -91,7 +91,7 @@ const HotelCard = ({ hotel, index, onBookingClick }: HotelCardProps) => {
 
         {/* Tags */}
         <div className="absolute bottom-4 left-4 flex gap-2">
-          {hotel.tags.slice(0, 2).map((tag) => (
+          {hotel.tags.slice(0, 2).map(tag => (
             <span
               key={tag}
               className="px-2.5 py-1 text-xs font-medium bg-primary/90 text-primary-foreground rounded-lg capitalize"
@@ -124,7 +124,7 @@ const HotelCard = ({ hotel, index, onBookingClick }: HotelCardProps) => {
 
         {/* Amenities */}
         <div className="flex items-center gap-3 pt-4 border-t border-border">
-          {hotel.amenities.slice(0, 4).map((amenity) => {
+          {hotel.amenities.slice(0, 4).map(amenity => {
             const Icon = amenityIcons[amenity] || Coffee;
             return (
               <div

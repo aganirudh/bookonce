@@ -9,12 +9,14 @@ State management for the booking feature using Zustand.
 Manages the booking flow state and actions.
 
 **State:**
+
 - `currentBooking` - Active booking in progress
 - `bookingHistory` - List of completed bookings
 - `isLoading` - Loading state for async operations
 - `error` - Error message if any
 
 **Actions:**
+
 - `startBooking(hotel)` - Initialize a new booking
 - `updateBookingStep(step)` - Navigate between booking steps
 - `setDates(checkIn, checkOut)` - Set booking dates
@@ -30,6 +32,7 @@ Manages the booking flow state and actions.
 - `clearError()` - Clear error message
 
 **Selectors:**
+
 - `selectCurrentBooking` - Get current booking
 - `selectBookingHistory` - Get booking history
 - `selectIsLoading` - Get loading state
@@ -44,10 +47,12 @@ Manages the booking flow state and actions.
 Manages caching for availability and pricing data with TTL.
 
 **State:**
+
 - `availabilityCache` - Map of cached availability responses
 - `pricingCache` - Map of cached pricing details
 
 **Actions:**
+
 - `setAvailability(key, data, ttl?)` - Cache availability data
 - `getAvailability(key)` - Retrieve cached availability
 - `setPricing(key, data, ttl?)` - Cache pricing data
@@ -59,6 +64,7 @@ Manages caching for availability and pricing data with TTL.
 - `cleanExpired()` - Remove expired entries
 
 **Utilities:**
+
 - `getAvailabilityCacheKey(hotelId, checkIn, checkOut)` - Generate cache key
 - `getPricingCacheKey(hotelId, roomId, checkIn, checkOut)` - Generate cache key
 - `getCacheStats()` - Get cache statistics
@@ -72,21 +78,21 @@ import { useBookingStore, useCacheStore } from '@/features/booking';
 function BookingComponent() {
   const { startBooking, currentBooking } = useBookingStore();
   const { getAvailability, setAvailability } = useCacheStore();
-  
+
   // Start booking
   const handleBookNow = (hotel: Hotel) => {
     startBooking(hotel);
   };
-  
+
   // Check cache before API call
   const checkAvailability = async (hotelId, checkIn, checkOut) => {
     const key = getAvailabilityCacheKey(hotelId, checkIn, checkOut);
     const cached = getAvailability(key);
-    
+
     if (cached) {
       return cached;
     }
-    
+
     // Fetch from API and cache
     const data = await api.checkAvailability(...);
     setAvailability(key, data);
@@ -98,10 +104,12 @@ function BookingComponent() {
 ## Testing
 
 Tests are located in `__tests__/` directory:
+
 - `bookingStore.test.ts` - Tests for booking store actions and state
 - `cacheStore.test.ts` - Tests for cache TTL and invalidation
 
 Run tests:
+
 ```bash
 npm test
 ```
@@ -109,6 +117,7 @@ npm test
 ## Cache Configuration
 
 Cache TTL values are defined in `../constants.ts`:
+
 - Availability: 5 minutes
 - Pricing: 5 minutes
 - Booking details: 1 hour

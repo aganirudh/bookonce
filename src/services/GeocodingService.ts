@@ -1,6 +1,6 @@
 /**
  * GeocodingService
- * 
+ *
  * Free geocoding using Nominatim (OpenStreetMap)
  * No API key required, but please respect usage limits
  */
@@ -28,12 +28,14 @@ class GeocodingService {
    */
   async searchLocation(query: string): Promise<GeocodingResult[]> {
     try {
-      const url = `${this.NOMINATIM_BASE_URL}/search?` + new URLSearchParams({
-        q: query,
-        format: 'json',
-        addressdetails: '1',
-        limit: '5',
-      });
+      const url =
+        `${this.NOMINATIM_BASE_URL}/search?` +
+        new URLSearchParams({
+          q: query,
+          format: 'json',
+          addressdetails: '1',
+          limit: '5',
+        });
 
       const response = await fetch(url, {
         headers: {
@@ -58,12 +60,14 @@ class GeocodingService {
    */
   async reverseGeocode(lat: number, lng: number): Promise<GeocodingResult> {
     try {
-      const url = `${this.NOMINATIM_BASE_URL}/reverse?` + new URLSearchParams({
-        lat: lat.toString(),
-        lon: lng.toString(),
-        format: 'json',
-        addressdetails: '1',
-      });
+      const url =
+        `${this.NOMINATIM_BASE_URL}/reverse?` +
+        new URLSearchParams({
+          lat: lat.toString(),
+          lon: lng.toString(),
+          format: 'json',
+          addressdetails: '1',
+        });
 
       const response = await fetch(url, {
         headers: {
@@ -94,13 +98,13 @@ class GeocodingService {
       }
 
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        position => {
           resolve({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
         },
-        (error) => {
+        error => {
           reject(new Error(`Geolocation error: ${error.message}`));
         },
         {
@@ -136,7 +140,7 @@ class GeocodingService {
    */
   formatAddress(result: GeocodingResult): string {
     const parts = [];
-    
+
     if (result.address.road) parts.push(result.address.road);
     if (result.address.city) parts.push(result.address.city);
     if (result.address.state) parts.push(result.address.state);

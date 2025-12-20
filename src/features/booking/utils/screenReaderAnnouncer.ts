@@ -12,7 +12,7 @@ export function announceToScreenReader(
 ): void {
   // Find or create the live region
   let liveRegion = document.getElementById(`aria-live-${priority}`);
-  
+
   if (!liveRegion) {
     liveRegion = document.createElement('div');
     liveRegion.id = `aria-live-${priority}`;
@@ -74,11 +74,11 @@ export function announceNavigation(message: string): void {
  */
 export function getStepDescription(step: string, stepNumber: number, totalSteps: number): string {
   const stepNames: Record<string, string> = {
-    'dates': 'Select Dates',
-    'rooms': 'Choose Room',
+    dates: 'Select Dates',
+    rooms: 'Choose Room',
     'guest-info': 'Guest Information',
-    'payment': 'Payment',
-    'processing': 'Processing',
+    payment: 'Payment',
+    processing: 'Processing',
   };
 
   const stepName = stepNames[step] || step;
@@ -103,17 +103,17 @@ export function formatPriceForScreenReader(amount: number, currency: string): st
  */
 export function formatDateRangeForScreenReader(checkIn: Date, checkOut: Date): string {
   const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-  const checkInStr = checkIn.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const checkInStr = checkIn.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
-  const checkOutStr = checkOut.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const checkOutStr = checkOut.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
 
   return `Check-in: ${checkInStr}. Check-out: ${checkOutStr}. ${nights} night${nights > 1 ? 's' : ''}.`;

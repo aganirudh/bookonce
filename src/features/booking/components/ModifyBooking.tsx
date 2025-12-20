@@ -20,7 +20,12 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DateSelector } from './DateSelector';
 import { RoomSelector } from './RoomSelector';
-import type { BookingConfirmation, RoomOption, AvailabilityResponse, PricingDetails } from '@/types/booking';
+import type {
+  BookingConfirmation,
+  RoomOption,
+  AvailabilityResponse,
+  PricingDetails,
+} from '@/types/booking';
 import { bookingAPIService } from '../services/BookingAPIService';
 import { paymentAPIService } from '../services/PaymentAPIService';
 import { notificationService } from '../services/NotificationService';
@@ -43,17 +48,17 @@ export function ModifyBooking({
 }: ModifyBookingProps) {
   const [step, setStep] = useState<ModificationStep>('select');
   const [modificationType, setModificationType] = useState<'dates' | 'room' | null>(null);
-  
+
   // New booking details
   const [newCheckInDate, setNewCheckInDate] = useState<Date | null>(null);
   const [newCheckOutDate, setNewCheckOutDate] = useState<Date | null>(null);
   const [newRoom, setNewRoom] = useState<RoomOption | null>(null);
-  
+
   // Pricing and availability
   const [newPricing, setNewPricing] = useState<PricingDetails | null>(null);
   const [priceDifference, setPriceDifference] = useState<number>(0);
   const [modificationFee] = useState<number>(0); // Could be dynamic based on policy
-  
+
   // Loading and error states
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +119,7 @@ export function ModifyBooking({
         );
 
         setNewPricing(pricing);
-        
+
         // Calculate price difference
         const difference = pricing.total - booking.pricing.total + modificationFee;
         setPriceDifference(difference);
@@ -140,7 +145,7 @@ export function ModifyBooking({
   const handleRoomModification = async () => {
     setModificationType('room');
     setStep('select');
-    
+
     // Check availability for current dates to get room options
     await checkAvailability({
       hotelId: booking.hotel.id,
@@ -226,7 +231,7 @@ export function ModifyBooking({
         // In a real implementation, we would process refund here
         // This would use the original payment intent ID
         const mockOriginalPaymentIntentId = 'pi_mock_original';
-        
+
         await paymentAPIService.processRefund(
           mockOriginalPaymentIntentId,
           Math.round(Math.abs(priceDifference) * 100), // Convert to cents
@@ -236,7 +241,7 @@ export function ModifyBooking({
 
       // Prepare modification request
       const modifications: any = {};
-      
+
       if (modificationType === 'dates') {
         modifications.checkInDate = format(newCheckInDate!, 'yyyy-MM-dd');
         modifications.checkOutDate = format(newCheckOutDate!, 'yyyy-MM-dd');
@@ -293,7 +298,8 @@ export function ModifyBooking({
             <div>
               <div className="font-semibold mb-1">Change Dates</div>
               <div className="text-sm text-muted-foreground">
-                Current: {format(new Date(booking.checkInDate), 'MMM d')} - {format(new Date(booking.checkOutDate), 'MMM d, yyyy')}
+                Current: {format(new Date(booking.checkInDate), 'MMM d')} -{' '}
+                {format(new Date(booking.checkOutDate), 'MMM d, yyyy')}
               </div>
             </div>
           </div>
@@ -324,16 +330,19 @@ export function ModifyBooking({
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Select your new check-in and check-out dates. We'll check availability and calculate the new price.
+          Select your new check-in and check-out dates. We'll check availability and calculate the
+          new price.
         </AlertDescription>
       </Alert>
 
       <div>
         <h4 className="font-semibold mb-2">Current Dates</h4>
         <div className="text-sm text-muted-foreground">
-          {format(new Date(booking.checkInDate), 'EEEE, MMMM d, yyyy')} - {format(new Date(booking.checkOutDate), 'EEEE, MMMM d, yyyy')}
+          {format(new Date(booking.checkInDate), 'EEEE, MMMM d, yyyy')} -{' '}
+          {format(new Date(booking.checkOutDate), 'EEEE, MMMM d, yyyy')}
           <span className="ml-2">
-            ({differenceInDays(new Date(booking.checkOutDate), new Date(booking.checkInDate))} nights)
+            ({differenceInDays(new Date(booking.checkOutDate), new Date(booking.checkInDate))}{' '}
+            nights)
           </span>
         </div>
       </div>
@@ -386,9 +395,7 @@ export function ModifyBooking({
         <div className="text-sm">
           <div className="font-medium">{booking.roomDetails.name}</div>
           <div className="text-muted-foreground">{booking.roomDetails.description}</div>
-          <div className="text-muted-foreground mt-1">
-            ${booking.roomDetails.basePrice}/night
-          </div>
+          <div className="text-muted-foreground mt-1">${booking.roomDetails.basePrice}/night</div>
         </div>
       </div>
 
@@ -397,9 +404,7 @@ export function ModifyBooking({
       <div>
         <h4 className="font-semibold mb-3">Select New Room</h4>
         {isCheckingAvailability ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Loading available rooms...
-          </div>
+          <div className="text-center py-8 text-muted-foreground">Loading available rooms...</div>
         ) : availability && availability.rooms.length > 0 ? (
           <RoomSelector
             rooms={availability.rooms}
@@ -434,7 +439,8 @@ export function ModifyBooking({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Review your changes before confirming. {isIncrease && 'You will be charged the difference.'}
+              Review your changes before confirming.{' '}
+              {isIncrease && 'You will be charged the difference.'}
               {isDecrease && 'You will receive a refund for the difference.'}
             </AlertDescription>
           </Alert>
@@ -448,7 +454,8 @@ export function ModifyBooking({
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Previous Dates:</span>
                     <span>
-                      {format(new Date(booking.checkInDate), 'MMM d')} - {format(new Date(booking.checkOutDate), 'MMM d, yyyy')}
+                      {format(new Date(booking.checkInDate), 'MMM d')} -{' '}
+                      {format(new Date(booking.checkOutDate), 'MMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex justify-between font-medium">
@@ -495,17 +502,18 @@ export function ModifyBooking({
                 </div>
               )}
               <Separator />
-              <div className={`flex justify-between font-semibold text-base ${
-                isIncrease ? 'text-red-600' : isDecrease ? 'text-green-600' : ''
-              }`}>
+              <div
+                className={`flex justify-between font-semibold text-base ${
+                  isIncrease ? 'text-red-600' : isDecrease ? 'text-green-600' : ''
+                }`}
+              >
                 <span>
                   {isIncrease && 'Additional Payment:'}
                   {isDecrease && 'Refund Amount:'}
                   {!isIncrease && !isDecrease && 'Price Difference:'}
                 </span>
                 <span>
-                  {isIncrease && '+'}
-                  ${Math.abs(priceDifference).toFixed(2)}
+                  {isIncrease && '+'}${Math.abs(priceDifference).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -560,9 +568,7 @@ export function ModifyBooking({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Modify Booking</DialogTitle>
-          <DialogDescription>
-            Reference: {booking.referenceNumber}
-          </DialogDescription>
+          <DialogDescription>Reference: {booking.referenceNumber}</DialogDescription>
         </DialogHeader>
 
         {error && (
@@ -594,7 +600,8 @@ export function ModifyBooking({
                 disabled={
                   isLoading ||
                   isCheckingAvailability ||
-                  (modificationType === 'dates' && (!newCheckInDate || !newCheckOutDate || !availability?.available)) ||
+                  (modificationType === 'dates' &&
+                    (!newCheckInDate || !newCheckOutDate || !availability?.available)) ||
                   (modificationType === 'room' && !newRoom)
                 }
               >

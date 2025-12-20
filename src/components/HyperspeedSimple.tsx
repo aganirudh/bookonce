@@ -7,10 +7,10 @@ interface HyperspeedSimpleProps {
   color3?: string;
 }
 
-const HyperspeedSimple = ({ 
-  color1 = '#d856bf', 
+const HyperspeedSimple = ({
+  color1 = '#d856bf',
   color2 = '#03b3c3',
-  color3 = '#6750a2'
+  color3 = '#6750a2',
 }: HyperspeedSimpleProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -88,11 +88,9 @@ const HyperspeedSimple = ({
     const colors = [color1, color2, color3];
     const particles: Particle[] = [];
     for (let i = 0; i < 200; i++) {
-      particles.push(new Particle(
-        canvas.width,
-        canvas.height,
-        colors[Math.floor(Math.random() * colors.length)]
-      ));
+      particles.push(
+        new Particle(canvas.width, canvas.height, colors[Math.floor(Math.random() * colors.length)])
+      );
     }
 
     // Animation loop
@@ -129,7 +127,7 @@ const HyperspeedSimple = ({
         left: 0,
         width: '100%',
         height: '100%',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
       }}
     />
   );

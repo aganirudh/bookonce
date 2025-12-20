@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -10,43 +11,76 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { 
-  ArrowLeft, MapPin, Calendar, Users, Clock,
-  Navigation, Train, Plane, Bus, Footprints, Utensils,
-  Hotel, Sparkles, AlertCircle, RefreshCw, Map, ExternalLink
+import {
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  Users,
+  Clock,
+  Navigation,
+  Train,
+  Plane,
+  Bus,
+  Footprints,
+  Utensils,
+  Hotel,
+  Sparkles,
+  AlertCircle,
+  RefreshCw,
+  Map,
+  ExternalLink,
+  Bed,
+  AlertTriangle,
+  Zap,
 } from 'lucide-react';
+import { endangeredPlacesService, EndangeredPlace } from '@/services/EndangeredPlacesService';
+import EndangeredPlacesInline from '@/components/EndangeredPlacesInline';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { JourneyMap, type Location, type RouteStep } from '@/features/journey/components/JourneyMap';
+import {
+  JourneyMap,
+  type Location,
+  type RouteStep,
+} from '@/features/journey/components/JourneyMap';
 import { freeGeocodingService } from '@/features/journey/services/FreeGeocodingService';
 import { freeRoutingService } from '@/features/journey/services/FreeRoutingService';
 import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
 import JourneyVisualization from '@/components/JourneyVisualization';
 import { BookOnceAISidebar } from '@/components/BookOnceAISidebar';
-
+import { ContextLayerPanel } from '@/components/ContextLayer';
 
 const RoutePlanning = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
+
   // Get data from URL params
   const from = searchParams.get('from') || '';
   const to = searchParams.get('to') || '';
   const departure = searchParams.get('departure') || '';
   const returnDate = searchParams.get('return') || '';
   const guests = searchParams.get('guests') || '2';
-  const intent = searchParams.get('intent') as 'urgent' | 'leisure' || 'urgent';
-  const visitor = searchParams.get('visitor') as 'first-time' | 'returning' || 'first-time';
+  const intent = (searchParams.get('intent') as 'urgent' | 'leisure') || 'urgent';
+  const visitor = (searchParams.get('visitor') as 'first-time' | 'returning') || 'first-time';
   const departureTimeParam = searchParams.get('departureTime') || '09:00';
 
   const [isPlanning, setIsPlanning] = useState(true);
   const [departureTime, setDepartureTime] = useState(departureTimeParam);
   const [showFlightModal, setShowFlightModal] = useState(false);
-  const [selectedFlightRoute, setSelectedFlightRoute] = useState<{from: string; to: string; time: string; date: string} | null>(null);
+  const [selectedFlightRoute, setSelectedFlightRoute] = useState<{
+    from: string;
+    to: string;
+    time: string;
+    date: string;
+  } | null>(null);
   const numGuests = parseInt(guests) || 2;
 
   // Map state
   const [originLocation, setOriginLocation] = useState<Location | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<Location | null>(null);
+  const [highlightedMapLocation, setHighlightedMapLocation] = useState<Location | null>(null);
   const [routeSteps, setRouteSteps] = useState<RouteStep[] | null>(null);
   const [mapLoading, setMapLoading] = useState(true);
 
@@ -58,7 +92,35 @@ const RoutePlanning = () => {
   // AI Sidebar state
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
 
-  // Calculate pricing based on number of travelers
+  // Context Layer state
+  const [isContextOpen, setIsContextOpen] = useState(false);
+
+  // Endangered places state
+  const [endangeredPlaces, setEndangeredPlaces] = useState<EndangeredPlace[]>([]);
+  const [endangeredPlacesLoading, setEndangeredPlacesLoading] = useState(false);
+  const [endangeredPlacesLoaded, setEndangeredPlacesLoaded] = useState(false);
+  const [addedPlaces, setAddedPlaces] = useState<EndangeredPlace[]>([]);
+
+  // Journey summary from AI visualization
+  const [journeySummary, setJourneySummary] = useState<{
+    duration: string;
+    cost: number;
+    modes: number;
+  } | null>(null);
+
+  // Parse AI Response
+  const parsedPlan = useMemo(() => {
+    if (!aiJourneyPlan) return null;
+    try {
+      const clean = aiJourneyPlan.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(clean);
+    } catch (e) {
+      console.warn('Failed to parse AI Plan JSON', e);
+      return null;
+    }
+  }, [aiJourneyPlan]);
+
+  // Calculate pricing based on number of travelers and added places
   const calculatePricing = () => {
     const basePrices = {
       metro: 60,
@@ -66,8 +128,19 @@ const RoutePlanning = () => {
       bus: 40,
     };
 
-    const totalPerPerson = basePrices.metro + basePrices.flight + basePrices.bus;
-    const total = totalPerPerson * numGuests;
+    // Calculate endangered places costs
+    const endangeredPlacesCost = addedPlaces.reduce((total, place) => {
+      // Estimate costs based on threat level and location
+      const baseCost =
+        place.threatLevel === 'critical' ? 1500 : place.threatLevel === 'high' ? 1000 : 800;
+      const transportCost = 300; // Local transport to the place
+      const guideCost = 500; // Local guide/witness fee
+      return total + baseCost + transportCost + guideCost;
+    }, 0);
+
+    const baseTotal = basePrices.metro + basePrices.flight + basePrices.bus;
+    const totalPerPerson = baseTotal + endangeredPlacesCost / numGuests;
+    const total = baseTotal * numGuests + endangeredPlacesCost;
 
     // Group discount for 4+ travelers
     const discount = numGuests >= 4 ? 0.1 : 0;
@@ -79,30 +152,160 @@ const RoutePlanning = () => {
       discount: total * discount,
       total: finalTotal,
       hasDiscount: numGuests >= 4,
+      endangeredPlacesCost,
+      baseTransportCost: baseTotal * numGuests,
     };
   };
 
   const pricing = calculatePricing();
 
+  // Handle confirm and pay
+  const handleConfirmAndPay = async () => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Store journey data in sessionStorage to resume after login
+      sessionStorage.setItem('pendingJourney', JSON.stringify({
+        from,
+        to,
+        departure,
+        returnDate,
+        guests,
+        intent,
+        visitor,
+        amount: journeySummary?.cost || pricing.total,
+      }));
+
+      toast({
+        title: 'Login Required',
+        description: 'Please login to continue with payment',
+      });
+
+      navigate('/auth?redirect=continue-journey');
+      return;
+    }
+
+    // User is authenticated, navigate to QR payment
+    const totalAmount = journeySummary?.cost || pricing.total;
+
+    // Save pending booking to localStorage for persistence across pages
+    const pendingBooking = {
+      id: `BK${Date.now()}`,
+      referenceNumber: `VGN-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`,
+      status: 'pending_payment',
+      from,
+      to,
+      // For Demo: Force specific dates
+      date: '2025-12-17T09:00:00.000Z',
+      returnDate: '2025-12-19T11:00:00.000Z',
+      amount: totalAmount,
+      guests: numGuests,
+      coordinates: destinationLocation || { lat: 28.6139, lng: 77.2090 }, // Default to Delhi if missing
+      hotel: {
+        title: 'Determined by AI',
+        location: to,
+        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000'
+      }
+    };
+    localStorage.setItem('pendingBooking', JSON.stringify(pendingBooking));
+
+    const params = new URLSearchParams({
+      amount: totalAmount.toString(),
+      description: `Journey from ${from} to ${to}`,
+      type: 'journey',
+    });
+    navigate(`/qr-payment?${params.toString()}`);
+  };
+
+  // Load endangered places after planning is complete
+  useEffect(() => {
+    const loadEndangeredPlaces = async () => {
+      if (!to || endangeredPlacesLoaded) return;
+
+      setEndangeredPlacesLoading(true);
+      try {
+        const nearbyEndangeredPlaces = await endangeredPlacesService.findNearbyEndangeredPlaces(to);
+        setEndangeredPlaces(nearbyEndangeredPlaces);
+      } catch (error) {
+        console.error('Error loading endangered places:', error);
+      } finally {
+        setEndangeredPlacesLoading(false);
+        setEndangeredPlacesLoaded(true);
+      }
+    };
+
+    // Load endangered places immediately when component mounts
+    loadEndangeredPlaces();
+  }, [to, endangeredPlacesLoaded]);
+
+  // Handle adding endangered place to trip
+  const handleAddToTrip = (place: EndangeredPlace) => {
+    if (!addedPlaces.find(p => p.id === place.id)) {
+      setAddedPlaces(prev => [...prev, place]);
+      setAiPlanLoading(true);
+      toast({
+        title: 'Added to Your Trip! 🌍',
+        description: `${place.name} has been added. AI is updating your journey plan with pricing...`,
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: 'Already Added',
+        description: `${place.name} is already in your trip.`,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const [showCrowdAlert, setShowCrowdAlert] = useState(false);
+
+  // Trigger crowd alert when destination is likely crowded (Mock logic)
+  useEffect(() => {
+    const safeAlternatives = ['Rishikesh', 'Udaipur', 'Coorg', 'Gokarna'];
+    const isSafe = safeAlternatives.some(safe => to && to.includes(safe));
+    const storageKey = `crowdAlertShown_${to}`;
+
+    if (to && !showCrowdAlert && !isSafe && !sessionStorage.getItem(storageKey)) {
+      console.log('Triggering crowd alert for:', to);
+      // Simulate checking crowd levels
+      const timer = setTimeout(() => {
+        setShowCrowdAlert(true);
+        sessionStorage.setItem(storageKey, 'true');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [to]);
+
   // Load map data
   useEffect(() => {
     const loadMapData = async () => {
-      if (!from || !to) return;
+      if (!from || !to) {
+        console.log('Map data load skipped: missing from or to');
+        setMapLoading(false);
+        return;
+      }
 
       setMapLoading(true);
       try {
+        console.log('Loading map data for:', { from, to });
+
         // Geocode origin
         const originResults = await freeGeocodingService.search(from);
+        console.log('Origin geocoding results:', originResults);
+
         if (originResults.length > 0) {
           setOriginLocation({
             lat: originResults[0].coordinates.lat,
             lng: originResults[0].coordinates.lng,
             name: from,
           });
+        } else {
+          console.error('No geocoding results for origin:', from);
         }
 
         // Geocode destination
         const destResults = await freeGeocodingService.search(to);
+        console.log('Destination geocoding results:', destResults);
+
         if (destResults.length > 0) {
           setDestinationLocation({
             lat: destResults[0].coordinates.lat,
@@ -112,6 +315,7 @@ const RoutePlanning = () => {
 
           // Calculate route if both locations are available
           if (originResults.length > 0) {
+            console.log('Calculating route...');
             const route = await freeRoutingService.getRoute({
               origin: {
                 lat: originResults[0].coordinates.lat,
@@ -123,18 +327,26 @@ const RoutePlanning = () => {
               },
               mode: 'driving-car',
             });
+            console.log('Route calculated:', route);
             setRouteSteps(route.steps);
           }
+        } else {
+          console.error('No geocoding results for destination:', to);
         }
       } catch (error) {
         console.error('Error loading map data:', error);
+        toast({
+          title: 'Map Load Error',
+          description: 'Unable to load map data. Please try again.',
+          variant: 'destructive',
+        });
       } finally {
         setMapLoading(false);
       }
     };
 
     loadMapData();
-  }, [from, to]);
+  }, [from, to, toast]);
 
   // Calculate segment times based on departure time
   const calculateSegmentTimes = (startTime: string) => {
@@ -162,21 +374,21 @@ const RoutePlanning = () => {
   // Generate flight comparison links (no API needed!)
   const generateFlightLinks = (from: string, to: string, date: string) => {
     const airportCodes: Record<string, string> = {
-      'Mumbai': 'BOM',
-      'Goa': 'GOI',
-      'Delhi': 'DEL',
-      'Bangalore': 'BLR',
-      'Chennai': 'MAA',
-      'Kolkata': 'CCU',
-      'Hyderabad': 'HYD',
-      'Jaipur': 'JAI',
-      'Pune': 'PNQ',
-      'Ahmedabad': 'AMD',
+      Mumbai: 'BOM',
+      Goa: 'GOI',
+      Delhi: 'DEL',
+      Bangalore: 'BLR',
+      Chennai: 'MAA',
+      Kolkata: 'CCU',
+      Hyderabad: 'HYD',
+      Jaipur: 'JAI',
+      Pune: 'PNQ',
+      Ahmedabad: 'AMD',
     };
 
     const fromCity = from.split(',')[0].trim();
     const toCity = to.split(',')[0].trim();
-    
+
     const originCode = airportCodes[fromCity] || 'BOM';
     const destCode = airportCodes[toCity] || 'GOI';
 
@@ -207,7 +419,7 @@ const RoutePlanning = () => {
         name: 'MakeMyTrip',
         logo: '🇮🇳',
         url: `https://www.makemytrip.com/flight/search?itinerary=${originCode}-${destCode}-${date.replace(/-/g, '/')}&paxType=A-${numGuests}_C-0_I-0&intl=false&cabinClass=${intent === 'urgent' ? 'B' : 'E'}`,
-        description: 'India\'s leading travel site',
+        description: "India's leading travel site",
         color: 'bg-red-50 text-red-700 border-red-200',
       },
       {
@@ -250,6 +462,15 @@ const RoutePlanning = () => {
           intent,
           visitor,
           departureTime,
+          endangeredPlaces: addedPlaces.map(place => ({
+            name: place.name,
+            location: place.location,
+            threatLevel: place.threatLevel,
+            yearsRemaining: place.yearsRemaining,
+            estimatedCost:
+              place.threatLevel === 'critical' ? 2300 : place.threatLevel === 'high' ? 1800 : 1600,
+          })),
+          totalEndangeredPlacesCost: pricing.endangeredPlacesCost,
         };
 
         console.log('Generating AI journey plan with context:', context);
@@ -270,7 +491,18 @@ const RoutePlanning = () => {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [from, to, departure, returnDate, numGuests, intent, visitor, departureTime]);
+  }, [
+    from,
+    to,
+    departure,
+    returnDate,
+    numGuests,
+    intent,
+    visitor,
+    departureTime,
+    addedPlaces,
+    pricing.endangeredPlacesCost,
+  ]);
 
   if (!from || !to) {
     return (
@@ -297,7 +529,8 @@ const RoutePlanning = () => {
           </div>
           <h2 className="text-xl font-bold mb-2">Planning Your Journey</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            AI is analyzing {intent === 'urgent' ? 'fastest routes' : 'best experiences'} from {from} to {to}...
+            AI is analyzing {intent === 'urgent' ? 'fastest routes' : 'best experiences'} from{' '}
+            {from} to {to}...
           </p>
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <RefreshCw className="h-3 w-3 animate-spin" />
@@ -310,18 +543,79 @@ const RoutePlanning = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* Crowd Alert Dialog */}
+      <Dialog open={showCrowdAlert} onOpenChange={setShowCrowdAlert}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              <AlertTriangle className="h-5 w-5" />
+              High Footfall Alert: {to}
+            </DialogTitle>
+            <DialogDescription>
+              {to} is expected to be very crowded during your selected dates due to local events.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <p className="text-sm font-medium">Consider these less crowded, scenic alternatives nearby:</p>
+            <div className="grid gap-2">
+              {['Rishikesh (Pure Nature)', 'Udaipur (Lake Views)', 'Coorg (Hill Station)', 'Gokarna (Beach Vibes)'].map((loc, i) => (
+                <Button
+                  key={i}
+                  variant="outline"
+                  className="justify-start h-auto py-2 px-3 text-left hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200"
+                  onClick={() => {
+                    const placeName = loc.split(' (')[0];
+                    setSearchParams(prev => {
+                      const newParams = new URLSearchParams(prev);
+                      newParams.set('to', placeName);
+                      return newParams;
+                    });
+
+                    toast({
+                      title: 'Destination Updated',
+                      description: `Switched trip to ${placeName}. Recalculating route...`
+                    });
+                    setShowCrowdAlert(false);
+                  }}
+                >
+                  <MapPin className="h-4 w-4 mr-2 opacity-50" />
+                  {loc}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button variant="ghost" onClick={() => setShowCrowdAlert(false)} className="text-muted-foreground hover:text-foreground">
+              Stay with {to}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Small Context Layer Button - Top Right (hidden when panel is open) */}
+      {!isContextOpen && (
+        <button
+          onClick={() => setIsContextOpen(true)}
+          className="fixed top-4 right-4 z-50 p-2.5 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20 shadow-md hover:shadow-lg transition-all hover:scale-110 hover:bg-primary/20"
+          title="Real-Time Updates"
+        >
+          <Zap className="w-4 h-4 text-primary" />
+          <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+          </span>
+        </button>
+      )}
+
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
               {intent === 'urgent' ? '⚡ Urgent' : '🎒 Leisure'}
@@ -330,42 +624,39 @@ const RoutePlanning = () => {
         </div>
 
         {/* Trip Summary */}
-        <Card className="p-6 mb-6">
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">From</p>
-                <p className="font-medium text-sm">{from}</p>
+        <Card className="p-3 mb-4">
+          <div className="grid md:grid-cols-4 gap-3">
+            <div className="flex items-center justify-center gap-2">
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground text-center">From</p>
+                <p className="font-medium text-sm truncate text-center">{from}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Navigation className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">To</p>
-                <p className="font-medium text-sm">{to}</p>
+            <div className="flex items-center justify-center gap-2">
+              <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground text-center">To</p>
+                <p className="font-medium text-sm truncate text-center">{to}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">{returnDate ? 'Trip Dates' : 'Departure'}</p>
-                <p className="font-medium text-sm">
+            <div className="flex items-center justify-center gap-2">
+              <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground text-center">
+                  {returnDate ? 'Trip Dates' : 'Departure'}
+                </p>
+                <p className="font-medium text-sm text-center">
                   {departure && format(new Date(departure), 'MMM dd')}
                   {returnDate && ` - ${format(new Date(returnDate), 'MMM dd')}`}
                 </p>
-                {returnDate && (
-                  <p className="text-xs text-muted-foreground">
-                    {Math.ceil((new Date(returnDate).getTime() - new Date(departure).getTime()) / (1000 * 60 * 60 * 24))} nights
-                  </p>
-                )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">Travelers</p>
-                <p className="font-medium text-sm">{guests} guests</p>
+            <div className="flex items-center justify-center gap-2">
+              <Users className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground text-center">Travelers</p>
+                <p className="font-medium text-sm text-center">{guests} guests</p>
               </div>
             </div>
           </div>
@@ -375,18 +666,9 @@ const RoutePlanning = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left: Route Timeline */}
           <div className="lg:col-span-2 space-y-4">
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-6">
+            <Card className="p-4 sm:p-6">
+              <div className="mb-4 sm:mb-6">
                 <h2 className="text-lg font-bold">Your Door-to-Door Route</h2>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="time"
-                    value={departureTime}
-                    onChange={(e) => setDepartureTime(e.target.value)}
-                    className="text-sm border rounded px-2 py-1"
-                  />
-                </div>
               </div>
 
               <Tabs defaultValue="outbound" className="w-full">
@@ -397,367 +679,209 @@ const RoutePlanning = () => {
                   <TabsTrigger value="stay">Accommodation</TabsTrigger>
                 </TabsList>
 
+                {/* Outbound Tab */}
                 <TabsContent value="outbound" className="space-y-4 mt-4">
-                  <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">
-                      {departure && format(new Date(departure), 'EEEE, MMMM dd, yyyy')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {from} → {to} • Departure: {departureTime}
-                    </p>
-                  </div>
-
                   {aiPlanLoading ? (
                     <div className="flex flex-col items-center justify-center p-8 space-y-3">
                       <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">Generating AI-powered route...</p>
+                      <p className="text-sm text-muted-foreground">Generating route...</p>
                     </div>
-                  ) : aiPlanError ? (
-                    <Card className="p-4 border-blue-200 bg-blue-50">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-blue-900 mb-1">
-                            {aiPlanError.includes('rate limit') ? '⏱️ AI Service Busy' : 'AI Plan Unavailable'}
-                          </p>
-                          <p className="text-xs text-blue-700 mb-2">
-                            {aiPlanError.includes('rate limit') 
-                              ? 'The AI service is experiencing high demand. Your journey is still planned using our reliable routing system below.'
-                              : aiPlanError}
-                          </p>
-                          {aiPlanError.includes('rate limit') && (
-                            <div className="text-xs text-blue-600 space-y-1">
-                              <p>✓ All transport modes calculated</p>
-                              <p>✓ Timing based on your {departureTime} departure</p>
-                              <p>✓ Optimized for {intent === 'urgent' ? 'speed' : 'comfort'}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  ) : aiJourneyPlan ? (
-                    <JourneyVisualization 
-                      aiResponse={aiJourneyPlan.split('## RETURN JOURNEY')[0].split('## STOPS & FOOD')[0].split('## ACCOMMODATION')[0]}
+                  ) : parsedPlan?.outbound ? (
+                    <JourneyVisualization
+                      steps={parsedPlan.outbound}
                       journeyType="outbound"
-                      userName="Traveler"
+                      onSummaryUpdate={setJourneySummary}
                     />
-                  ) : null}
-
-                  {/* Fallback: Outbound Route segments - Show if AI plan failed or is empty */}
-                  {(!aiJourneyPlan || aiPlanError) && !aiPlanLoading && (
-                    <>
-                      <RouteSegment
-                    icon={<Footprints className="h-5 w-5" />}
-                    mode="Walk"
-                    from="Your Home"
-                    to="Metro Station"
-                    duration="8 min"
-                    distance="650 m"
-                    time={segmentTimes.walk1}
-                    color="text-green-500"
-                    travelers={numGuests}
-                  />
-                  
-                  <RouteSegment
-                    icon={<Train className="h-5 w-5" />}
-                    mode="Metro"
-                    from="Central Station"
-                    to="Airport Station"
-                    duration="25 min"
-                    distance="18 km"
-                    time={segmentTimes.metro}
-                    color="text-blue-500"
-                    details="Line 3 - Direction Airport"
-                    price={60}
-                    travelers={numGuests}
-                    seatsRequired={true}
-                  />
-
-                  <RouteSegment
-                    icon={<Plane className="h-5 w-5" />}
-                    mode="Flight"
-                    from={from}
-                    to={to}
-                    duration="2h 30min"
-                    distance="1,200 km"
-                    time={segmentTimes.flight}
-                    color="text-purple-500"
-                    details={`AI 101 - Economy • ${numGuests} ${numGuests === 1 ? 'passenger' : 'passengers'}`}
-                    price={intent === 'urgent' ? 8500 : 5500}
-                    travelers={numGuests}
-                    seatsRequired={true}
-                    isClickable={true}
-                    onClick={() => handleFlightClick(from, to, segmentTimes.flight, departure)}
-                  />
-
-                  <RouteSegment
-                    icon={<Bus className="h-5 w-5" />}
-                    mode="Bus"
-                    from="Airport"
-                    to="City Center"
-                    duration="35 min"
-                    distance="22 km"
-                    time={segmentTimes.bus}
-                    color="text-orange-500"
-                    price={40}
-                    travelers={numGuests}
-                    seatsRequired={true}
-                  />
-
-                  <RouteSegment
-                    icon={<Footprints className="h-5 w-5" />}
-                    mode="Walk"
-                    from="Bus Stop"
-                    to="Your Destination"
-                    duration="5 min"
-                    distance="400 m"
-                    time={segmentTimes.walk2}
-                    color="text-green-500"
-                    travelers={numGuests}
-                  />
-                    </>
+                  ) : (
+                    <div className="text-center p-4 text-muted-foreground">
+                      {aiPlanError || "No route available."}
+                    </div>
                   )}
                 </TabsContent>
 
+                {/* Return Tab */}
                 {returnDate && (
                   <TabsContent value="return" className="space-y-4 mt-4">
-                    <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-medium">
-                        {format(new Date(returnDate), 'EEEE, MMMM dd, yyyy')}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {to} → {from}
-                      </p>
-                    </div>
-
-                    {aiJourneyPlan && aiJourneyPlan.includes('## RETURN JOURNEY') && (
-                      <JourneyVisualization 
-                        aiResponse={aiJourneyPlan.split('## RETURN JOURNEY')[1]?.split('## STOPS & FOOD')[0]?.split('## ACCOMMODATION')[0] || 'Calculating return journey...'}
+                    {parsedPlan?.return && parsedPlan.return.length > 0 ? (
+                      <JourneyVisualization
+                        steps={parsedPlan.return}
                         journeyType="return"
-                        userName="Traveler"
                       />
+                    ) : (
+                      <div className="text-center p-8 text-muted-foreground text-sm">
+                        No return journey planned yet.
+                      </div>
                     )}
-
-                    {/* Return Route segments (reversed) */}
-                    <RouteSegment
-                      icon={<Footprints className="h-5 w-5" />}
-                      mode="Walk"
-                      from="Your Hotel"
-                      to="Bus Stop"
-                      duration="5 min"
-                      distance="400 m"
-                      time="08:00"
-                      color="text-green-500"
-                    />
-
-                    <RouteSegment
-                      icon={<Bus className="h-5 w-5" />}
-                      mode="Bus"
-                      from="City Center"
-                      to="Airport"
-                      duration="35 min"
-                      distance="22 km"
-                      time="08:10"
-                      color="text-orange-500"
-                    />
-
-                    <RouteSegment
-                      icon={<Plane className="h-5 w-5" />}
-                      mode="Flight"
-                      from={to}
-                      to={from}
-                      duration="2h 30min"
-                      distance="1,200 km"
-                      time="10:00"
-                      color="text-purple-500"
-                      details="AI 202 - Economy"
-                    />
-
-                    <RouteSegment
-                      icon={<Train className="h-5 w-5" />}
-                      mode="Metro"
-                      from="Airport Station"
-                      to="Central Station"
-                      duration="25 min"
-                      distance="18 km"
-                      time="13:00"
-                      color="text-blue-500"
-                      details="Line 3 - Direction City"
-                    />
-
-                    <RouteSegment
-                      icon={<Footprints className="h-5 w-5" />}
-                      mode="Walk"
-                      from="Metro Station"
-                      to="Your Home"
-                      duration="8 min"
-                      distance="650 m"
-                      time="13:30"
-                      color="text-green-500"
-                    />
                   </TabsContent>
                 )}
 
+                {/* Stops & Food Tab */}
                 <TabsContent value="stops" className="space-y-4 mt-4">
-                  {aiJourneyPlan && aiJourneyPlan.includes('## STOPS & FOOD') && (
-                    <JourneyVisualization 
-                      aiResponse={aiJourneyPlan.split('## STOPS & FOOD')[1]?.split('## ACCOMMODATION')[0]?.split('## RETURN JOURNEY')[0] || 'Calculating meal stops...'}
-                      journeyType="outbound"
-                      userName="Traveler"
-                    />
-                  )}
-
-                  {numGuests >= 4 && (
-                    <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Users className="h-4 w-4 text-orange-600" />
-                        <span className="text-sm font-medium text-orange-900">Group Dining</span>
+                  <div className="grid gap-3">
+                    {parsedPlan?.dining?.map((place: any, i: number) => (
+                      <div key={i} className="flex items-start gap-4 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors">
+                        <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                          <Utensils className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm">{place.title}</h4>
+                          <p className="text-xs text-muted-foreground">{place.description}</p>
+                          <div className="flex gap-2 mt-2 text-xs">
+                            <Badge variant="outline">{place.time}</Badge>
+                            <Badge variant="secondary">{place.cost}</Badge>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs text-orange-700">
-                        For groups of {numGuests}, we recommend restaurants with group seating. Reservations suggested.
-                      </p>
-                    </div>
-                  )}
-                  
-                  <StopCard
-                    icon={<Utensils className="h-5 w-5 text-orange-500" />}
-                    title="Breakfast Stop"
-                    location="Airport Terminal 2"
-                    time="09:45 - 10:15"
-                    description={intent === 'urgent' 
-                      ? `Quick grab-and-go options for ${numGuests} ${numGuests === 1 ? 'person' : 'people'}` 
-                      : `Local cuisine recommendations • Table for ${numGuests}`}
-                  />
-                  
-                  <StopCard
-                    icon={<Utensils className="h-5 w-5 text-orange-500" />}
-                    title="Lunch"
-                    location="Near destination"
-                    time="14:30"
-                    description={visitor === 'first-time' 
-                      ? `Popular local restaurant • Seating for ${numGuests}` 
-                      : `Your favorite from last visit • Party of ${numGuests}`}
-                  />
-                  
-                  {numGuests >= 6 && (
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">
-                        💡 Tip: Large groups may qualify for set menus or group discounts at select restaurants.
-                      </p>
-                    </div>
-                  )}
+                    )) || <div className="text-center p-4 text-muted-foreground text-sm">No dining recommendations available.</div>}
+                  </div>
                 </TabsContent>
 
+                {/* Accommodation Tab */}
                 <TabsContent value="stay" className="space-y-4 mt-4">
-                  {aiJourneyPlan && aiJourneyPlan.includes('## ACCOMMODATION') && (
-                    <JourneyVisualization 
-                      aiResponse={aiJourneyPlan.split('## ACCOMMODATION')[1] || 'Calculating accommodation options...'}
-                      journeyType="outbound"
-                      userName="Traveler"
-                    />
-                  )}
-
-                  {returnDate && (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Hotel className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Accommodation Required</span>
+                  <div className="grid gap-3">
+                    {parsedPlan?.accommodation?.map((place: any, i: number) => (
+                      <div key={i} className="flex items-start gap-4 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors">
+                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                          <Bed className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm">{place.title}</h4>
+                          <p className="text-xs text-muted-foreground">{place.location}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{place.description}</p>
+                          <div className="flex gap-2 mt-2 text-xs">
+                            <Badge variant="outline">Check-in: {place.checkIn}</Badge>
+                            <Badge variant="secondary">{place.cost}</Badge>
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-1 text-xs text-blue-700">
-                        <p>• {numGuests} {numGuests === 1 ? 'traveler' : 'travelers'}</p>
-                        <p>• {Math.ceil(numGuests / 2)} {Math.ceil(numGuests / 2) === 1 ? 'room' : 'rooms'} recommended (2 guests per room)</p>
-                        <p>• {Math.ceil((new Date(returnDate).getTime() - new Date(departure).getTime()) / (1000 * 60 * 60 * 24))} nights</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <StopCard
-                    icon={<Hotel className="h-5 w-5 text-blue-500" />}
-                    title="Recommended Hotel"
-                    location="City Center, 500m from destination"
-                    time="Check-in: 15:00"
-                    description={intent === 'urgent' ? 'Quick check-in, near transport' : 'Comfortable stay with local experiences'}
-                  />
-                  
-                  {numGuests > 2 && (
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">
-                        💡 Tip: For groups of {numGuests}, consider booking connecting rooms or a suite for better coordination.
-                      </p>
-                    </div>
-                  )}
+                    )) || <div className="text-center p-4 text-muted-foreground text-sm">No accommodation recommendations available.</div>}
+                  </div>
                 </TabsContent>
               </Tabs>
             </Card>
+
+
+
+
+
+
+
+
+
+
+
+            {/* Endangered Places Section */}
+            <EndangeredPlacesInline
+              places={endangeredPlaces}
+              destination={to}
+              isLoading={endangeredPlacesLoading}
+              onAddToTrip={handleAddToTrip}
+            />
+
+            {/* Added Places to Trip */}
+            {
+              addedPlaces.length > 0 && (
+                <Card className="p-4 bg-green-50 border-green-200">
+                  <h4 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                    ✅ Added to Your Trip
+                  </h4>
+                  <div className="space-y-2">
+                    {addedPlaces.map(place => (
+                      <div key={place.id} className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-green-800">{place.name}</span>
+                        <button
+                          onClick={() => setAddedPlaces(prev => prev.filter(p => p.id !== place.id))}
+                          className="ml-auto text-green-600 hover:text-green-800 text-xs"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )
+            }
           </div>
 
           {/* Right: Map & Info */}
           <div className="space-y-4">
-            {/* Pricing Summary */}
-            <Card className="p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Trip Summary
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Travelers</span>
-                  <span className="font-medium">{numGuests} {numGuests === 1 ? 'person' : 'people'}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Price per person</span>
-                  <span className="font-medium">₹{pricing.perPerson.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">₹{pricing.subtotal.toLocaleString()}</span>
-                </div>
-                {pricing.hasDiscount && (
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>Group discount (10%)</span>
-                    <span>-₹{pricing.discount.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="pt-3 border-t">
-                  <div className="flex justify-between">
-                    <span className="font-semibold">Total</span>
-                    <span className="font-bold text-lg">₹{pricing.total.toLocaleString()}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {returnDate ? 'Round-trip for all travelers' : 'One-way for all travelers'}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
+            {/* Map moved to top */}
             <Card className="p-6">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <Map className="h-4 w-4" />
                 Route Map
               </h3>
-              {mapLoading ? (
-                <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Loading map...</p>
+              {
+                mapLoading ? (
+                  <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Loading map...</p>
+                    </div>
                   </div>
-                </div>
-              ) : originLocation && destinationLocation ? (
-                <JourneyMap
-                  origin={originLocation}
-                  destination={destinationLocation}
-                  route={routeSteps || undefined}
-                  height="400px"
-                />
-              ) : (
-                <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-                  <p className="text-sm text-muted-foreground">Unable to load map</p>
-                </div>
-              )}
+                ) : originLocation && destinationLocation ? (
+                  <JourneyMap
+                    origin={originLocation}
+                    destination={destinationLocation}
+                    route={routeSteps || undefined}
+                    height="400px"
+                  />
+                ) : (
+                  <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground">Unable to load map</p>
+                  </div>
+                )
+              }
             </Card>
 
+            {/* Journey Summary Card */}
+            <Card className="p-6 border-2 border-primary/20 bg-primary/5">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-primary">
+                <Navigation className="h-5 w-5" />
+                Journey Summary
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Total Duration</span>
+                  </div>
+                  <span className="font-bold text-base">
+                    {journeySummary?.duration || '8min'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Total Cost</span>
+                  </div>
+                  <span className="font-bold text-base text-primary">
+                    ₹{journeySummary?.cost?.toLocaleString() || pricing.total.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Navigation className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Transport Modes</span>
+                  </div>
+                  <span className="font-bold text-base">{journeySummary?.modes || 1}</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Confirm and Pay Button */}
+            <Button
+              onClick={handleConfirmAndPay}
+              className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
+            >
+              Confirm and Pay ₹{journeySummary?.cost?.toLocaleString() || pricing.total.toLocaleString()}
+            </Button>
+
             <Card className="p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <h3 className="font-semibold flex items-center gap-2 mb-4">
                 <AlertCircle className="h-4 w-4" />
                 Real-Time Updates
               </h3>
@@ -778,14 +902,8 @@ const RoutePlanning = () => {
                 )}
               </div>
             </Card>
-
-            <Button className="w-full" size="lg">
-              Confirm & Book Journey
-              <span className="ml-2 text-xs opacity-80">₹{pricing.total.toLocaleString()}</span>
-            </Button>
           </div>
         </div>
-
       </div>
 
       {/* BookOnce AI Chat Widget */}
@@ -794,6 +912,9 @@ const RoutePlanning = () => {
         onClose={() => setIsAISidebarOpen(false)}
         onToggle={() => setIsAISidebarOpen(!isAISidebarOpen)}
       />
+
+      {/* Context Layer Panel */}
+      <ContextLayerPanel isOpen={isContextOpen} onClose={() => setIsContextOpen(false)} />
 
       {/* Flight Comparison Modal */}
       <Dialog open={showFlightModal} onOpenChange={setShowFlightModal}>
@@ -804,7 +925,10 @@ const RoutePlanning = () => {
               Compare Flights: {selectedFlightRoute?.from} → {selectedFlightRoute?.to}
             </DialogTitle>
             <DialogDescription>
-              Search real-time flights on multiple platforms • {numGuests} {numGuests === 1 ? 'passenger' : 'passengers'} • {selectedFlightRoute?.date && format(new Date(selectedFlightRoute.date), 'MMM dd, yyyy')}
+              Search real-time flights on multiple platforms • {numGuests}{' '}
+              {numGuests === 1 ? 'passenger' : 'passengers'} •{' '}
+              {selectedFlightRoute?.date &&
+                format(new Date(selectedFlightRoute.date), 'MMM dd, yyyy')}
             </DialogDescription>
           </DialogHeader>
 
@@ -815,37 +939,47 @@ const RoutePlanning = () => {
                 <div>
                   <p className="font-medium text-blue-900 text-sm">No Account Required!</p>
                   <p className="text-xs text-blue-700 mt-1">
-                    Click any platform below to search flights with your details pre-filled. Compare prices and book directly - no API keys or sign-ups needed!
+                    Click any platform below to search flights with your details pre-filled. Compare
+                    prices and book directly - no API keys or sign-ups needed!
                   </p>
                 </div>
               </div>
             </div>
 
-            {selectedFlightRoute && generateFlightLinks(selectedFlightRoute.from, selectedFlightRoute.to, selectedFlightRoute.date).map((platform, index) => (
-              <Card key={index} className={`p-4 hover:shadow-lg transition-all border-2 ${platform.color}`}>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="text-3xl">{platform.logo}</div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-base mb-1">{platform.name}</h3>
-                      <p className="text-xs text-muted-foreground">{platform.description}</p>
+            {selectedFlightRoute &&
+              generateFlightLinks(
+                selectedFlightRoute.from,
+                selectedFlightRoute.to,
+                selectedFlightRoute.date
+              ).map((platform, index) => (
+                <Card
+                  key={index}
+                  className={`p-4 hover:shadow-lg transition-all border-2 ${platform.color}`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="text-3xl">{platform.logo}</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-base mb-1">{platform.name}</h3>
+                        <p className="text-xs text-muted-foreground">{platform.description}</p>
+                      </div>
                     </div>
+                    <Button size="sm" asChild className="shrink-0">
+                      <a href={platform.url} target="_blank" rel="noopener noreferrer">
+                        Search Flights
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </a>
+                    </Button>
                   </div>
-                  <Button size="sm" asChild className="shrink-0">
-                    <a href={platform.url} target="_blank" rel="noopener noreferrer">
-                      Search Flights
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </a>
-                  </Button>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
           </div>
 
           <div className="mt-6 p-4 bg-muted/50 rounded-lg">
             <p className="text-xs text-muted-foreground">
-              💡 <strong>Pro Tip:</strong> Open multiple tabs to compare prices across platforms. Prices can vary significantly between sites. 
-              Each link opens with your search details pre-filled for instant results!
+              💡 <strong>Pro Tip:</strong> Open multiple tabs to compare prices across platforms.
+              Prices can vary significantly between sites. Each link opens with your search details
+              pre-filled for instant results!
             </p>
           </div>
         </DialogContent>
@@ -856,7 +990,7 @@ const RoutePlanning = () => {
 
 // Route Segment Component
 interface RouteSegmentProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   mode: string;
   from: string;
   to: string;
@@ -872,40 +1006,52 @@ interface RouteSegmentProps {
   isClickable?: boolean;
 }
 
-const RouteSegment = ({ icon, mode, from, to, duration, distance, time, color, details, price, travelers, seatsRequired, onClick, isClickable }: RouteSegmentProps) => (
-  <div 
-    className={`flex gap-4 p-4 rounded-lg border bg-card transition-colors ${
-      isClickable ? 'cursor-pointer hover:bg-muted/50 hover:border-primary/50 hover:shadow-md' : 'hover:bg-muted/50'
-    }`}
+const RouteSegment = ({
+  icon,
+  mode,
+  from,
+  to,
+  duration,
+  distance,
+  time,
+  color,
+  details,
+  price,
+  travelers,
+  seatsRequired,
+  onClick,
+  isClickable,
+}: RouteSegmentProps) => (
+  <div
+    className={`flex gap-4 p-4 rounded-lg border bg-card transition-colors ${isClickable
+      ? 'cursor-pointer hover:bg-muted/50 hover:border-primary/50 hover:shadow-md'
+      : 'hover:bg-muted/50'
+      }`}
     onClick={onClick}
   >
     <div className="flex flex-col items-center">
-      <div className={`p-2 rounded-full bg-muted ${color}`}>
-        {icon}
-      </div>
+      <div className={`p-2 rounded-full bg-muted ${color}`}>{icon}</div>
       <div className="w-px h-full bg-border mt-2" />
     </div>
     <div className="flex-1">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm">{mode}</span>
-          {isClickable && (
-            <span className="text-xs text-blue-600 font-medium">View Options →</span>
-          )}
+          {isClickable && <span className="text-xs text-blue-600 font-medium">View Options →</span>}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{time}</span>
           {price && (
-            <span className="text-xs font-medium text-primary">₹{(price * (travelers || 1)).toLocaleString()}</span>
+            <span className="text-xs font-medium text-primary">
+              ₹{(price * (travelers || 1)).toLocaleString()}
+            </span>
           )}
         </div>
       </div>
       <p className="text-sm text-muted-foreground mb-1">
         {from} → {to}
       </p>
-      {details && (
-        <p className="text-xs text-muted-foreground mb-2">{details}</p>
-      )}
+      {details && <p className="text-xs text-muted-foreground mb-2">{details}</p>}
       <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
@@ -925,7 +1071,7 @@ const RouteSegment = ({ icon, mode, from, to, duration, distance, time, color, d
 
 // Stop Card Component
 interface StopCardProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   location: string;
   time: string;
@@ -934,9 +1080,7 @@ interface StopCardProps {
 
 const StopCard = ({ icon, title, location, time, description }: StopCardProps) => (
   <div className="flex gap-4 p-4 rounded-lg border bg-card">
-    <div className="p-2 rounded-full bg-muted h-fit">
-      {icon}
-    </div>
+    <div className="p-2 rounded-full bg-muted h-fit">{icon}</div>
     <div className="flex-1">
       <h4 className="font-semibold text-sm mb-1">{title}</h4>
       <p className="text-xs text-muted-foreground mb-1">{location}</p>

@@ -35,11 +35,7 @@ import {
   enforceRateLimit,
   RateLimitError,
 } from '../utils/rateLimiter';
-import {
-  sanitizeBookingRequest,
-  detectXSS,
-  detectSQLInjection,
-} from '../utils/inputSanitization';
+import { sanitizeBookingRequest, detectXSS, detectSQLInjection } from '../utils/inputSanitization';
 import { performanceMonitoringService } from './PerformanceMonitoringService';
 
 /**
@@ -142,11 +138,12 @@ export class BookingAPIService {
           maxRetries: isSlowNetwork() ? 2 : 3,
           initialDelay: isSlowNetwork() ? 2000 : 1000,
           onRetry: (error, attempt, delay) => {
-            logError(
-              `Availability check failed, retrying (attempt ${attempt})`,
-              error,
-              { hotelId, checkInDate, checkOutDate, delay }
-            );
+            logError(`Availability check failed, retrying (attempt ${attempt})`, error, {
+              hotelId,
+              checkInDate,
+              checkOutDate,
+              delay,
+            });
           },
         }
       );
@@ -181,7 +178,7 @@ export class BookingAPIService {
     checkOutDate: string
   ): Promise<void> {
     const cacheKey = getAvailabilityCacheKey(hotelId, checkInDate, checkOutDate);
-    
+
     await prefetchManager.prefetch(cacheKey, async () => {
       return this.checkAvailability({ hotelId, checkInDate, checkOutDate });
     });
@@ -197,7 +194,7 @@ export class BookingAPIService {
     checkOutDate: string
   ): Promise<void> {
     const cacheKey = getPricingCacheKey(hotelId, roomId, checkInDate, checkOutDate);
-    
+
     await prefetchManager.prefetch(cacheKey, async () => {
       return this.getPricing(hotelId, roomId, checkInDate, checkOutDate);
     });
@@ -286,19 +283,22 @@ export class BookingAPIService {
           maxRetries: 2,
           initialDelay: 500,
           onRetry: (error, attempt, delay) => {
-            logError(
-              `Pricing calculation failed, retrying (attempt ${attempt})`,
-              error,
-              { hotelId, roomId, checkInDate, checkOutDate, delay }
-            );
+            logError(`Pricing calculation failed, retrying (attempt ${attempt})`, error, {
+              hotelId,
+              roomId,
+              checkInDate,
+              checkOutDate,
+              delay,
+            });
           },
         }
       );
 
       // Apply currency conversion if needed
-      const finalPricing = targetCurrency && targetCurrency !== pricing.currency
-        ? this.convertCurrency(pricing, targetCurrency)
-        : pricing;
+      const finalPricing =
+        targetCurrency && targetCurrency !== pricing.currency
+          ? this.convertCurrency(pricing, targetCurrency)
+          : pricing;
 
       // Cache the result
       useCacheStore.getState().setPricing(cacheKey, finalPricing, CACHE_TTL.PRICING);
@@ -369,11 +369,10 @@ export class BookingAPIService {
           maxRetries: 2,
           initialDelay: 1000,
           onRetry: (error, attempt, delay) => {
-            logError(
-              `Booking creation failed, retrying (attempt ${attempt})`,
-              error,
-              { hotelId: sanitizedRequest.hotelId, delay }
-            );
+            logError(`Booking creation failed, retrying (attempt ${attempt})`, error, {
+              hotelId: sanitizedRequest.hotelId,
+              delay,
+            });
           },
         }
       );
@@ -686,6 +685,38 @@ export class BookingAPIService {
         },
       ];
 
+      // Merge with localStorage bookings
+      if (typeof window !== 'undefined') {
+        const localBookings = JSON.parse(localStorage.getItem('user_bookings') || '[]').map((b: any) => ({
+          bookingId: b.id,
+          referenceNumber: b.referenceNumber,
+          hotel: {
+            id: 99,
+            title: b.hotel.title,
+            location: b.hotel.location || 'Unknown Location',
+            price: b.amount,
+            rating: 4.5,
+            reviews: 12,
+            image: b.hotel.image,
+            amenities: ['WiFi', 'Pool'],
+            tags: ['Featured'],
+            checkInTime: '14:00',
+            checkOutTime: '11:00',
+            coordinates: b.coordinates ? [b.coordinates.lat, b.coordinates.lng] : [28.6139, 77.2090]
+          },
+          checkInDate: new Date(b.date).toISOString(),
+          checkOutDate: b.returnDate ? new Date(b.returnDate).toISOString() : new Date(new Date(b.date).getTime() + 86400000).toISOString(),
+          guestInfo: { firstName: 'User', lastName: 'Name', email: 'user@example.com', phone: '', country: 'US' },
+          roomDetails: { name: 'Standard Room', description: 'Comfortable room', capacity: b.guests, bedType: 'Queen', size: 30, amenities: [], basePrice: b.amount, available: 1 },
+          pricing: { baseRate: b.amount, numberOfNights: 1, subtotal: b.amount, total: b.amount, taxes: [], fees: [], currency: 'INR' },
+          status: b.status,
+          confirmationSentAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
+        return [...localBookings, ...mockBookings];
+      }
+
       return mockBookings;
     },
     { action: 'getUserBookings', component: 'BookingAPIService' }
@@ -728,11 +759,10 @@ export class BookingAPIService {
           maxRetries: 2,
           initialDelay: 1000,
           onRetry: (error, attempt, delay) => {
-            logError(
-              `Booking modification failed, retrying (attempt ${attempt})`,
-              error,
-              { bookingId, delay }
-            );
+            logError(`Booking modification failed, retrying (attempt ${attempt})`, error, {
+              bookingId,
+              delay,
+            });
           },
         }
       );
@@ -787,21 +817,20 @@ export class BookingAPIService {
             try {
               // Import payment service dynamically to avoid circular dependencies
               const { paymentAPIService } = await import('./PaymentAPIService');
-              
+
               // Convert refund amount to cents for Stripe
               const refundAmountCents = Math.round(cancellationResult.refundAmount * 100);
-              
+
               await paymentAPIService.processRefund(
                 paymentIntentId,
                 refundAmountCents,
                 reason || 'Booking cancelled by customer'
               );
             } catch (refundError) {
-              logError(
-                'Refund processing failed during cancellation',
-                refundError,
-                { bookingId, refundAmount: cancellationResult.refundAmount }
-              );
+              logError('Refund processing failed during cancellation', refundError, {
+                bookingId,
+                refundAmount: cancellationResult.refundAmount,
+              });
               // Don't fail the cancellation if refund fails
               // The booking is still cancelled, refund can be processed manually
             }
@@ -811,18 +840,17 @@ export class BookingAPIService {
           try {
             // Import notification service dynamically
             const { notificationService } = await import('./NotificationService');
-            
+
             await notificationService.sendCancellationConfirmation(
               existingBooking,
               cancellationResult.refundAmount,
               existingBooking.guestInfo.email
             );
           } catch (emailError) {
-            logError(
-              'Failed to send cancellation confirmation email',
-              emailError,
-              { bookingId, email: existingBooking.guestInfo.email }
-            );
+            logError('Failed to send cancellation confirmation email', emailError, {
+              bookingId,
+              email: existingBooking.guestInfo.email,
+            });
             // Don't fail the cancellation if email fails
           }
 
@@ -832,11 +860,11 @@ export class BookingAPIService {
           maxRetries: 2,
           initialDelay: 1000,
           onRetry: (error, attempt, delay) => {
-            logError(
-              `Booking cancellation failed, retrying (attempt ${attempt})`,
-              error,
-              { bookingId, reason, delay }
-            );
+            logError(`Booking cancellation failed, retrying (attempt ${attempt})`, error, {
+              bookingId,
+              reason,
+              delay,
+            });
           },
         }
       );
@@ -947,13 +975,7 @@ export class BookingAPIService {
     }
 
     if (errors.length > 0) {
-      throw new BookingAPIError(
-        'VALIDATION_ERROR',
-        errors.join(', '),
-        { errors },
-        400,
-        false
-      );
+      throw new BookingAPIError('VALIDATION_ERROR', errors.join(', '), { errors }, 400, false);
     }
   }
 
@@ -982,7 +1004,7 @@ export class BookingAPIService {
    */
   private invalidateCachesForHotel(hotelId: number): void {
     const cacheStore = useCacheStore.getState();
-    
+
     // Get all cache keys and invalidate those matching the hotel ID
     const availabilityCache = cacheStore.availabilityCache;
     const pricingCache = cacheStore.pricingCache;

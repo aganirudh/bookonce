@@ -242,13 +242,12 @@ export const useBookingStore = create<BookingState>()(
 
           // Actual API call will happen here
           // const booking = await bookingAPI.createBooking(...)
-          
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Booking submission failed';
           set(
-            { 
-              isLoading: false, 
-              error: errorMessage 
+            {
+              isLoading: false,
+              error: errorMessage,
             },
             false,
             'submitBooking:error'
@@ -285,7 +284,7 @@ export const useBookingStore = create<BookingState>()(
       // Update a specific booking in history
       updateBookingInHistory: (bookingId: string, updates: Partial<BookingConfirmation>) => {
         const { bookingHistory } = get();
-        const updatedHistory = bookingHistory.map((booking) =>
+        const updatedHistory = bookingHistory.map(booking =>
           booking.bookingId === bookingId ? { ...booking, ...updates } : booking
         );
         set(

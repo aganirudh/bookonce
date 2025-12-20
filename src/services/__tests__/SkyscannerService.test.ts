@@ -43,7 +43,7 @@ describe('SkyscannerService', () => {
       // Mock environment to have no API keys
       const originalRapidKey = import.meta.env.VITE_RAPIDAPI_KEY;
       const originalSkyscannerKey = import.meta.env.VITE_SKYSCANNER_API_KEY;
-      
+
       // Temporarily remove keys
       import.meta.env.VITE_RAPIDAPI_KEY = '';
       import.meta.env.VITE_SKYSCANNER_API_KEY = '';

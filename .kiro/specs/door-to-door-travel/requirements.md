@@ -42,41 +42,41 @@ TravelEase is a revolutionary one-stop travel platform that provides complete do
 4. THE TravelEase System SHALL display side-by-side comparison of Urgent and Fun mode routes showing time, cost, and experience differences
 5. WHEN the User selects a travel mode, THE TravelEase System SHALL highlight the selected mode and update the detailed itinerary
 
-### Requirement 3: Multi-Modal Route Generation
+### Requirement 3: Multi-Modal Route Generation with Real Data
 
-**User Story:** As a traveler, I want to see a complete step-by-step route from my doorstep to my destination, so that I know exactly how to reach my destination.
-
-#### Acceptance Criteria
-
-1. THE TravelEase System SHALL generate routes that include walking, public transport, taxis, flights, trains, and accommodation
-2. WHEN generating a route, THE TravelEase System SHALL calculate the optimal sequence of transport modes
-3. THE TravelEase System SHALL display each route segment with departure time, arrival time, duration, and cost
-4. WHEN displaying routes, THE TravelEase System SHALL show visual timeline representation of the complete journey
-5. THE TravelEase System SHALL include buffer times between connections to account for delays and transfers
-
-### Requirement 4: Real-Time Route Optimization
-
-**User Story:** As a traveler, I want the system to use real-time data for route planning, so that I get accurate and reliable travel plans.
+**User Story:** As a traveler, I want to see a complete step-by-step route from my doorstep to my destination using real API data, so that I know exactly how to reach my destination with accurate information.
 
 #### Acceptance Criteria
 
-1. WHEN calculating routes, THE TravelEase System SHALL integrate with Google Maps API for real-time traffic and transit data
-2. THE TravelEase System SHALL update route suggestions when real-time conditions change significantly
+1. THE TravelEase System SHALL generate routes that include walking, public transport, taxis, flights, trains, and accommodation using real API data
+2. WHEN generating a route, THE TravelEase System SHALL calculate the optimal sequence of transport modes using Google Maps Directions API
+3. THE TravelEase System SHALL display each route segment with real departure times, arrival times, duration, and cost from live APIs
+4. WHEN displaying routes, THE TravelEase System SHALL show visual timeline representation of the complete journey with actual data
+5. THE TravelEase System SHALL include buffer times between connections to account for delays and transfers based on real-time conditions
+
+### Requirement 4: Real-Time Route Optimization with Live APIs
+
+**User Story:** As a traveler, I want the system to use real-time data from actual APIs for route planning, so that I get accurate and reliable travel plans with real pricing and availability.
+
+#### Acceptance Criteria
+
+1. WHEN calculating routes, THE TravelEase System SHALL integrate with Google Maps API for real-time traffic and transit data using actual API calls
+2. WHEN searching for flights, THE TravelEase System SHALL use Skyscanner RapidAPI to fetch real flight options with live pricing and availability
 3. WHEN traffic delays are detected, THE TravelEase System SHALL recalculate routes and notify the User
-4. THE TravelEase System SHALL display current weather conditions at source and destination locations
+4. THE TravelEase System SHALL display current weather conditions at source and destination locations using OpenWeather API
 5. WHEN weather conditions may impact travel, THE TravelEase System SHALL provide weather-appropriate recommendations
 
-### Requirement 5: Accommodation Integration
+### Requirement 5: Accommodation Integration with Real Hotel APIs
 
-**User Story:** As a traveler, I want the system to suggest and book accommodation at my destination, so that I have a complete travel solution.
+**User Story:** As a traveler, I want the system to suggest and book real accommodation at my destination using live hotel data, so that I have a complete travel solution with actual availability and pricing.
 
 #### Acceptance Criteria
 
-1. WHEN generating a journey plan, THE TravelEase System SHALL include accommodation options at the destination
-2. THE TravelEase System SHALL match accommodation to the selected travel mode (budget for Fun, premium for Urgent)
-3. WHEN displaying accommodation, THE TravelEase System SHALL show price, location, ratings, and amenities
-4. THE TravelEase System SHALL calculate accommodation location based on proximity to destination activities
-5. WHEN the User selects accommodation, THE TravelEase System SHALL include it in the booking bundle
+1. WHEN generating a journey plan, THE TravelEase System SHALL fetch real accommodation options at the destination using hotel booking APIs
+2. THE TravelEase System SHALL match accommodation to the selected travel mode (budget for Fun, premium for Urgent) using real pricing data
+3. WHEN displaying accommodation, THE TravelEase System SHALL show real-time price, location, ratings, and amenities from hotel APIs
+4. THE TravelEase System SHALL calculate accommodation location based on proximity to destination activities using geocoding
+5. WHEN the User selects accommodation, THE TravelEase System SHALL include it in the booking bundle with real availability confirmation
 
 ### Requirement 6: One-Click Booking
 
@@ -197,3 +197,17 @@ TravelEase is a revolutionary one-stop travel platform that provides complete do
 3. THE TravelEase System SHALL create a shareable trip summary with highlights and statistics
 4. THE TravelEase System SHALL provide insights such as distance traveled, countries visited, and experiences completed
 5. THE TravelEase System SHALL allow the User to export the travel diary as PDF or share on social media
+
+### Requirement 16: Real API Integration Architecture
+
+**User Story:** As a developer, I want the system to use real external APIs instead of mock data, so that users get accurate, live information for their travel planning.
+
+#### Acceptance Criteria
+
+1. THE TravelEase System SHALL integrate with Google Maps JavaScript API for geocoding, directions, and places autocomplete
+2. THE TravelEase System SHALL integrate with Skyscanner RapidAPI for real flight search with live pricing and availability
+3. THE TravelEase System SHALL integrate with OpenWeather API for real-time weather data at source and destination
+4. THE TravelEase System SHALL integrate with hotel booking APIs (Booking.com or similar) for real accommodation options
+5. THE TravelEase System SHALL handle API errors gracefully with fallback mechanisms and user-friendly error messages
+6. THE TravelEase System SHALL implement API rate limiting and caching to optimize performance and reduce costs
+7. THE TravelEase System SHALL store API keys securely in environment variables and never expose them in client-side code

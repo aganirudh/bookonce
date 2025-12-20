@@ -1,6 +1,6 @@
 /**
  * ChatInput Component
- * 
+ *
  * Text input area for sending messages to the AI assistant.
  * Features:
  * - Auto-resize textarea
@@ -8,7 +8,7 @@
  * - Character limit (2000 chars) with indicator
  * - Loading state with disabled input
  * - Send button with loading indicator
- * 
+ *
  * Requirements: 2.1, 2.2, 2.3
  */
 
@@ -44,7 +44,7 @@ export interface ChatInputProps {
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   isLoading,
-  placeholder = "Ask me anything about travel...",
+  placeholder = 'Ask me anything about travel...',
   className,
 }) => {
   // State
@@ -66,13 +66,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     // Reset height to auto to get the correct scrollHeight
     textarea.style.height = 'auto';
-    
+
     // Calculate new height based on content
     const newHeight = Math.min(
       Math.max(textarea.scrollHeight, MIN_TEXTAREA_HEIGHT),
       MAX_TEXTAREA_HEIGHT
     );
-    
+
     textarea.style.height = `${newHeight}px`;
   };
 
@@ -96,7 +96,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (trimmedMessage) {
       onSend(trimmedMessage);
       setMessage('');
-      
+
       // Reset textarea height after sending
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -133,8 +133,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       {/* Character count indicator */}
       {showCharacterCount && (
         <div className="flex justify-end">
-          <span 
-            id="character-count" 
+          <span
+            id="character-count"
             className={cn('text-xs', getCharacterCountColor())}
             role="status"
             aria-live="polite"
@@ -172,8 +172,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           disabled={!canSend}
           size="icon"
           className="shrink-0 h-10 w-10 active:scale-95 transition-transform"
-          aria-label={isLoading ? "Sending message" : "Send message"}
-          title={isLoading ? "Sending..." : "Send message (Enter)"}
+          aria-label={isLoading ? 'Sending message' : 'Send message'}
+          title={isLoading ? 'Sending...' : 'Send message (Enter)'}
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -184,7 +184,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       </div>
 
       {/* Helper text */}
-      <div id="helper-text" className="flex justify-between items-center text-xs text-muted-foreground">
+      <div
+        id="helper-text"
+        className="flex justify-between items-center text-xs text-muted-foreground"
+      >
         <span>Press Enter to send, Shift+Enter for new line</span>
         {isOverLimit && (
           <span className="text-destructive font-medium" role="alert">

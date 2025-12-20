@@ -6,7 +6,12 @@
 import { render, screen, act, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ThemeProvider, useTheme } from '../ThemeContext';
-import { validateThemeContrast, getContrastRatio, meetsWCAGAA, meetsWCAGAAA } from '@/utils/accessibility';
+import {
+  validateThemeContrast,
+  getContrastRatio,
+  meetsWCAGAA,
+  meetsWCAGAAA,
+} from '@/utils/accessibility';
 
 // Mock CSS custom properties
 const mockCSSProperties = {
@@ -34,21 +39,23 @@ Object.defineProperty(window, 'getComputedStyle', {
 });
 
 // Mock matchMedia for accessibility preferences
-const createMatchMediaMock = (matches: boolean) => vi.fn().mockImplementation(query => ({
-  matches,
-  media: query,
-  onchange: null,
-  addListener: vi.fn(),
-  removeListener: vi.fn(),
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
-}));
+const createMatchMediaMock = (matches: boolean) =>
+  vi.fn().mockImplementation(query => ({
+    matches,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
 
 // Test component that uses theme and displays accessibility info
 function AccessibilityTestComponent() {
-  const { theme, resolvedTheme, systemPrefersHighContrast, systemPrefersReducedMotion } = useTheme();
-  
+  const { theme, resolvedTheme, systemPrefersHighContrast, systemPrefersReducedMotion } =
+    useTheme();
+
   return (
     <div>
       <div data-testid="theme">{theme}</div>
@@ -173,7 +180,8 @@ describe('Theme Accessibility', () => {
     it('sets data attributes for accessibility preferences', async () => {
       // Mock both preferences
       window.matchMedia = vi.fn().mockImplementation(query => ({
-        matches: query === '(prefers-reduced-motion: reduce)' || query === '(prefers-contrast: high)',
+        matches:
+          query === '(prefers-reduced-motion: reduce)' || query === '(prefers-contrast: high)',
         media: query,
         onchange: null,
         addListener: vi.fn(),
@@ -280,10 +288,10 @@ describe('Contrast Ratio Utilities', () => {
     it('correctly identifies WCAG AA compliance', () => {
       // High contrast - should pass
       expect(meetsWCAGAA('#000000', '#ffffff')).toBe(true);
-      
+
       // Low contrast - should fail
       expect(meetsWCAGAA('#888888', '#999999')).toBe(false);
-      
+
       // Large text threshold - #666666 on white has ratio ~5.74, passes AA for large text (3:1) and normal text (4.5:1)
       expect(meetsWCAGAA('#666666', '#ffffff', true)).toBe(true);
       expect(meetsWCAGAA('#666666', '#ffffff', false)).toBe(true);
@@ -292,10 +300,10 @@ describe('Contrast Ratio Utilities', () => {
     it('correctly identifies WCAG AAA compliance', () => {
       // High contrast - should pass
       expect(meetsWCAGAAA('#000000', '#ffffff')).toBe(true);
-      
+
       // Medium contrast - #595959 on white has ratio ~7.15, passes AAA
       expect(meetsWCAGAAA('#595959', '#ffffff')).toBe(true);
-      
+
       // Large text threshold
       expect(meetsWCAGAAA('#767676', '#ffffff', true)).toBe(true);
       expect(meetsWCAGAAA('#767676', '#ffffff', false)).toBe(false);
@@ -305,10 +313,10 @@ describe('Contrast Ratio Utilities', () => {
   describe('Theme Validation', () => {
     it('validates theme contrast ratios', () => {
       const checks = validateThemeContrast();
-      
+
       expect(Array.isArray(checks)).toBe(true);
       expect(checks.length).toBeGreaterThan(0);
-      
+
       checks.forEach(check => {
         expect(check).toHaveProperty('property');
         expect(check).toHaveProperty('foreground');

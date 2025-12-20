@@ -95,12 +95,8 @@ export const useCacheStore = create<CacheState>()(
         const { availabilityCache } = get();
         const newCache = new Map(availabilityCache);
         newCache.set(key, createCachedData(data, ttl));
-        
-        set(
-          { availabilityCache: newCache },
-          false,
-          'setAvailability'
-        );
+
+        set({ availabilityCache: newCache }, false, 'setAvailability');
       },
 
       // Get availability data from cache
@@ -129,12 +125,8 @@ export const useCacheStore = create<CacheState>()(
         const { pricingCache } = get();
         const newCache = new Map(pricingCache);
         newCache.set(key, createCachedData(data, ttl));
-        
-        set(
-          { pricingCache: newCache },
-          false,
-          'setPricing'
-        );
+
+        set({ pricingCache: newCache }, false, 'setPricing');
       },
 
       // Get pricing data from cache
@@ -161,13 +153,13 @@ export const useCacheStore = create<CacheState>()(
       // Invalidate specific cache entry (works for both availability and pricing)
       invalidate: (key: string) => {
         const { availabilityCache, pricingCache } = get();
-        
+
         const newAvailabilityCache = new Map(availabilityCache);
         const newPricingCache = new Map(pricingCache);
-        
+
         newAvailabilityCache.delete(key);
         newPricingCache.delete(key);
-        
+
         set(
           {
             availabilityCache: newAvailabilityCache,
@@ -192,43 +184,35 @@ export const useCacheStore = create<CacheState>()(
 
       // Invalidate all availability cache entries
       invalidateAvailability: () => {
-        set(
-          { availabilityCache: new Map() },
-          false,
-          'invalidateAvailability'
-        );
+        set({ availabilityCache: new Map() }, false, 'invalidateAvailability');
       },
 
       // Invalidate all pricing cache entries
       invalidatePricing: () => {
-        set(
-          { pricingCache: new Map() },
-          false,
-          'invalidatePricing'
-        );
+        set({ pricingCache: new Map() }, false, 'invalidatePricing');
       },
 
       // Clean up expired entries from both caches
       cleanExpired: () => {
         const { availabilityCache, pricingCache } = get();
-        
+
         const newAvailabilityCache = new Map(availabilityCache);
         const newPricingCache = new Map(pricingCache);
-        
+
         // Clean availability cache
         for (const [key, value] of newAvailabilityCache.entries()) {
           if (isExpired(value)) {
             newAvailabilityCache.delete(key);
           }
         }
-        
+
         // Clean pricing cache
         for (const [key, value] of newPricingCache.entries()) {
           if (isExpired(value)) {
             newPricingCache.delete(key);
           }
         }
-        
+
         set(
           {
             availabilityCache: newAvailabilityCache,
@@ -259,7 +243,7 @@ export const selectPricingCache = (state: CacheState) => state.pricingCache;
 
 export const getCacheStats = () => {
   const state = useCacheStore.getState();
-  
+
   return {
     availability: {
       total: state.availabilityCache.size,

@@ -1,10 +1,10 @@
 /**
  * RoutingService
- * 
+ *
  * Multi-modal routing service using free APIs:
  * - OpenRouteService (2000 requests/day free)
  * - OSRM (unlimited if self-hosted)
- * 
+ *
  * Supports: car, bike, foot, wheelchair
  */
 
@@ -39,7 +39,7 @@ export interface Route {
 class RoutingService {
   private readonly ORS_API_KEY = import.meta.env.VITE_OPENROUTE_API_KEY || '';
   private readonly ORS_BASE_URL = 'https://api.openrouteservice.org/v2';
-  
+
   // Fallback to OSRM (no API key needed, but limited features)
   private readonly OSRM_BASE_URL = 'https://router.project-osrm.org';
 
@@ -56,7 +56,7 @@ class RoutingService {
       if (this.ORS_API_KEY) {
         return await this.getORSRoute(start, end, mode);
       }
-      
+
       // Fallback to OSRM (free, no key needed)
       return await this.getOSRMRoute(start, end, mode);
     } catch (error) {
@@ -68,10 +68,7 @@ class RoutingService {
   /**
    * Get multi-modal route (walk + transit + walk)
    */
-  async getMultiModalRoute(
-    start: RoutePoint,
-    end: RoutePoint
-  ): Promise<Route> {
+  async getMultiModalRoute(start: RoutePoint, end: RoutePoint): Promise<Route> {
     // For now, return a simple route
     // TODO: Integrate GTFS transit data
     return this.getRoute(start, end, 'walk');
@@ -91,7 +88,7 @@ class RoutingService {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': this.ORS_API_KEY,
+        Authorization: this.ORS_API_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -171,7 +168,8 @@ class RoutingService {
     const leg = route.legs[0];
 
     const steps: RouteStep[] = leg.steps.map((step: any) => ({
-      instruction: step.maneuver.instruction || `Continue for ${this.formatDistance(step.distance)}`,
+      instruction:
+        step.maneuver.instruction || `Continue for ${this.formatDistance(step.distance)}`,
       distance: step.distance,
       duration: step.duration,
       type: step.maneuver.type,

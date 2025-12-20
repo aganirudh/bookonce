@@ -42,7 +42,7 @@ export class PaymentAPIService {
   constructor(publishableKey: string, apiBaseUrl: string = '/api') {
     // Enforce HTTPS for payment operations
     enforceSecureConnection();
-    
+
     this.stripePromise = loadStripe(publishableKey);
     this.apiBaseUrl = apiBaseUrl;
     this.rateLimitMap = new Map();
@@ -70,9 +70,7 @@ export class PaymentAPIService {
       // Check if limit exceeded
       if (entry.count >= MAX_ATTEMPTS) {
         const remainingTime = Math.ceil((entry.resetAt - now) / 1000 / 60);
-        throw new Error(
-          `Rate limit exceeded. Please try again in ${remainingTime} minutes.`
-        );
+        throw new Error(`Rate limit exceeded. Please try again in ${remainingTime} minutes.`);
       }
 
       // Increment count
@@ -99,7 +97,7 @@ export class PaymentAPIService {
     metadata: Record<string, string>
   ): Promise<PaymentIntent> {
     const endTimer = performanceMonitoringService.startTimer('createPaymentIntent');
-    
+
     try {
       // Validate payment amount
       if (!isValidPaymentAmount(amount)) {
@@ -190,7 +188,7 @@ export class PaymentAPIService {
     paymentMethodId: string
   ): Promise<PaymentConfirmation> {
     const endTimer = performanceMonitoringService.startTimer('confirmPayment');
-    
+
     try {
       // Validate payment tokens
       if (!isValidPaymentToken(paymentIntentId)) {
@@ -218,7 +216,12 @@ export class PaymentAPIService {
       if (!response.ok) {
         const error = await response.json();
         const duration = endTimer();
-        performanceMonitoringService.trackPaymentAttempt(false, duration, paymentIntentId, error.type);
+        performanceMonitoringService.trackPaymentAttempt(
+          false,
+          duration,
+          paymentIntentId,
+          error.type
+        );
         throw new Error(error.message || 'Payment confirmation failed');
       }
 
@@ -360,13 +363,10 @@ export class PaymentAPIService {
    */
   async getSavedPaymentMethods(userId: string): Promise<PaymentMethod[]> {
     try {
-      const response = await fetch(
-        `${this.apiBaseUrl}/payments/methods?userId=${userId}`,
-        {
-          method: 'GET',
-          headers: PAYMENT_SECURITY_HEADERS,
-        }
-      );
+      const response = await fetch(`${this.apiBaseUrl}/payments/methods?userId=${userId}`, {
+        method: 'GET',
+        headers: PAYMENT_SECURITY_HEADERS,
+      });
 
       if (!response.ok) {
         const error = await response.json();

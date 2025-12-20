@@ -34,7 +34,7 @@ export interface Hotel {
   social: number;
   budget: number;
   coordinates?: number[];
-  
+
   // New fields for booking
   instantBooking?: boolean;
   cancellationPolicy?: CancellationPolicy;
@@ -147,7 +147,7 @@ export interface BookingConfirmation {
   guestInfo: GuestInfo;
   roomDetails: RoomOption;
   pricing: PricingDetails;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'market_listed';
   confirmationSentAt: string;
   createdAt: string;
   updatedAt: string;
@@ -175,7 +175,13 @@ export interface PaymentIntent {
   id: string;
   amount: number;
   currency: string;
-  status: 'requires_payment_method' | 'requires_confirmation' | 'requires_action' | 'processing' | 'succeeded' | 'canceled';
+  status:
+  | 'requires_payment_method'
+  | 'requires_confirmation'
+  | 'requires_action'
+  | 'processing'
+  | 'succeeded'
+  | 'canceled';
   clientSecret: string;
 }
 
@@ -224,7 +230,10 @@ export interface BookingProviderAdapter {
   checkAvailability(params: AvailabilityParams): Promise<AvailabilityResponse>;
   getHotelDetails(hotelId: string): Promise<Hotel>;
   createReservation(request: BookingRequest): Promise<BookingConfirmation>;
-  modifyReservation(bookingId: string, changes: Partial<BookingRequest>): Promise<BookingConfirmation>;
+  modifyReservation(
+    bookingId: string,
+    changes: Partial<BookingRequest>
+  ): Promise<BookingConfirmation>;
   cancelReservation(bookingId: string): Promise<CancellationConfirmation>;
 }
 
@@ -260,7 +269,7 @@ export interface CachedData<T> {
 // Error Types
 // ============================================================================
 
-export type BookingErrorType = 
+export type BookingErrorType =
   | 'VALIDATION_ERROR'
   | 'AVAILABILITY_CHECK_FAILED'
   | 'BOOKING_FAILED'
@@ -282,7 +291,7 @@ export interface BookingError {
 // Notification Types
 // ============================================================================
 
-export type NotificationType = 
+export type NotificationType =
   | 'booking_confirmation'
   | 'booking_modification'
   | 'booking_cancellation'

@@ -24,7 +24,7 @@ export const initializeProviders = (): void => {
   // TODO: Register real providers when available
   // const bookingComProvider = new BookingComAdapter(config);
   // providerRegistry.set('booking-com', bookingComProvider);
-  
+
   // const expediaProvider = new ExpediaAdapter(config);
   // providerRegistry.set('expedia', expediaProvider);
 };
@@ -71,10 +71,7 @@ export const getAllProviders = (): BookingProviderAdapter[] => {
 /**
  * Register a custom provider adapter
  */
-export const registerProvider = (
-  providerId: string,
-  adapter: BookingProviderAdapter
-): void => {
+export const registerProvider = (providerId: string, adapter: BookingProviderAdapter): void => {
   providerRegistry.set(providerId, adapter);
 };
 

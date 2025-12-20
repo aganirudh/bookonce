@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { Activity, Users, Wallet, X, Zap } from "lucide-react";
-import { Slider } from "./ui/slider";
+import { motion, AnimatePresence } from 'framer-motion';
+import { Activity, Users, Wallet, X, Zap } from 'lucide-react';
+import { Slider } from './ui/slider';
 
 interface VibeSidebarProps {
   isOpen: boolean;
@@ -41,7 +41,7 @@ const VibeSidebar = ({
             initial={{ x: -320, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -320, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed left-4 top-24 bottom-4 w-80 glass-strong rounded-3xl shadow-medium z-50 overflow-hidden"
           >
             <div className="p-6 h-full flex flex-col">
@@ -52,10 +52,12 @@ const VibeSidebar = ({
                     <Zap className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-serif text-lg font-semibold text-foreground">Vibe Control</h3>
+                    <h3 className="font-serif text-lg font-semibold text-foreground">
+                      Vibe Control
+                    </h3>
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 bio-sync-pulse" />
-                      <span className="text-xs text-emerald-600 font-medium">Bio-Sync Active</span>
+                      <span className="w-2 h-2 rounded-full bg-success bio-sync-pulse" />
+                      <span className="text-xs text-success font-medium">Bio-Sync Active</span>
                     </div>
                   </div>
                 </div>
@@ -79,7 +81,7 @@ const VibeSidebar = ({
                       <span className="text-sm font-medium text-foreground">Energy Level</span>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {energy <= 3 ? "Chill" : energy <= 7 ? "Balanced" : "Adventure"}
+                      {energy <= 3 ? 'Chill' : energy <= 7 ? 'Balanced' : 'Adventure'}
                     </span>
                   </div>
                   <Slider
@@ -104,7 +106,7 @@ const VibeSidebar = ({
                       <span className="text-sm font-medium text-foreground">Social Battery</span>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {social <= 3 ? "Solo" : social <= 7 ? "Balanced" : "Social"}
+                      {social <= 3 ? 'Solo' : social <= 7 ? 'Balanced' : 'Social'}
                     </span>
                   </div>
                   <Slider
@@ -129,7 +131,7 @@ const VibeSidebar = ({
                       <span className="text-sm font-medium text-foreground">Budget Mood</span>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {budget <= 3 ? "Thrifty" : budget <= 7 ? "Balanced" : "Boujee"}
+                      {budget <= 3 ? 'Thrifty' : budget <= 7 ? 'Balanced' : 'Boujee'}
                     </span>
                   </div>
                   <Slider
@@ -151,7 +153,8 @@ const VibeSidebar = ({
               <div className="pt-6 mt-auto border-t border-border">
                 <div className="glass rounded-xl p-4">
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    <span className="text-primary font-medium">Pro tip:</span> Move the sliders slowly and watch the listings adapt in real-time to your current mood.
+                    <span className="text-primary font-medium">Pro tip:</span> Move the sliders
+                    slowly and watch the listings adapt in real-time to your current mood.
                   </p>
                 </div>
               </div>

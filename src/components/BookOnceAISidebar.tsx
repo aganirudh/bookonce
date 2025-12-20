@@ -2,10 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, X, Loader2, Sparkles, MessageSquare, Minimize2, Maximize2 } from 'lucide-react';
+import {
+  AlertCircle,
+  X,
+  Loader2,
+  Sparkles,
+  MessageSquare,
+  Minimize2,
+  Maximize2,
+} from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
 import { ChatMessageList } from '@/components/chat/ChatMessageList';
-
 
 interface BookOnceAISidebarProps {
   isOpen: boolean;
@@ -18,14 +25,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
   onClose,
   onToggle,
 }) => {
-  const {
-    messages,
-    isLoading,
-    error,
-    clearMessages,
-    sendMessage,
-    setError,
-  } = useChatStore();
+  const { messages, isLoading, error, clearMessages, sendMessage, setError } = useChatStore();
 
   const [isMinimized, setIsMinimized] = useState(false);
   const announcementRef = useRef<HTMLDivElement>(null);
@@ -37,9 +37,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
   useEffect(() => {
     if (isOpen && !isMinimized) {
       const timer = setTimeout(() => {
-        const input = document.querySelector<HTMLTextAreaElement>(
-          '[aria-label="Message input"]'
-        );
+        const input = document.querySelector<HTMLTextAreaElement>('[aria-label="Message input"]');
         if (input) {
           input.focus();
         }
@@ -82,7 +80,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
                 <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
               </div>
             </div>
-            
+
             <Button
               onClick={onToggle}
               size="lg"
@@ -111,7 +109,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
                   <p className="text-xs text-muted-foreground">Travel Assistant</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
@@ -125,12 +123,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
                     <Minimize2 className="h-3 w-3" />
                   )}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="h-6 w-6 p-0"
-                >
+                <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0">
                   <X className="h-3 w-3" />
                 </Button>
               </div>
@@ -207,7 +200,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
                         type="text"
                         placeholder="Ask me about your journey..."
                         className="flex-1 text-xs px-2 py-1.5 border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                        onKeyDown={(e) => {
+                        onKeyDown={e => {
                           if (e.key === 'Enter') {
                             const target = e.target as HTMLInputElement;
                             if (target.value.trim()) {
@@ -223,7 +216,9 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
                         className="h-7 px-2 text-xs"
                         disabled={isLoading}
                         onClick={() => {
-                          const input = document.querySelector('input[placeholder="Ask me about your journey..."]') as HTMLInputElement;
+                          const input = document.querySelector(
+                            'input[placeholder="Ask me about your journey..."]'
+                          ) as HTMLInputElement;
                           if (input?.value.trim()) {
                             handleSendMessage(input.value);
                             input.value = '';
@@ -233,7 +228,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
                         Send
                       </Button>
                     </div>
-                    
+
                     {messages.length > 0 && (
                       <div className="flex justify-between items-center mt-1">
                         <Button
@@ -258,12 +253,7 @@ export const BookOnceAISidebar: React.FC<BookOnceAISidebarProps> = ({
       </div>
 
       {/* Screen Reader Announcements */}
-      <div
-        ref={announcementRef}
-        className="sr-only"
-        aria-live="polite"
-        aria-atomic="true"
-      />
+      <div ref={announcementRef} className="sr-only" aria-live="polite" aria-atomic="true" />
     </>
   );
 };

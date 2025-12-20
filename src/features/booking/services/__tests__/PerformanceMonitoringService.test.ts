@@ -13,7 +13,13 @@ describe('PerformanceMonitoringService', () => {
 
   describe('API Performance Tracking', () => {
     it('should track API response time', () => {
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1500, 200, true);
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1500,
+        200,
+        true
+      );
 
       const metrics = performanceMonitoringService.getApiMetrics();
       expect(metrics).toHaveLength(1);
@@ -34,16 +40,40 @@ describe('PerformanceMonitoringService', () => {
     });
 
     it('should calculate average API response time', () => {
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1000, 200, true);
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 2000, 200, true);
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1500, 200, true);
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1000,
+        200,
+        true
+      );
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        2000,
+        200,
+        true
+      );
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1500,
+        200,
+        true
+      );
 
       const average = performanceMonitoringService.getAverageApiResponseTime('/api/availability');
       expect(average).toBe(1500);
     });
 
     it('should calculate average for all endpoints', () => {
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1000, 200, true);
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1000,
+        200,
+        true
+      );
       performanceMonitoringService.trackApiResponseTime('/api/bookings', 'POST', 2000, 200, true);
 
       const average = performanceMonitoringService.getAverageApiResponseTime();
@@ -158,10 +188,10 @@ describe('PerformanceMonitoringService', () => {
   describe('Performance Timer', () => {
     it('should measure elapsed time', async () => {
       const endTimer = performanceMonitoringService.startTimer('test');
-      
+
       // Wait a bit
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       const duration = endTimer();
       expect(duration).toBeGreaterThanOrEqual(50);
       expect(duration).toBeLessThan(100);
@@ -170,7 +200,7 @@ describe('PerformanceMonitoringService', () => {
     it('should return accurate duration', () => {
       const endTimer = performanceMonitoringService.startTimer('test');
       const duration = endTimer();
-      
+
       expect(duration).toBeGreaterThanOrEqual(0);
       expect(duration).toBeLessThan(10);
     });
@@ -179,7 +209,13 @@ describe('PerformanceMonitoringService', () => {
   describe('Performance Statistics', () => {
     it('should return comprehensive performance stats', () => {
       // Add various metrics
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1500, 200, true);
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1500,
+        200,
+        true
+      );
       performanceMonitoringService.trackCacheOperation('availability', true);
       performanceMonitoringService.trackCacheOperation('availability', false);
       performanceMonitoringService.trackBookingCompletionTime(8500);
@@ -214,7 +250,13 @@ describe('PerformanceMonitoringService', () => {
   describe('Service Configuration', () => {
     it('should not track metrics when disabled', () => {
       performanceMonitoringService.setEnabled(false);
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1500, 200, true);
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1500,
+        200,
+        true
+      );
 
       const metrics = performanceMonitoringService.getMetrics();
       expect(metrics).toHaveLength(0);
@@ -222,8 +264,14 @@ describe('PerformanceMonitoringService', () => {
 
     it('should resume tracking when re-enabled', () => {
       performanceMonitoringService.setEnabled(false);
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1500, 200, true);
-      
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1500,
+        200,
+        true
+      );
+
       performanceMonitoringService.setEnabled(true);
       performanceMonitoringService.trackCacheOperation('availability', true);
 
@@ -234,7 +282,13 @@ describe('PerformanceMonitoringService', () => {
 
     it('should include timestamp with each metric', () => {
       const beforeTime = Date.now();
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1500, 200, true);
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1500,
+        200,
+        true
+      );
       const afterTime = Date.now();
 
       const metrics = performanceMonitoringService.getMetrics();
@@ -243,11 +297,17 @@ describe('PerformanceMonitoringService', () => {
     });
 
     it('should clear all metrics', () => {
-      performanceMonitoringService.trackApiResponseTime('/api/availability', 'POST', 1500, 200, true);
+      performanceMonitoringService.trackApiResponseTime(
+        '/api/availability',
+        'POST',
+        1500,
+        200,
+        true
+      );
       performanceMonitoringService.trackCacheOperation('availability', true);
-      
+
       expect(performanceMonitoringService.getMetrics()).toHaveLength(2);
-      
+
       performanceMonitoringService.clearMetrics();
       expect(performanceMonitoringService.getMetrics()).toHaveLength(0);
       expect(performanceMonitoringService.getCacheHitRate()).toBe(0);

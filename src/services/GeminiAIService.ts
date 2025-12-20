@@ -1,11 +1,16 @@
 /**
  * GeminiAIService
- * 
+ *
  * Service layer for interacting with Google's Gemini API.
  * Handles message sending, error handling, retry logic, and rate limiting.
  */
 
-import { GoogleGenerativeAI, GenerativeModel, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  GenerativeModel,
+  HarmCategory,
+  HarmBlockThreshold,
+} from '@google/generative-ai';
 import type { ChatMessage } from '../types/chat';
 
 /**
@@ -44,7 +49,10 @@ const MAX_REQUESTS_PER_MINUTE = 10;
  * Custom error types for better error handling
  */
 export class GeminiAPIError extends Error {
-  constructor(message: string, public readonly type: 'network' | 'rate_limit' | 'api' | 'timeout' | 'config') {
+  constructor(
+    message: string,
+    public readonly type: 'network' | 'rate_limit' | 'api' | 'timeout' | 'config'
+  ) {
     super(message);
     this.name = 'GeminiAPIError';
   }
@@ -65,7 +73,7 @@ class GeminiAIService {
   initialize(): void {
     // Get API key from environment variables
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    
+
     console.log('🔑 API Key (first 10 chars):', this.apiKey?.substring(0, 10) + '...');
 
     // Debug: Log environment check
@@ -80,7 +88,7 @@ class GeminiAIService {
       this.genAI = new GoogleGenerativeAI(this.apiKey);
 
       // Use the stable Gemini model that works with v1beta API
-      const modelName = import.meta.env.VITE_GEMINI_MODEL || 'gemini-pro';
+      const modelName = import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash';
       const maxTokens = parseInt(import.meta.env.VITE_GEMINI_MAX_TOKENS) || 2048;
       const temperature = parseFloat(import.meta.env.VITE_GEMINI_TEMPERATURE) || 0.7;
 
@@ -112,7 +120,6 @@ class GeminiAIService {
         ],
       });
 
-
       console.log('Gemini AI Service initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Gemini AI Service:', error);
@@ -132,7 +139,7 @@ class GeminiAIService {
    */
   private checkRateLimit(): void {
     const now = Date.now();
-    
+
     // Remove timestamps older than the rate limit window
     this.requestTimestamps = this.requestTimestamps.filter(
       timestamp => now - timestamp < RATE_LIMIT_WINDOW_MS
@@ -170,10 +177,7 @@ class GeminiAIService {
    */
   async sendMessage(message: string, conversationHistory: ChatMessage[] = []): Promise<string> {
     if (!this.isConfigured()) {
-      throw new GeminiAPIError(
-        'AI Assistant is not configured. Please contact support.',
-        'config'
-      );
+      throw new GeminiAPIError('AI Assistant is not configured. Please contact support.', 'config');
     }
 
     // Check rate limit before making request
@@ -187,17 +191,19 @@ class GeminiAIService {
 
     // Attempt to send message with retry logic
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
         const response = await this.sendMessageWithTimeout(sanitizedMessage, conversationHistory);
         return response;
       } catch (error) {
         lastError = error as Error;
-        
+
         // Don't retry on rate limit or config errors
-        if (error instanceof GeminiAPIError && 
-            (error.type === 'rate_limit' || error.type === 'config')) {
+        if (
+          error instanceof GeminiAPIError &&
+          (error.type === 'rate_limit' || error.type === 'config')
+        ) {
           throw error;
         }
 
@@ -272,25 +278,34 @@ class GeminiAIService {
         message: error.message,
         status: error.status,
         statusText: error.statusText,
-        type: error.constructor.name
+        type: error.constructor.name,
       });
 
       // Handle specific error types
-      if (error.message?.includes('API key') || error.message?.includes('API_KEY_INVALID') || error.message?.includes('403')) {
+      if (
+        error.message?.includes('API key') ||
+        error.message?.includes('API_KEY_INVALID') ||
+        error.message?.includes('403')
+      ) {
         throw new GeminiAPIError(
           'Invalid API key. Please check your Gemini API key configuration.',
           'config'
         );
       }
 
-      if (error.message?.includes('quota') || error.message?.includes('429') || error.message?.includes('RATE_LIMIT_EXCEEDED')) {
-        throw new GeminiAPIError(
-          'API quota exceeded. Please try again later.',
-          'rate_limit'
-        );
+      if (
+        error.message?.includes('quota') ||
+        error.message?.includes('429') ||
+        error.message?.includes('RATE_LIMIT_EXCEEDED')
+      ) {
+        throw new GeminiAPIError('API quota exceeded. Please try again later.', 'rate_limit');
       }
 
-      if (error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+      if (
+        error.message?.includes('network') ||
+        error.message?.includes('fetch') ||
+        error.message?.includes('Failed to fetch')
+      ) {
         throw new GeminiAPIError(
           'Unable to connect to Gemini API. Please check your internet connection.',
           'network'

@@ -1,6 +1,6 @@
 /**
  * Skyscanner Flight Search Service
- * 
+ *
  * Integrates with Skyscanner API to fetch real-time flight data
  * API Documentation: https://developers.skyscanner.net/docs/intro
  */
@@ -70,7 +70,7 @@ export interface SkyscannerFlight {
 class SkyscannerService {
   private readonly API_KEY = import.meta.env.VITE_SKYSCANNER_API_KEY || '';
   private readonly BASE_URL = 'https://partners.api.skyscanner.net/apiservices';
-  
+
   // RapidAPI endpoint (alternative)
   private readonly RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY || '';
   private readonly RAPIDAPI_HOST = 'skyscanner80.p.rapidapi.com';
@@ -85,13 +85,15 @@ class SkyscannerService {
       if (this.RAPIDAPI_KEY) {
         return await this.searchFlightsRapidAPI(query);
       }
-      
+
       // Fallback to direct Skyscanner API
       if (this.API_KEY) {
         return await this.searchFlightsDirectAPI(query);
       }
 
-      throw new Error('No API key configured. Please add VITE_RAPIDAPI_KEY or VITE_SKYSCANNER_API_KEY to .env');
+      throw new Error(
+        'No API key configured. Please add VITE_RAPIDAPI_KEY or VITE_SKYSCANNER_API_KEY to .env'
+      );
     } catch (error) {
       console.error('Skyscanner API error:', error);
       throw error;
@@ -103,7 +105,7 @@ class SkyscannerService {
    */
   private async searchFlightsRapidAPI(query: SkyscannerFlightQuery): Promise<SkyscannerFlight[]> {
     const url = `${this.RAPIDAPI_URL}/api/v1/flights/search-one-way`;
-    
+
     const params = new URLSearchParams({
       fromId: query.originEntityId,
       toId: query.destinationEntityId,
@@ -140,7 +142,7 @@ class SkyscannerService {
   private async searchFlightsDirectAPI(query: SkyscannerFlightQuery): Promise<SkyscannerFlight[]> {
     // Step 1: Create a session
     const sessionUrl = `${this.BASE_URL}/v3/flights/live/search/create`;
-    
+
     const sessionResponse = await fetch(sessionUrl, {
       method: 'POST',
       headers: {
@@ -156,7 +158,11 @@ class SkyscannerService {
             {
               originPlaceId: { iata: query.originSkyId },
               destinationPlaceId: { iata: query.destinationSkyId },
-              date: { year: parseInt(query.date.split('-')[0]), month: parseInt(query.date.split('-')[1]), day: parseInt(query.date.split('-')[2]) },
+              date: {
+                year: parseInt(query.date.split('-')[0]),
+                month: parseInt(query.date.split('-')[1]),
+                day: parseInt(query.date.split('-')[2]),
+              },
             },
           ],
           cabinClass: query.cabinClass.toUpperCase(),
@@ -176,7 +182,7 @@ class SkyscannerService {
 
     // Step 2: Poll for results
     const pollUrl = `${this.BASE_URL}/v3/flights/live/search/poll/${sessionToken}`;
-    
+
     const pollResponse = await fetch(pollUrl, {
       method: 'GET',
       headers: {
@@ -195,13 +201,15 @@ class SkyscannerService {
   /**
    * Get place ID for autocomplete/search
    */
-  async searchPlaces(query: string): Promise<Array<{
-    id: string;
-    name: string;
-    iata: string;
-    city: string;
-    country: string;
-  }>> {
+  async searchPlaces(query: string): Promise<
+    Array<{
+      id: string;
+      name: string;
+      iata: string;
+      city: string;
+      country: string;
+    }>
+  > {
     if (!this.RAPIDAPI_KEY) {
       throw new Error('RapidAPI key required for place search');
     }
@@ -225,13 +233,15 @@ class SkyscannerService {
     }
 
     const data = await response.json();
-    return data.data?.map((place: any) => ({
-      id: place.entityId,
-      name: place.presentation.title,
-      iata: place.iata || place.skyId,
-      city: place.presentation.subtitle,
-      country: place.navigation.relevantFlightParams.market,
-    })) || [];
+    return (
+      data.data?.map((place: any) => ({
+        id: place.entityId,
+        name: place.presentation.title,
+        iata: place.iata || place.skyId,
+        city: place.presentation.subtitle,
+        country: place.navigation.relevantFlightParams.market,
+      })) || []
+    );
   }
 
   /**
@@ -244,7 +254,7 @@ class SkyscannerService {
 
     return data.data.itineraries.map((itinerary: any) => {
       const pricingOption = itinerary.pricingOptions?.[0];
-      
+
       return {
         id: itinerary.id,
         price: {
@@ -275,17 +285,18 @@ class SkyscannerService {
             logoUrl: carrier.logoUrl || '',
             displayCode: carrier.alternateId || carrier.id,
           })),
-          segments: leg.segments?.map((segment: any) => ({
-            origin: segment.origin.displayCode,
-            destination: segment.destination.displayCode,
-            departure: segment.departure,
-            arrival: segment.arrival,
-            flightNumber: segment.flightNumber,
-            carrier: {
-              name: segment.marketingCarrier.name,
-              displayCode: segment.marketingCarrier.alternateId,
-            },
-          })) || [],
+          segments:
+            leg.segments?.map((segment: any) => ({
+              origin: segment.origin.displayCode,
+              destination: segment.destination.displayCode,
+              departure: segment.departure,
+              arrival: segment.arrival,
+              flightNumber: segment.flightNumber,
+              carrier: {
+                name: segment.marketingCarrier.name,
+                displayCode: segment.marketingCarrier.alternateId,
+              },
+            })) || [],
         })),
         bookingUrl: pricingOption?.items?.[0]?.deepLink || '',
         deepLink: pricingOption?.items?.[0]?.deepLink || '',
@@ -303,7 +314,7 @@ class SkyscannerService {
 
     return Object.values(data.content.results.itineraries).map((itinerary: any) => {
       const pricing = itinerary.pricingOptions?.[0];
-      
+
       return {
         id: itinerary.id,
         price: {
@@ -330,15 +341,16 @@ class SkyscannerService {
             arrival: leg.arrivalDateTime,
             duration: leg.durationInMinutes,
             stopCount: leg.stopCount,
-            carriers: leg.carriers?.marketing?.map((carrierId: string) => {
-              const carrier = data.content.results.carriers[carrierId];
-              return {
-                id: carrier.id,
-                name: carrier.name,
-                logoUrl: carrier.imageUrl || '',
-                displayCode: carrier.iata || carrier.id,
-              };
-            }) || [],
+            carriers:
+              leg.carriers?.marketing?.map((carrierId: string) => {
+                const carrier = data.content.results.carriers[carrierId];
+                return {
+                  id: carrier.id,
+                  name: carrier.name,
+                  logoUrl: carrier.imageUrl || '',
+                  displayCode: carrier.iata || carrier.id,
+                };
+              }) || [],
             segments: [],
           };
         }),

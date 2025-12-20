@@ -31,53 +31,36 @@ const guestInfoSchema = z.object({
     .min(1, 'First name is required')
     .min(2, 'First name must be at least 2 characters')
     .max(50, 'First name must be less than 50 characters')
-    .refine(
-      (val) => !detectXSS(val),
-      'Invalid characters detected'
-    ),
+    .refine(val => !detectXSS(val), 'Invalid characters detected'),
   lastName: z
     .string()
     .min(1, 'Last name is required')
     .min(2, 'Last name must be at least 2 characters')
     .max(50, 'Last name must be less than 50 characters')
-    .refine(
-      (val) => !detectXSS(val),
-      'Invalid characters detected'
-    ),
+    .refine(val => !detectXSS(val), 'Invalid characters detected'),
   email: z
     .string()
     .min(1, 'Email is required')
     .email('Please enter a valid email address')
-    .refine(
-      (val) => !detectXSS(val),
-      'Invalid characters detected'
-    ),
+    .refine(val => !detectXSS(val), 'Invalid characters detected'),
   phone: z
     .string()
     .min(1, 'Phone number is required')
     .regex(
-      /^[\d\s\-\+\(\)]+$/,
+      /^[\d\s\-+()]+$/,
       'Please enter a valid phone number (digits, spaces, +, -, (, ) only)'
     )
     .min(10, 'Phone number must be at least 10 characters'),
   country: z
     .string()
     .min(1, 'Country is required')
-    .refine(
-      (val) => !detectXSS(val),
-      'Invalid characters detected'
-    ),
+    .refine(val => !detectXSS(val), 'Invalid characters detected'),
   specialRequests: z
     .string()
     .max(500, 'Special requests must be less than 500 characters')
-    .refine(
-      (val) => !val || !detectXSS(val),
-      'Invalid characters detected'
-    )
+    .refine(val => !val || !detectXSS(val), 'Invalid characters detected')
     .optional(),
-  arrivalTime: z
-    .string()
-    .optional(),
+  arrivalTime: z.string().optional(),
 });
 
 type GuestInfoFormData = z.infer<typeof guestInfoSchema>;
@@ -186,22 +169,19 @@ export function GuestInfoForm({
   const handleFormSubmit = (data: GuestInfoFormData) => {
     // Sanitize all inputs before submission
     const sanitizedData = sanitizeGuestInfo(data);
-    
+
     // Additional XSS detection
     const dataString = JSON.stringify(sanitizedData);
     if (detectXSS(dataString)) {
       console.error('XSS pattern detected in guest info');
       return;
     }
-    
+
     onSubmit(sanitizedData as GuestInfo);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(handleFormSubmit)}
-      className={cn('space-y-6', className)}
-    >
+    <form onSubmit={handleSubmit(handleFormSubmit)} className={cn('space-y-6', className)}>
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Guest Information</h3>
         <p className="text-sm text-muted-foreground">
@@ -225,9 +205,7 @@ export function GuestInfoForm({
             disabled={isLoading}
           />
           {errors.firstName && (
-            <p className="text-sm text-destructive">
-              {errors.firstName.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.firstName.message}</p>
           )}
         </div>
 
@@ -244,11 +222,7 @@ export function GuestInfoForm({
             className={cn(errors.lastName && 'border-destructive')}
             disabled={isLoading}
           />
-          {errors.lastName && (
-            <p className="text-sm text-destructive">
-              {errors.lastName.message}
-            </p>
-          )}
+          {errors.lastName && <p className="text-sm text-destructive">{errors.lastName.message}</p>}
         </div>
       </div>
 
@@ -267,9 +241,7 @@ export function GuestInfoForm({
           className={cn(errors.email && 'border-destructive')}
           disabled={isLoading}
         />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
+        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
         <p className="text-xs text-muted-foreground">
           Booking confirmation will be sent to this email
         </p>
@@ -290,9 +262,7 @@ export function GuestInfoForm({
           className={cn(errors.phone && 'border-destructive')}
           disabled={isLoading}
         />
-        {errors.phone && (
-          <p className="text-sm text-destructive">{errors.phone.message}</p>
-        )}
+        {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
         <p className="text-xs text-muted-foreground">
           Include country code for international numbers
         </p>
@@ -305,40 +275,28 @@ export function GuestInfoForm({
         </Label>
         <Select
           value={selectedCountry}
-          onValueChange={(value) => setValue('country', value, { shouldValidate: true })}
+          onValueChange={value => setValue('country', value, { shouldValidate: true })}
           disabled={isLoading}
         >
-          <SelectTrigger
-            id="country"
-            className={cn(errors.country && 'border-destructive')}
-          >
+          <SelectTrigger id="country" className={cn(errors.country && 'border-destructive')}>
             <SelectValue placeholder="Select your country" />
           </SelectTrigger>
           <SelectContent>
-            {COUNTRIES.map((country) => (
+            {COUNTRIES.map(country => (
               <SelectItem key={country} value={country}>
                 {country}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {errors.country && (
-          <p className="text-sm text-destructive">{errors.country.message}</p>
-        )}
+        {errors.country && <p className="text-sm text-destructive">{errors.country.message}</p>}
       </div>
 
       {/* Arrival Time Field */}
       <div className="space-y-2">
         <Label htmlFor="arrivalTime">Estimated Arrival Time (Optional)</Label>
-        <Input
-          id="arrivalTime"
-          type="time"
-          {...register('arrivalTime')}
-          disabled={isLoading}
-        />
-        <p className="text-xs text-muted-foreground">
-          Help the hotel prepare for your arrival
-        </p>
+        <Input id="arrivalTime" type="time" {...register('arrivalTime')} disabled={isLoading} />
+        <p className="text-xs text-muted-foreground">Help the hotel prepare for your arrival</p>
       </div>
 
       {/* Special Requests Field */}
@@ -354,9 +312,7 @@ export function GuestInfoForm({
           disabled={isLoading}
         />
         {errors.specialRequests && (
-          <p className="text-sm text-destructive">
-            {errors.specialRequests.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.specialRequests.message}</p>
         )}
         <p className="text-xs text-muted-foreground">
           {watch('specialRequests')?.length || 0}/500 characters

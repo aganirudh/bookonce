@@ -219,7 +219,7 @@ describe('API Optimization Utilities', () => {
 
       // Start first prefetch
       const promise1 = prefetchManager.prefetch('test-key', fetchFn);
-      
+
       // Try to prefetch again immediately
       const promise2 = prefetchManager.prefetch('test-key', fetchFn);
 

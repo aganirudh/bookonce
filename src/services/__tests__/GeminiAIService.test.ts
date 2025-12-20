@@ -37,7 +37,7 @@ describe('GeminiAIService', () => {
     mockGenerateContent.mockClear();
     mockGetGenerativeModel.mockClear();
     geminiAIService.resetRateLimit();
-    
+
     // Reset environment variables
     import.meta.env.VITE_GEMINI_API_KEY = 'test-api-key';
     import.meta.env.VITE_GEMINI_MODEL = 'gemini-pro';
@@ -60,7 +60,7 @@ describe('GeminiAIService', () => {
       delete import.meta.env.VITE_GEMINI_MODEL;
       delete import.meta.env.VITE_GEMINI_MAX_TOKENS;
       delete import.meta.env.VITE_GEMINI_TEMPERATURE;
-      
+
       expect(() => geminiAIService.initialize()).not.toThrow();
     });
   });
@@ -89,7 +89,7 @@ describe('GeminiAIService', () => {
       } as any);
 
       const response = await geminiAIService.sendMessage('Hello');
-      
+
       expect(response).toBe('AI response');
       expect(mockGenerateContent).toHaveBeenCalled();
     });
@@ -117,7 +117,7 @@ describe('GeminiAIService', () => {
       ];
 
       await geminiAIService.sendMessage('New message', history);
-      
+
       const callArg = mockGenerateContent.mock.calls[0][0];
       expect(callArg).toContain('Previous message');
       expect(callArg).toContain('Previous response');
@@ -130,12 +130,8 @@ describe('GeminiAIService', () => {
     });
 
     it('should throw error for empty message', async () => {
-      await expect(geminiAIService.sendMessage('')).rejects.toThrow(
-        'Message cannot be empty'
-      );
-      await expect(geminiAIService.sendMessage('   ')).rejects.toThrow(
-        'Message cannot be empty'
-      );
+      await expect(geminiAIService.sendMessage('')).rejects.toThrow('Message cannot be empty');
+      await expect(geminiAIService.sendMessage('   ')).rejects.toThrow('Message cannot be empty');
     });
 
     it('should sanitize message by trimming and limiting length', async () => {
@@ -147,7 +143,7 @@ describe('GeminiAIService', () => {
 
       const longMessage = 'a'.repeat(3000);
       await geminiAIService.sendMessage(`  ${longMessage}  `);
-      
+
       const callArg = mockGenerateContent.mock.calls[0][0];
       expect(callArg).toContain('a'.repeat(2000));
       expect(callArg).not.toContain('a'.repeat(2001));
@@ -160,33 +156,21 @@ describe('GeminiAIService', () => {
     });
 
     it('should handle API key errors', async () => {
-      mockGenerateContent.mockRejectedValue(
-        new Error('API key invalid')
-      );
+      mockGenerateContent.mockRejectedValue(new Error('API key invalid'));
 
-      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow(
-        'Invalid API key'
-      );
+      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow('Invalid API key');
     });
 
     it('should handle quota/rate limit errors', async () => {
-      mockGenerateContent.mockRejectedValue(
-        new Error('quota exceeded')
-      );
+      mockGenerateContent.mockRejectedValue(new Error('quota exceeded'));
 
-      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow(
-        'API quota exceeded'
-      );
+      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow('API quota exceeded');
     });
 
     it('should handle network errors', async () => {
-      mockGenerateContent.mockRejectedValue(
-        new Error('network error')
-      );
+      mockGenerateContent.mockRejectedValue(new Error('network error'));
 
-      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow(
-        'Unable to connect'
-      );
+      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow('Unable to connect');
     });
 
     it('should handle empty response from API', async () => {
@@ -213,31 +197,25 @@ describe('GeminiAIService', () => {
         } as any);
 
       const response = await geminiAIService.sendMessage('Hello');
-      
+
       expect(response).toBe('Success after retry');
       expect(mockGenerateContent).toHaveBeenCalledTimes(3);
     });
 
     it('should not retry on rate limit errors', async () => {
-      mockGenerateContent.mockRejectedValue(
-        new Error('429 rate limit')
-      );
+      mockGenerateContent.mockRejectedValue(new Error('429 rate limit'));
 
-      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow(
-        'API quota exceeded'
-      );
-      
+      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow('API quota exceeded');
+
       // Should only be called once (no retries)
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
     });
 
     it('should throw after max retries', async () => {
-      mockGenerateContent.mockRejectedValue(
-        new Error('Persistent error')
-      );
+      mockGenerateContent.mockRejectedValue(new Error('Persistent error'));
 
       await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow();
-      
+
       // Should be called 3 times (initial + 2 retries)
       expect(mockGenerateContent).toHaveBeenCalledTimes(3);
     });
@@ -257,9 +235,7 @@ describe('GeminiAIService', () => {
       } as any);
 
       // Send 10 requests (at the limit)
-      const promises = Array.from({ length: 10 }, () =>
-        geminiAIService.sendMessage('Hello')
-      );
+      const promises = Array.from({ length: 10 }, () => geminiAIService.sendMessage('Hello'));
 
       await expect(Promise.all(promises)).resolves.toBeDefined();
     });
@@ -272,14 +248,10 @@ describe('GeminiAIService', () => {
       } as any);
 
       // Send 10 requests successfully
-      await Promise.all(
-        Array.from({ length: 10 }, () => geminiAIService.sendMessage('Hello'))
-      );
+      await Promise.all(Array.from({ length: 10 }, () => geminiAIService.sendMessage('Hello')));
 
       // 11th request should be rate limited
-      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow(
-        'Too many requests'
-      );
+      await expect(geminiAIService.sendMessage('Hello')).rejects.toThrow('Too many requests');
     });
 
     it('should reset rate limit after time window', async () => {
@@ -290,9 +262,7 @@ describe('GeminiAIService', () => {
       } as any);
 
       // Send 10 requests
-      await Promise.all(
-        Array.from({ length: 10 }, () => geminiAIService.sendMessage('Hello'))
-      );
+      await Promise.all(Array.from({ length: 10 }, () => geminiAIService.sendMessage('Hello')));
 
       // Reset rate limit manually (simulating time passage)
       geminiAIService.resetRateLimit();

@@ -1,6 +1,6 @@
 /**
  * Journey Planner Page
- * 
+ *
  * Complete door-to-door journey planning with:
  * - Location search (Nominatim - free)
  * - Route calculation (OpenRouteService - free)
@@ -16,8 +16,15 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MapPin, Navigation, Cloud, Clock, Route, AlertCircle } from 'lucide-react';
-import { JourneyMap, type Location, type RouteStep } from '@/features/journey/components/JourneyMap';
-import { freeGeocodingService, type GeocodingResult } from '@/features/journey/services/FreeGeocodingService';
+import {
+  JourneyMap,
+  type Location,
+  type RouteStep,
+} from '@/features/journey/components/JourneyMap';
+import {
+  freeGeocodingService,
+  type GeocodingResult,
+} from '@/features/journey/services/FreeGeocodingService';
 import { freeRoutingService } from '@/features/journey/services/FreeRoutingService';
 import { weatherService } from '@/features/journey/services/WeatherService';
 
@@ -33,7 +40,9 @@ export default function JourneyPlannerNew() {
   const [weather, setWeather] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [travelMode, setTravelMode] = useState<'driving-car' | 'cycling-regular' | 'foot-walking'>('driving-car');
+  const [travelMode, setTravelMode] = useState<'driving-car' | 'cycling-regular' | 'foot-walking'>(
+    'driving-car'
+  );
 
   // Search for origin location
   const searchOrigin = async (query: string) => {
@@ -151,7 +160,7 @@ export default function JourneyPlannerNew() {
                     id="origin"
                     placeholder="Search for origin..."
                     value={originQuery}
-                    onChange={(e) => {
+                    onChange={e => {
                       setOriginQuery(e.target.value);
                       searchOrigin(e.target.value);
                     }}
@@ -186,7 +195,7 @@ export default function JourneyPlannerNew() {
                     id="destination"
                     placeholder="Search for destination..."
                     value={destinationQuery}
-                    onChange={(e) => {
+                    onChange={e => {
                       setDestinationQuery(e.target.value);
                       searchDestination(e.target.value);
                     }}
@@ -303,9 +312,7 @@ export default function JourneyPlannerNew() {
                   <Route className="w-5 h-5" />
                   Route Map
                 </CardTitle>
-                {routeSummary && (
-                  <CardDescription>{routeSummary}</CardDescription>
-                )}
+                {routeSummary && <CardDescription>{routeSummary}</CardDescription>}
               </CardHeader>
               <CardContent>
                 <JourneyMap
@@ -328,7 +335,7 @@ export default function JourneyPlannerNew() {
               <CardContent>
                 <div className="space-y-3">
                   {route
-                    .filter((step) => step.instruction)
+                    .filter(step => step.instruction)
                     .map((step, index) => (
                       <div key={index} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
@@ -338,9 +345,11 @@ export default function JourneyPlannerNew() {
                           <p className="text-sm font-medium">{step.instruction}</p>
                           {(step.distance || step.duration) && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              {step.distance && `${freeRoutingService.formatDistance(step.distance)}`}
+                              {step.distance &&
+                                `${freeRoutingService.formatDistance(step.distance)}`}
                               {step.distance && step.duration && ' • '}
-                              {step.duration && `${freeRoutingService.formatDuration(step.duration)}`}
+                              {step.duration &&
+                                `${freeRoutingService.formatDuration(step.duration)}`}
                             </p>
                           )}
                         </div>
@@ -369,8 +378,9 @@ export default function JourneyPlannerNew() {
       {/* Info Footer */}
       <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>100% Free Services:</strong> This journey planner uses OpenStreetMap (maps), Nominatim (geocoding),
-          OpenRouteService (routing), and Open-Meteo (weather) - all completely free and open-source!
+          <strong>100% Free Services:</strong> This journey planner uses OpenStreetMap (maps),
+          Nominatim (geocoding), OpenRouteService (routing), and Open-Meteo (weather) - all
+          completely free and open-source!
         </p>
       </div>
     </div>

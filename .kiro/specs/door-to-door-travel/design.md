@@ -7,10 +7,11 @@ TravelEase transforms the existing Vagabond platform into a comprehensive door-t
 ### Key Design Principles
 
 1. **Progressive Enhancement**: Build on existing Vagabond features rather than replacing them
-2. **API-First Architecture**: Use external APIs (Google Maps, flight/train APIs) for real-time data
-3. **Modular Components**: Each feature (journey planner, chatbot, safety) is independent
-4. **Mobile-First**: Optimized for travelers on-the-go
-5. **Offline-Capable**: Critical features work without internet
+2. **Real API Integration**: Use actual external APIs (Google Maps, Skyscanner, OpenWeather) for live data - NO MOCK DATA
+3. **API-First Architecture**: All data comes from real API calls with proper error handling and caching
+4. **Modular Components**: Each feature (journey planner, chatbot, safety) is independent
+5. **Mobile-First**: Optimized for travelers on-the-go
+6. **Offline-Capable**: Critical features work without internet (with cached real data)
 
 ## Architecture
 
@@ -658,13 +659,231 @@ async function handleBookingError(
 - Encrypted emergency communications
 - Audit log for all emergency triggers
 
+## Real API Integration Strategy
+
+### API Services Architecture
+
+```typescript
+// Centralized API service layer
+src/features/journey/services/
+  ├── GoogleMapsService.ts      // Google Maps API wrapper
+  ├── SkyscannerService.ts      // Already exists - use this!
+  ├── WeatherService.ts         // OpenWeather API wrapper
+  ├── GeocodingService.ts       // Already exists - use this!
+  └── RouteCalculator.ts        // Orchestrates all APIs
+```
+
+### API Error Handling Strategy
+
+```typescript
+interface APIResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    retryable: boolean;
+  };
+}
+
+// Graceful degradation
+async function fetchWithFallback<T>(
+  primaryFn: () => Promise<T>,
+  fallbackFn?: () => Promise<T>,
+  errorMessage: string = 'Service unavailable'
+): Promise<APIResponse<T>> {
+  try {
+    const data = await primaryFn();
+    return { success: true, data };
+  } catch (error) {
+    if (fallbackFn) {
+      try {
+        const data = await fallbackFn();
+        return { success: true, data };
+      } catch (fallbackError) {
+        return {
+          success: false,
+          error: {
+            code: 'API_ERROR',
+            message: errorMessage,
+            retryable: true
+          }
+        };
+      }
+    }
+    return {
+      success: false,
+      error: {
+        code: 'API_ERROR',
+        message: errorMessage,
+        retryable: true
+      }
+    };
+  }
+}
+```
+
+### API Rate Limiting & Caching
+
+```typescript
+// Cache strategy for expensive API calls
+const CACHE_DURATION = {
+  flights: 5 * 60 * 1000,      // 5 minutes
+  directions: 15 * 60 * 1000,  // 15 minutes
+  weather: 30 * 60 * 1000,     // 30 minutes
+  places: 60 * 60 * 1000       // 1 hour
+};
+
+// Use existing cacheStore from booking feature
+import { cacheStore } from '@/features/booking/stores/cacheStore';
+
+async function getCachedOrFetch<T>(
+  key: string,
+  fetchFn: () => Promise<T>,
+  duration: number
+): Promise<T> {
+  const cached = cacheStore.get(key);
+  if (cached) return cached as T;
+  
+  const data = await fetchFn();
+  cacheStore.set(key, data, duration);
+  return data;
+}
+```
+
+### Real API Usage Examples
+
+#### 1. Google Maps Autocomplete (REAL)
+```typescript
+// Use Google Places Autocomplete widget
+const autocomplete = new google.maps.places.Autocomplete(inputElement, {
+  types: ['(cities)'],
+  fields: ['place_id', 'geometry', 'name', 'formatted_address']
+});
+
+autocomplete.addListener('place_changed', () => {
+  const place = autocomplete.getPlace();
+  if (place.geometry) {
+    // Use real place data
+    const location = {
+      address: place.formatted_address,
+      coordinates: {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng()
+      },
+      placeId: place.place_id
+    };
+  }
+});
+```
+
+#### 2. Skyscanner Flight Search (REAL - Already Implemented)
+```typescript
+// Use existing SkyscannerService
+import { SkyscannerService } from '@/services/SkyscannerService';
+
+const skyscanner = new SkyscannerService();
+
+// Search airports
+const airports = await skyscanner.searchAirports('Mumbai');
+const sourceAirport = airports[0]; // Get skyId and entityId
+
+// Search flights with real data
+const flights = await skyscanner.searchFlights({
+  originSkyId: sourceAirport.skyId,
+  destinationSkyId: destAirport.skyId,
+  originEntityId: sourceAirport.entityId,
+  destinationEntityId: destAirport.entityId,
+  date: '2025-12-15',
+  adults: 1,
+  cabinClass: 'CABIN_CLASS_ECONOMY'
+});
+
+// flights contains real pricing, airlines, times
+```
+
+#### 3. OpenWeather API (REAL)
+```typescript
+async function getWeather(lat: number, lng: number): Promise<Weather> {
+  const response = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${import.meta.env.VITE_OPENWEATHER_API_KEY}&units=metric`
+  );
+  
+  if (!response.ok) {
+    throw new Error('Weather API failed');
+  }
+  
+  const data = await response.json();
+  return {
+    temp: data.main.temp,
+    condition: data.weather[0].main,
+    description: data.weather[0].description,
+    icon: data.weather[0].icon
+  };
+}
+```
+
+#### 4. Google Directions API (REAL)
+```typescript
+async function getDirections(
+  origin: Location,
+  destination: Location,
+  mode: 'urgent' | 'fun'
+): Promise<google.maps.DirectionsResult> {
+  const directionsService = new google.maps.DirectionsService();
+  
+  const request: google.maps.DirectionsRequest = {
+    origin: new google.maps.LatLng(origin.coordinates.lat, origin.coordinates.lng),
+    destination: new google.maps.LatLng(destination.coordinates.lat, destination.coordinates.lng),
+    travelMode: google.maps.TravelMode.TRANSIT,
+    transitOptions: {
+      modes: ['BUS', 'RAIL', 'SUBWAY', 'TRAIN'],
+      routingPreference: mode === 'urgent' 
+        ? google.maps.TransitRoutePreference.FEWER_TRANSFERS
+        : google.maps.TransitRoutePreference.LESS_WALKING
+    },
+    provideRouteAlternatives: true
+  };
+  
+  return new Promise((resolve, reject) => {
+    directionsService.route(request, (result, status) => {
+      if (status === 'OK' && result) {
+        resolve(result);
+      } else {
+        reject(new Error(`Directions failed: ${status}`));
+      }
+    });
+  });
+}
+```
+
+### API Cost Optimization
+
+1. **Caching**: Cache all API responses with appropriate TTL
+2. **Debouncing**: Debounce autocomplete searches (500ms)
+3. **Batch Requests**: Combine multiple requests where possible
+4. **Lazy Loading**: Only load Google Maps when needed
+5. **Error Budgets**: Set daily API call limits
+
+### API Key Security
+
+```typescript
+// NEVER expose API keys in client code
+// Use environment variables
+const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+// For Google Maps, restrict by domain in Google Cloud Console
+// For RapidAPI, restrict by domain in RapidAPI dashboard
+// For OpenWeather, restrict by domain in OpenWeather dashboard
+```
+
 ## Deployment Strategy
 
-### Phase 1: Core Journey Planner (Week 1)
-- Journey input component
-- Route calculation engine
-- Basic route display
-- Integration with existing hotel booking
+### Phase 1: Core Journey Planner with Real APIs (Week 1)
+- Journey input component with Google Places Autocomplete (REAL)
+- Route calculation engine with Google Directions API (REAL)
+- Basic route display with real data
+- Integration with existing hotel booking (REAL)
 
 ### Phase 2: Booking Orchestration (Week 2)
 - One-click booking flow
@@ -721,17 +940,28 @@ async function handleBookingError(
 /trips - All trips (past and upcoming)
 ```
 
-## API Integration Details
+## API Integration Details - REAL IMPLEMENTATION ONLY
 
-### Google Maps APIs
+**CRITICAL: This system MUST use real APIs. No mock data is acceptable for the journey planner.**
+
+### Environment Variables Required
+```bash
+# .env file
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
+VITE_RAPIDAPI_KEY=your_rapidapi_key (for Skyscanner)
+VITE_OPENWEATHER_API_KEY=your_openweather_key
+```
+
+### Google Maps APIs (REAL)
 ```typescript
-// Required APIs
+// Required APIs - ALL MUST BE ENABLED IN GOOGLE CLOUD CONSOLE
 - Places API (autocomplete, place details)
 - Directions API (multi-modal routing)
 - Distance Matrix API (travel time estimation)
 - Geocoding API (address to coordinates)
+- Maps JavaScript API (map display)
 
-// Example usage
+// Real implementation example
 const directionsService = new google.maps.DirectionsService();
 const result = await directionsService.route({
   origin: sourceLocation,
@@ -742,24 +972,38 @@ const result = await directionsService.route({
     routingPreference: mode === 'urgent' ? 'FEWER_TRANSFERS' : 'LESS_WALKING'
   }
 });
+
+// Handle real API responses
+if (result.status === 'OK') {
+  const route = result.routes[0];
+  // Process real route data
+} else {
+  // Handle API errors gracefully
+  throw new Error(`Directions API error: ${result.status}`);
+}
 ```
 
-### Flight API (RapidAPI - Skyscanner)
+### Flight API (RapidAPI - Skyscanner) - REAL IMPLEMENTATION
 ```typescript
-const flightOptions = await fetch('https://skyscanner-api.p.rapidapi.com/flights/search', {
-  method: 'POST',
-  headers: {
-    'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
-    'X-RapidAPI-Host': 'skyscanner-api.p.rapidapi.com'
-  },
-  body: JSON.stringify({
-    origin: sourceAirport,
-    destination: destAirport,
-    date: departureDate,
-    adults: 1,
-    sort: mode === 'urgent' ? 'fastest' : 'cheapest'
-  })
+// Use the existing SkyscannerService.ts which already has real API integration
+import { SkyscannerService } from '@/services/SkyscannerService';
+
+const skyscannerService = new SkyscannerService();
+
+// Real flight search with live data
+const flightOptions = await skyscannerService.searchFlights({
+  originSkyId: sourceAirport.skyId,
+  destinationSkyId: destAirport.skyId,
+  originEntityId: sourceAirport.entityId,
+  destinationEntityId: destAirport.entityId,
+  date: departureDate,
+  adults: 1,
+  cabinClass: mode === 'urgent' ? 'CABIN_CLASS_BUSINESS' : 'CABIN_CLASS_ECONOMY',
+  sortBy: mode === 'urgent' ? 'best' : 'price_low'
 });
+
+// Get airport details using real API
+const airports = await skyscannerService.searchAirports(cityName);
 ```
 
 ### Weather API (OpenWeather)

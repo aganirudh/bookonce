@@ -233,7 +233,7 @@ describe('MockBookingAdapter', () => {
       };
 
       const booking = await adapter.createReservation(request);
-      
+
       const modified = await adapter.modifyReservation(booking.bookingId, {
         checkInDate: '2024-06-02',
         checkOutDate: '2024-06-06',
@@ -245,9 +245,7 @@ describe('MockBookingAdapter', () => {
     });
 
     it('should throw error for non-existent booking', async () => {
-      await expect(
-        adapter.modifyReservation('non-existent', {})
-      ).rejects.toThrow('not found');
+      await expect(adapter.modifyReservation('non-existent', {})).rejects.toThrow('not found');
     });
   });
 
@@ -298,14 +296,12 @@ describe('MockBookingAdapter', () => {
 
       const bookings = adapter.getAllBookings();
       const cancelledBooking = bookings.find(b => b.bookingId === booking.bookingId);
-      
+
       expect(cancelledBooking?.status).toBe('cancelled');
     });
 
     it('should throw error for non-existent booking', async () => {
-      await expect(
-        adapter.cancelReservation('non-existent')
-      ).rejects.toThrow('not found');
+      await expect(adapter.cancelReservation('non-existent')).rejects.toThrow('not found');
     });
   });
 

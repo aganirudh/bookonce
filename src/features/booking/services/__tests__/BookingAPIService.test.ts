@@ -20,7 +20,7 @@ describe('BookingAPIService', () => {
   beforeEach(() => {
     // Create fresh service instance
     service = new BookingAPIService();
-    
+
     // Clear cache before each test
     useCacheStore.getState().invalidateAll();
   });
@@ -51,7 +51,7 @@ describe('BookingAPIService', () => {
 
       // First call
       const result1 = await service.checkAvailability(params);
-      
+
       // Second call should use cache
       const result2 = await service.checkAvailability(params);
 
@@ -69,12 +69,7 @@ describe('BookingAPIService', () => {
 
   describe('getPricing', () => {
     it('should calculate pricing for a room', async () => {
-      const pricing = await service.getPricing(
-        1,
-        'room-1-1',
-        '2024-06-01',
-        '2024-06-05'
-      );
+      const pricing = await service.getPricing(1, 'room-1-1', '2024-06-01', '2024-06-05');
 
       expect(pricing).toBeDefined();
       expect(pricing.baseRate).toBeGreaterThan(0);
@@ -87,20 +82,10 @@ describe('BookingAPIService', () => {
 
     it('should cache pricing results', async () => {
       // First call
-      const pricing1 = await service.getPricing(
-        1,
-        'room-1-1',
-        '2024-06-01',
-        '2024-06-05'
-      );
+      const pricing1 = await service.getPricing(1, 'room-1-1', '2024-06-01', '2024-06-05');
 
       // Second call should use cache
-      const pricing2 = await service.getPricing(
-        1,
-        'room-1-1',
-        '2024-06-01',
-        '2024-06-05'
-      );
+      const pricing2 = await service.getPricing(1, 'room-1-1', '2024-06-01', '2024-06-05');
 
       expect(pricing1).toEqual(pricing2);
     });
@@ -253,13 +238,7 @@ describe('BookingAPIService', () => {
         },
       });
 
-      const pricing = await service.getPricing(
-        1,
-        'room-1-1',
-        '2024-06-01',
-        '2024-06-05',
-        'EUR'
-      );
+      const pricing = await service.getPricing(1, 'room-1-1', '2024-06-01', '2024-06-05', 'EUR');
 
       expect(pricing.convertedTotal).toBeDefined();
       expect(pricing.convertedTotal?.currency).toBe('EUR');

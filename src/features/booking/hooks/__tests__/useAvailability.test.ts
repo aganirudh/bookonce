@@ -106,7 +106,7 @@ describe('useAvailability Hook', () => {
       };
 
       result.current.checkAvailability(params);
-      
+
       // Should not throw on unmount
       expect(() => unmount()).not.toThrow();
     });

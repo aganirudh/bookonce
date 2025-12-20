@@ -22,11 +22,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   },
   push: {
     enabled: false,
-    types: [
-      'booking_status_change',
-      'check_in_reminder',
-      'hotel_cancellation',
-    ],
+    types: ['booking_status_change', 'check_in_reminder', 'hotel_cancellation'],
   },
 };
 

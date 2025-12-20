@@ -1,6 +1,6 @@
 /**
  * Review Service - Free APIs Integration
- * 
+ *
  * Integrates multiple free APIs to provide reviews and POI data:
  * - Overpass API (OpenStreetMap) - POI data with ratings
  * - Nominatim - Location details
@@ -65,14 +65,19 @@ class ReviewService {
       }
 
       const data = await response.json();
-      
+
       // Process and enrich the data
       const pois: POIData[] = await Promise.all(
         data.elements.slice(0, 20).map(async (element: any) => {
           const poi: POIData = {
             id: element.id.toString(),
             name: element.tags?.name || element.tags?.brand || 'Unknown Place',
-            type: this.categorizeAmenity(element.tags?.amenity || element.tags?.tourism || element.tags?.leisure || element.tags?.shop),
+            type: this.categorizeAmenity(
+              element.tags?.amenity ||
+                element.tags?.tourism ||
+                element.tags?.leisure ||
+                element.tags?.shop
+            ),
             coordinates: [element.lat, element.lon],
             amenity: element.tags?.amenity,
             cuisine: element.tags?.cuisine,
@@ -91,11 +96,11 @@ class ReviewService {
               `${this.NOMINATIM_API}/reverse?lat=${element.lat}&lon=${element.lon}&format=json&zoom=18`,
               {
                 headers: {
-                  'User-Agent': 'BookOnceApp/1.0'
-                }
+                  'User-Agent': 'BookOnceApp/1.0',
+                },
               }
             );
-            
+
             if (addressResponse.ok) {
               const addressData = await addressResponse.json();
               poi.address = this.formatAddress(addressData.address);
@@ -130,14 +135,15 @@ class ReviewService {
   async searchPlaces(query: string, lat?: number, lng?: number): Promise<POIData[]> {
     try {
       // Use Nominatim to search for places
-      const searchUrl = lat && lng 
-        ? `${this.NOMINATIM_API}/search?q=${encodeURIComponent(query)}&format=json&limit=10&lat=${lat}&lon=${lng}&bounded=1&viewbox=${lng-0.1},${lat-0.1},${lng+0.1},${lat+0.1}`
-        : `${this.NOMINATIM_API}/search?q=${encodeURIComponent(query)}&format=json&limit=10`;
+      const searchUrl =
+        lat && lng
+          ? `${this.NOMINATIM_API}/search?q=${encodeURIComponent(query)}&format=json&limit=10&lat=${lat}&lon=${lng}&bounded=1&viewbox=${lng - 0.1},${lat - 0.1},${lng + 0.1},${lat + 0.1}`
+          : `${this.NOMINATIM_API}/search?q=${encodeURIComponent(query)}&format=json&limit=10`;
 
       const response = await fetch(searchUrl, {
         headers: {
-          'User-Agent': 'BookOnceApp/1.0'
-        }
+          'User-Agent': 'BookOnceApp/1.0',
+        },
       });
 
       if (!response.ok) {
@@ -145,7 +151,7 @@ class ReviewService {
       }
 
       const results = await response.json();
-      
+
       return results.map((result: any) => {
         const poi: POIData = {
           id: result.place_id.toString(),
@@ -171,7 +177,7 @@ class ReviewService {
    */
   async getTrendingPlaces(lat: number, lng: number): Promise<POIData[]> {
     const pois = await this.getPOIsNearLocation(lat, lng, 2000);
-    
+
     // Sort by synthetic popularity (rating * review count)
     return pois
       .filter(poi => poi.rating && poi.reviews)
@@ -227,50 +233,51 @@ class ReviewService {
   private generateSyntheticReviews(poi: POIData): Review[] {
     const reviewTemplates = {
       Restaurant: [
-        "Amazing food and great service! Highly recommend the local specialties.",
-        "Cozy atmosphere with delicious meals. Perfect for a date night.",
-        "Fresh ingredients and authentic flavors. Will definitely come back!",
-        "Good value for money. The staff was very friendly and helpful.",
-        "Excellent presentation and taste. One of the best in the area."
+        'Amazing food and great service! Highly recommend the local specialties.',
+        'Cozy atmosphere with delicious meals. Perfect for a date night.',
+        'Fresh ingredients and authentic flavors. Will definitely come back!',
+        'Good value for money. The staff was very friendly and helpful.',
+        'Excellent presentation and taste. One of the best in the area.',
       ],
       Cafe: [
-        "Perfect coffee and pastries! Great place to work or relax.",
-        "Love the atmosphere here. Coffee is consistently good.",
-        "Friendly baristas and excellent wifi. My go-to spot!",
-        "Great selection of teas and light meals. Very cozy.",
-        "Best cappuccino in town! The breakfast menu is also fantastic."
+        'Perfect coffee and pastries! Great place to work or relax.',
+        'Love the atmosphere here. Coffee is consistently good.',
+        'Friendly baristas and excellent wifi. My go-to spot!',
+        'Great selection of teas and light meals. Very cozy.',
+        'Best cappuccino in town! The breakfast menu is also fantastic.',
       ],
       Attraction: [
-        "Must-see when visiting the area! Rich history and beautiful architecture.",
-        "Educational and entertaining. Great for families with kids.",
-        "Stunning views and well-maintained facilities. Worth the visit!",
-        "Fascinating exhibits and knowledgeable guides. Highly recommended.",
-        "Beautiful location with lots of photo opportunities."
+        'Must-see when visiting the area! Rich history and beautiful architecture.',
+        'Educational and entertaining. Great for families with kids.',
+        'Stunning views and well-maintained facilities. Worth the visit!',
+        'Fascinating exhibits and knowledgeable guides. Highly recommended.',
+        'Beautiful location with lots of photo opportunities.',
       ],
       Shopping: [
-        "Great selection and reasonable prices. Staff was very helpful.",
-        "Found exactly what I was looking for. Clean and well-organized.",
-        "Good variety of products. Easy parking and convenient location.",
-        "Quality items and excellent customer service. Will shop here again.",
-        "Modern facilities with a wide range of brands and options."
-      ]
+        'Great selection and reasonable prices. Staff was very helpful.',
+        'Found exactly what I was looking for. Clean and well-organized.',
+        'Good variety of products. Easy parking and convenient location.',
+        'Quality items and excellent customer service. Will shop here again.',
+        'Modern facilities with a wide range of brands and options.',
+      ],
     };
 
-    const templates = reviewTemplates[poi.type as keyof typeof reviewTemplates] || reviewTemplates.Attraction;
+    const templates =
+      reviewTemplates[poi.type as keyof typeof reviewTemplates] || reviewTemplates.Attraction;
     const numReviews = Math.floor(Math.random() * 8) + 3; // 3-10 reviews
     const reviews: Review[] = [];
 
     for (let i = 0; i < numReviews; i++) {
       const rating = Math.floor(Math.random() * 2) + 4; // 4-5 stars mostly
       const template = templates[Math.floor(Math.random() * templates.length)];
-      
+
       reviews.push({
         id: `review_${poi.id}_${i}`,
         rating,
         text: template,
         author: this.generateRandomName(),
         date: this.generateRandomDate(),
-        helpful: Math.floor(Math.random() * 20)
+        helpful: Math.floor(Math.random() * 20),
       });
     }
 
@@ -282,9 +289,9 @@ class ReviewService {
     const detailedTemplates = [
       "I've been coming here for years and it never disappoints. The quality is consistently excellent and the staff always remembers my preferences. The atmosphere is perfect for both casual visits and special occasions.",
       "Discovered this gem through a friend's recommendation and I'm so glad I did! The attention to detail is remarkable and you can tell they really care about their customers. The experience exceeded all my expectations.",
-      "What sets this place apart is not just the quality, but the genuine hospitality. Every visit feels special and the team goes above and beyond to ensure you have a great time. Absolutely worth the visit!",
+      'What sets this place apart is not just the quality, but the genuine hospitality. Every visit feels special and the team goes above and beyond to ensure you have a great time. Absolutely worth the visit!',
       "As someone who travels frequently, I can confidently say this is one of the best I've encountered. The combination of quality, service, and ambiance creates an unforgettable experience. Highly recommend to anyone visiting the area.",
-      "Initially skeptical due to mixed reviews elsewhere, but decided to give it a try. I'm so glad I did! The reality far exceeded my expectations. This has become my regular spot and I've recommended it to countless friends."
+      "Initially skeptical due to mixed reviews elsewhere, but decided to give it a try. I'm so glad I did! The reality far exceeded my expectations. This has become my regular spot and I've recommended it to countless friends.",
     ];
 
     return detailedTemplates.map((text, index) => ({
@@ -293,7 +300,7 @@ class ReviewService {
       text,
       author: this.generateRandomName(),
       date: this.generateRandomDate(),
-      helpful: Math.floor(Math.random() * 50) + 10
+      helpful: Math.floor(Math.random() * 50) + 10,
     }));
   }
 
@@ -305,9 +312,21 @@ class ReviewService {
 
   private generateRandomName(): string {
     const names = [
-      'Alex M.', 'Sarah K.', 'Mike R.', 'Emma L.', 'David W.',
-      'Lisa P.', 'John D.', 'Maria G.', 'Chris B.', 'Anna S.',
-      'Tom H.', 'Julia F.', 'Mark T.', 'Sophie C.', 'Ryan J.'
+      'Alex M.',
+      'Sarah K.',
+      'Mike R.',
+      'Emma L.',
+      'David W.',
+      'Lisa P.',
+      'John D.',
+      'Maria G.',
+      'Chris B.',
+      'Anna S.',
+      'Tom H.',
+      'Julia F.',
+      'Mark T.',
+      'Sophie C.',
+      'Ryan J.',
     ];
     return names[Math.floor(Math.random() * names.length)];
   }
@@ -326,15 +345,15 @@ class ReviewService {
     } else if (address.road) {
       parts.push(address.road);
     }
-    
+
     if (address.city || address.town || address.village) {
       parts.push(address.city || address.town || address.village);
     }
-    
+
     if (address.country) {
       parts.push(address.country);
     }
-    
+
     return parts.join(', ');
   }
 }

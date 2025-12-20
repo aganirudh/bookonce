@@ -1,32 +1,23 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plane, 
-  Train, 
-  Bus, 
-  Car, 
-  MapPin, 
-  Clock, 
-  DollarSign, 
+import { Button } from '@/components/ui/button';
+import {
+  Plane,
+  Train,
+  Bus,
+  Car,
+  Bike,
+  MapPin,
+  Clock,
+  CheckCircle,
   Navigation,
   Footprints,
-  Coffee,
-  Utensils,
-  Bed,
-  ArrowRight,
-  CheckCircle,
-  Info,
-  ExternalLink,
-  Smartphone,
-  CreditCard,
-  X,
-  ChevronRight,
-  RotateCcw
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
-interface TransportOption {
+export interface TransportOption {
   id: string;
   type: 'walk' | 'bus' | 'metro' | 'train' | 'flight' | 'car' | 'taxi' | 'rapido' | 'auto';
   from: string;
@@ -36,11 +27,10 @@ interface TransportOption {
   distance?: string;
   provider: string;
   description: string;
-  nextOptions?: TransportOption[];
   bookingUrl?: string;
 }
 
-interface JourneyStep {
+export interface JourneyStep {
   id: string;
   title: string;
   location: string;
@@ -48,390 +38,42 @@ interface JourneyStep {
 }
 
 interface JourneyVisualizationProps {
-  aiResponse: string;
+  steps: JourneyStep[];
   journeyType: 'outbound' | 'return';
-  userName?: string;
+  onSummaryUpdate?: (summary: { duration: string; cost: number; modes: number }) => void;
 }
 
-const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({ 
-  aiResponse, 
+const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
+  steps = [],
   journeyType,
-  userName = 'Traveler'
+  onSummaryUpdate,
 }) => {
   const [selectedOptions, setSelectedOptions] = useState<TransportOption[]>([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [expandedStepId, setExpandedStepId] = useState<string | null>(steps[0]?.id || null);
 
-  // Parse AI response and create intelligent decision tree
-  const createJourneyTree = (): JourneyStep[] => {
-    const steps: JourneyStep[] = [];
-    const lines = aiResponse.split('\n').filter(line => line.trim());
-    
-    let currentLocation = 'Home';
-    let stepCounter = 1;
-    
-    // Parse AI response to extract journey segments
-    const segments = [];
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      if (trimmedLine.includes('Walk') || trimmedLine.includes('Metro') || 
-          trimmedLine.includes('Bus') || trimmedLine.includes('Train') || 
-          trimmedLine.includes('Flight') || trimmedLine.includes('Taxi') ||
-          trimmedLine.includes('Auto') || trimmedLine.includes('Cab')) {
-        segments.push(trimmedLine);
-      }
+  // Auto-select first option for each step if not selected (for better UX)
+  useEffect(() => {
+    if (steps.length > 0 && selectedOptions.length === 0) {
+      // Optional: Pre-select first options? 
+      // Let's keep it manual for now, but maybe auto-expand the first one.
     }
+  }, [steps]);
 
-    // Create decision tree based on parsed segments
-    if (segments.length > 0) {
-      // Step 1: From Home - Always start with local transport options
-      const homeOptions: TransportOption[] = [];
-      
-      // Check if AI mentions walking
-      if (segments.some(s => s.toLowerCase().includes('walk'))) {
-        homeOptions.push({
-          id: 'walk-local',
-          type: 'walk',
-          from: 'Home',
-          to: 'Nearest Transit',
-          duration: '10-15 min',
-          distance: '1 km',
-          cost: 'Free',
-          provider: 'Walking',
-          description: 'Walk to nearest transit point',
-          bookingUrl: undefined
-        });
-      }
-
-      // Always add local transport options
-      homeOptions.push(
-        {
-          id: 'rapido-transit',
-          type: 'rapido',
-          from: 'Home',
-          to: 'Transit Point',
-          duration: '5-8 min',
-          distance: '1-2 km',
-          cost: '₹30-60',
-          provider: 'Rapido',
-          description: 'Bike ride to transit',
-          bookingUrl: 'https://rapido.bike'
-        },
-        {
-          id: 'auto-transit',
-          type: 'auto',
-          from: 'Home',
-          to: 'Transit Point',
-          duration: '8-12 min',
-          distance: '1-2 km',
-          cost: '₹50-100',
-          provider: 'Auto Rickshaw',
-          description: 'Auto to transit point',
-          bookingUrl: undefined
-        }
-      );
-
-      // Add direct options based on distance (inferred from AI response)
-      const hasLongDistance = segments.some(s => 
-        s.toLowerCase().includes('flight') || 
-        s.toLowerCase().includes('train') ||
-        s.toLowerCase().includes('airport')
-      );
-
-      if (hasLongDistance) {
-        homeOptions.push({
-          id: 'cab-direct',
-          type: 'taxi',
-          from: 'Home',
-          to: 'Airport/Station',
-          duration: '30-60 min',
-          distance: '15-30 km',
-          cost: '₹400-800',
-          provider: 'Uber/Ola',
-          description: 'Direct cab to airport/station',
-          bookingUrl: 'https://uber.com'
-        });
-      } else {
-        homeOptions.push({
-          id: 'cab-destination',
-          type: 'taxi',
-          from: 'Home',
-          to: 'Final Destination',
-          duration: '45-90 min',
-          distance: '20-50 km',
-          cost: '₹600-1500',
-          provider: 'Uber/Ola',
-          description: 'Direct cab to destination',
-          bookingUrl: 'https://uber.com'
-        });
-      }
-
-      steps.push({
-        id: 'step-1',
-        title: 'From Your Home',
-        location: 'Starting Point',
-        options: homeOptions
-      });
-
-      // Step 2: From Transit Point (if not direct)
-      if (hasLongDistance) {
-        const transitOptions: TransportOption[] = [];
-
-        if (segments.some(s => s.toLowerCase().includes('metro'))) {
-          transitOptions.push({
-            id: 'metro-main',
-            type: 'metro',
-            from: 'Metro Station',
-            to: 'Airport/Main Station',
-            duration: '20-40 min',
-            distance: '10-25 km',
-            cost: '₹40-80',
-            provider: 'Metro Rail',
-            description: 'Metro to airport/main station',
-            bookingUrl: 'https://paytm.com/metro-card-recharge'
-          });
-        }
-
-        if (segments.some(s => s.toLowerCase().includes('bus'))) {
-          transitOptions.push({
-            id: 'bus-main',
-            type: 'bus',
-            from: 'Bus Stop',
-            to: 'Airport/Station',
-            duration: '30-60 min',
-            distance: '15-30 km',
-            cost: '₹30-60',
-            provider: 'City Bus',
-            description: 'Bus to airport/station',
-            bookingUrl: 'https://redbus.in'
-          });
-        }
-
-        transitOptions.push({
-          id: 'cab-main',
-          type: 'taxi',
-          from: 'Transit Point',
-          to: 'Airport/Station',
-          duration: '25-45 min',
-          distance: '15-25 km',
-          cost: '₹300-600',
-          provider: 'Uber/Ola',
-          description: 'Cab to airport/station',
-          bookingUrl: 'https://uber.com'
-        });
-
-        steps.push({
-          id: 'step-2',
-          title: 'From Transit Point',
-          location: 'Metro/Bus Station',
-          options: transitOptions
-        });
-
-        // Step 3: Long Distance Transport
-        const longDistanceOptions: TransportOption[] = [];
-
-        if (segments.some(s => s.toLowerCase().includes('flight'))) {
-          longDistanceOptions.push({
-            id: 'flight-dest',
-            type: 'flight',
-            from: 'Origin Airport',
-            to: 'Destination Airport',
-            duration: '1-3 hours',
-            distance: '500-2000 km',
-            cost: '₹3000-8000',
-            provider: 'Airlines',
-            description: 'Flight to destination',
-            bookingUrl: 'https://makemytrip.com'
-          });
-        }
-
-        if (segments.some(s => s.toLowerCase().includes('train'))) {
-          longDistanceOptions.push({
-            id: 'train-dest',
-            type: 'train',
-            from: 'Origin Station',
-            to: 'Destination Station',
-            duration: '4-15 hours',
-            distance: '200-1500 km',
-            cost: '₹500-2000',
-            provider: 'Indian Railways',
-            description: 'Train to destination',
-            bookingUrl: 'https://irctc.co.in'
-          });
-        }
-
-        if (longDistanceOptions.length > 0) {
-          steps.push({
-            id: 'step-3',
-            title: 'Long Distance Travel',
-            location: 'Airport/Railway Station',
-            options: longDistanceOptions
-          });
-        }
-
-        // Step 4: At Destination
-        steps.push({
-          id: 'step-4',
-          title: 'At Your Destination',
-          location: 'Destination Airport/Station',
-          options: [
-            {
-              id: 'walk-final',
-              type: 'walk',
-              from: 'Airport/Station',
-              to: 'Final Destination',
-              duration: '5-15 min',
-              distance: '0.5-1 km',
-              cost: 'Free',
-              provider: 'Walking',
-              description: 'Walk to final destination',
-              bookingUrl: undefined
-            },
-            {
-              id: 'taxi-final',
-              type: 'taxi',
-              from: 'Airport/Station',
-              to: 'Final Destination',
-              duration: '15-30 min',
-              distance: '5-20 km',
-              cost: '₹200-500',
-              provider: 'Local Taxi/Uber',
-              description: 'Cab to final destination',
-              bookingUrl: 'https://uber.com'
-            },
-            {
-              id: 'bus-final',
-              type: 'bus',
-              from: 'Airport/Station',
-              to: 'City Center',
-              duration: '20-45 min',
-              distance: '10-25 km',
-              cost: '₹30-80',
-              provider: 'Local Bus',
-              description: 'Local bus to city',
-              bookingUrl: undefined
-            }
-          ]
-        });
-      } else {
-        // Short distance journey - no flights/trains needed
-        steps.push({
-          id: 'step-2',
-          title: 'Local Transport Options',
-          location: 'Within City',
-          options: [
-            {
-              id: 'metro-dest',
-              type: 'metro',
-              from: 'Metro Station',
-              to: 'Destination Station',
-              duration: '20-45 min',
-              distance: '10-30 km',
-              cost: '₹40-80',
-              provider: 'Metro Rail',
-              description: 'Metro to destination area',
-              bookingUrl: 'https://paytm.com/metro-card-recharge'
-            },
-            {
-              id: 'bus-dest',
-              type: 'bus',
-              from: 'Bus Stop',
-              to: 'Destination',
-              duration: '30-60 min',
-              distance: '15-40 km',
-              cost: '₹25-60',
-              provider: 'City Bus',
-              description: 'Bus to destination',
-              bookingUrl: 'https://redbus.in'
-            },
-            {
-              id: 'cab-dest',
-              type: 'taxi',
-              from: 'Current Location',
-              to: 'Final Destination',
-              duration: '25-50 min',
-              distance: '15-40 km',
-              cost: '₹300-800',
-              provider: 'Uber/Ola',
-              description: 'Direct cab to destination',
-              bookingUrl: 'https://uber.com'
-            }
-          ]
-        });
-      }
-    }
-
-    return steps;
-  };
-
-  const getStepIcon = (type: TransportOption['type']) => {
-    const iconProps = { className: "h-4 w-4" };
-    
-    switch (type) {
-      case 'walk':
-        return <Footprints {...iconProps} />;
-      case 'bus':
-        return <Bus {...iconProps} />;
-      case 'metro':
-        return <Train {...iconProps} />;
-      case 'train':
-        return <Train {...iconProps} />;
-      case 'flight':
-        return <Plane {...iconProps} />;
-      case 'car':
-        return <Car {...iconProps} />;
-      case 'taxi':
-        return <Car {...iconProps} />;
-      case 'rapido':
-        return <Car {...iconProps} />;
-      case 'auto':
-        return <Car {...iconProps} />;
-      default:
-        return <Navigation {...iconProps} />;
-    }
-  };
-
-  const getStepColor = (type: TransportOption['type']) => {
-    switch (type) {
-      case 'walk':
-        return 'bg-success/10 text-success border-success/20';
-      case 'bus':
-        return 'bg-info/10 text-info border-info/20';
-      case 'metro':
-        return 'bg-primary/10 text-primary border-primary/20';
-      case 'train':
-        return 'bg-primary/15 text-primary border-primary/25';
-      case 'flight':
-        return 'bg-info/15 text-info border-info/25';
-      case 'car':
-      case 'taxi':
-      case 'rapido':
-      case 'auto':
-        return 'bg-warning/10 text-warning border-warning/20';
-      default:
-        return 'bg-secondary text-secondary-foreground border-border';
-    }
-  };
-
-  const journeySteps = createJourneyTree();
-  const currentStep = journeySteps[currentStepIndex];
-
-  const handleOptionSelect = (option: TransportOption) => {
-    const newSelectedOptions = [...selectedOptions, option];
+  const handleOptionSelect = (stepIndex: number, option: TransportOption) => {
+    const newSelectedOptions = [...selectedOptions];
+    newSelectedOptions[stepIndex] = option;
     setSelectedOptions(newSelectedOptions);
-    
-    // Move to next step if available
-    if (currentStepIndex < journeySteps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
-    }
-  };
 
-  const handleReset = () => {
-    setSelectedOptions([]);
-    setCurrentStepIndex(0);
+    // Auto-collapse and expand next
+    setExpandedStepId(null);
+    if (stepIndex < steps.length - 1) {
+      setTimeout(() => setExpandedStepId(steps[stepIndex + 1].id), 300);
+    }
   };
 
   const getTotalCost = () => {
     return selectedOptions.reduce((total, option) => {
+      if (!option) return total;
       const cost = option.cost?.replace(/[₹$€£,]/g, '') || '0';
       return total + (cost === 'Free' ? 0 : parseInt(cost));
     }, 0);
@@ -440,202 +82,143 @@ const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
   const getTotalDuration = () => {
     let totalMinutes = 0;
     selectedOptions.forEach(option => {
+      if (!option) return;
       const duration = option.duration;
-      if (duration.includes('hour')) {
-        const hours = parseInt(duration.match(/(\d+)h/)?.[1] || '0');
-        const minutes = parseInt(duration.match(/(\d+)min/)?.[1] || '0');
+      if (duration.includes('hour') || duration.includes('h')) {
+        const hours = parseInt(duration.match(/(\d+)\s*h/)?.[1] || '0');
+        const minutes = parseInt(duration.match(/(\d+)\s*m/)?.[1] || '0');
         totalMinutes += hours * 60 + minutes;
       } else if (duration.includes('min')) {
         totalMinutes += parseInt(duration.match(/(\d+)/)?.[1] || '0');
       }
     });
-    
+
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   };
 
-  return (
-    <div className="w-full space-y-6">
-      {/* Progress Header */}
-      <Card className="bg-gradient-accent text-primary-foreground">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-lg">
-                {journeyType === 'outbound' ? '🚀 Plan Your Journey' : '🏠 Plan Return Journey'}
-              </h3>
-              <p className="text-primary-foreground/80 text-sm">
-                Choose your preferred transport at each step
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-primary-foreground/80">Step {currentStepIndex + 1} of {journeySteps.length}</p>
-              <div className="flex gap-1 mt-1">
-                {journeySteps.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`h-2 w-8 rounded ${
-                      index <= currentStepIndex ? 'bg-primary-foreground' : 'bg-primary-foreground/30'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  useEffect(() => {
+    if (onSummaryUpdate) {
+      onSummaryUpdate({
+        duration: getTotalDuration(),
+        cost: getTotalCost(),
+        modes: selectedOptions.filter(Boolean).length,
+      });
+    }
+  }, [selectedOptions, onSummaryUpdate]);
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Current Step Options */}
-        <div className="lg:col-span-2">
-          {currentStep && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  {currentStep.title}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Choose how you want to travel from {currentStep.location}
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {currentStep.options.map((option) => (
-                  <Card
-                    key={option.id}
-                    className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 border-2 interactive-hover"
-                    onClick={() => handleOptionSelect(option)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-full ${getStepColor(option.type)}`}>
-                            {getStepIcon(option.type)}
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-sm">{option.description}</h4>
-                            <p className="text-xs text-muted-foreground">{option.provider}</p>
-                            <p className="text-xs text-muted-foreground/70">
-                              {option.from} → {option.to}
-                            </p>
-                          </div>
+  const getStepIcon = (type: string) => {
+    const props = { className: "h-4 w-4" };
+    switch (type) {
+      case 'walk': return <Footprints {...props} />;
+      case 'bus': return <Bus {...props} />;
+      case 'metro': case 'train': return <Train {...props} />;
+      case 'flight': return <Plane {...props} />;
+      case 'car': case 'taxi': case 'auto': return <Car {...props} />;
+      case 'rapido': return <Bike {...props} />;
+      default: return <Navigation {...props} />;
+    }
+  };
+
+  if (!steps.length) return null;
+
+  return (
+    <div className="space-y-3">
+      {/* Compact Timeline */}
+      <div className="relative border-l-2 border-primary/20 ml-2 space-y-4 py-2">
+        {steps.map((step, index) => {
+          const isSelected = !!selectedOptions[index];
+          const selectedOption = selectedOptions[index];
+          const isExpanded = expandedStepId === step.id;
+
+          return (
+            <div key={step.id} className="pl-6 relative">
+              {/* Step Marker */}
+              <div
+                className={`absolute -left-[9px] top-3 w-4 h-4 rounded-full border-2 transition-colors ${isSelected ? 'bg-primary border-primary' : 'bg-background border-muted-foreground'
+                  }`}
+              />
+
+              {/* Step Card */}
+              <div className="bg-card rounded-lg border shadow-sm transition-all hover:shadow-md">
+                {/* Header (Always Visible) */}
+                <div
+                  className="p-3 flex items-center justify-between cursor-pointer"
+                  onClick={() => setExpandedStepId(isExpanded ? null : step.id)}
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm truncate">{step.title}</h4>
+                      {isSelected ? (
+                        <div className="flex items-center gap-2 text-xs text-primary font-medium">
+                          {getStepIcon(selectedOption.type)}
+                          <span>{selectedOption.provider}</span>
+                          <span>•</span>
+                          <span>{selectedOption.duration}</span>
                         </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-xs">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {option.duration}
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {option.cost}
-                            </Badge>
+                      ) : (
+                        <p className="text-xs text-muted-foreground truncate">Select transport option...</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex-shrink-0 ml-2">
+                    {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                  </div>
+                </div>
+
+                {/* Options (Collapsible) */}
+                {isExpanded && (
+                  <div className="p-3 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in slide-in-from-top-2 duration-200">
+                    {step.options.map((option) => (
+                      <div
+                        key={option.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOptionSelect(index, option);
+                        }}
+                        className={`cursor-pointer p-2 rounded-md border flex items-center gap-3 transition-colors ${selectedOptions[index]?.id === option.id
+                            ? 'bg-primary/5 border-primary ring-1 ring-primary/50'
+                            : 'hover:bg-muted/50 border-input'
+                          }`}
+                      >
+                        <div className="p-1.5 rounded bg-muted/50 text-foreground/70">
+                          {getStepIcon(option.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-xs text-foreground/90">{option.description}</span>
+                            <span className="font-bold text-xs">{option.cost}</span>
                           </div>
-                          <p className="text-xs text-muted-foreground">{option.distance}</p>
+                          <div className="flex justify-between items-center mt-0.5">
+                            <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{option.provider}</span>
+                            <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">{option.duration}</span>
+                          </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Journey Complete */}
-          {currentStepIndex >= journeySteps.length && (
-            <Card className="bg-success/10 border-success/20">
-              <CardContent className="p-6 text-center">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-success" />
-                <h3 className="text-lg font-semibold text-success mb-2">Journey Planned!</h3>
-                <p className="text-sm text-success/80 mb-4">
-                  Your complete door-to-door journey is ready to book
-                </p>
-                <div className="flex gap-2 justify-center">
-                  <Button onClick={handleReset} variant="outline" size="sm">
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Plan Again
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Right: Selected Journey Summary */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle className="text-lg">Your Journey</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Selected Options */}
-              <div className="space-y-2">
-                {selectedOptions.map((option, index) => (
-                  <div key={index} className="flex items-center gap-3 p-2 bg-muted rounded-lg">
-                    <div className={`p-1 rounded ${getStepColor(option.type)}`}>
-                      {getStepIcon(option.type)}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{option.description}</p>
-                      <p className="text-xs text-muted-foreground">{option.duration} • {option.cost}</p>
-                    </div>
+                    ))}
                   </div>
-                ))}
-                
-                {selectedOptions.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Select transport options to build your journey
-                  </p>
                 )}
               </div>
-
-              {/* Journey Summary */}
-              {selectedOptions.length > 0 && (
-                <div className="border-t pt-4">
-                  <h4 className="font-medium text-sm mb-2">Journey Summary</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Total Duration:</span>
-                      <span className="font-medium">{getTotalDuration()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Total Cost:</span>
-                      <span className="font-medium">₹{getTotalCost().toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Transport Modes:</span>
-                      <span className="font-medium">{selectedOptions.length}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Booking Actions */}
-              {selectedOptions.length > 0 && (
-                <div className="border-t pt-4 space-y-2">
-                  <h4 className="font-medium text-sm mb-2">Quick Actions</h4>
-                  {selectedOptions.map((option, index) => (
-                    option.bookingUrl && (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start"
-                        asChild
-                      >
-                        <a href={option.bookingUrl} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-3 w-3 mr-2" />
-                          Book {option.provider}
-                        </a>
-                      </Button>
-                    )
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Total Summary (Compact) */}
+      {selectedOptions.length > 0 && (
+        <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg text-sm border border-primary/20">
+          <span className="font-medium">Total Estimated</span>
+          <div className="flex gap-3">
+            <span className="font-bold">{getTotalDuration()}</span>
+            <span className="font-bold text-primary">₹{getTotalCost().toLocaleString()}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

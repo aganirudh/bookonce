@@ -1,6 +1,6 @@
 /**
  * Analytics Service
- * 
+ *
  * Tracks booking funnel events and user interactions throughout the booking process.
  * Provides a centralized interface for analytics tracking across the application.
  */
@@ -184,7 +184,6 @@ class AnalyticsService {
   private sendToProvider(eventData: { event: string; data: any; timestamp: number }): void {
     // In production, this would send to analytics providers
     // Example: Google Analytics, Mixpanel, Segment, etc.
-    
     // For now, we'll just store it locally
     // In a real implementation, you would do something like:
     // window.gtag?.('event', eventData.event, eventData.data);

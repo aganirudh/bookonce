@@ -1,13 +1,16 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Calendar, Users, Search, Navigation2, Loader2 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
-import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Calendar, Users, Search, Navigation2, Loader2, Compass, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { format, addDays, isBefore, startOfDay } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface JourneySearchCardProps {
   onExplore: (params: JourneySearchParams) => void;
+  initialDestination?: string;
+  initialDestinationName?: string;
 }
 
 export interface JourneySearchParams {
@@ -19,27 +22,34 @@ export interface JourneySearchParams {
 }
 
 const POPULAR_DESTINATIONS = [
-  "Mumbai, Maharashtra",
-  "Goa, India",
-  "Delhi, India",
-  "Bangalore, Karnataka",
-  "Jaipur, Rajasthan",
-  "Udaipur, Rajasthan",
-  "Kerala, India",
-  "Manali, Himachal Pradesh",
-  "Rishikesh, Uttarakhand",
-  "Varanasi, Uttar Pradesh"
+  'Mumbai, Maharashtra',
+  'Goa, India',
+  'Delhi, India',
+  'Bangalore, Karnataka',
+  'Jaipur, Rajasthan',
+  'Udaipur, Rajasthan',
+  'Kerala, India',
+  'Manali, Himachal Pradesh',
+  'Rishikesh, Uttarakhand',
+  'Varanasi, Uttar Pradesh',
 ];
 
-const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
-  const [source, setSource] = useState("");
-  const [destination, setDestination] = useState("");
+const JourneySearchCard = ({
+  onExplore,
+  initialDestination,
+  initialDestinationName,
+}: JourneySearchCardProps) => {
+  const navigate = useNavigate();
+  const [source, setSource] = useState('');
+  const [destination, setDestination] = useState('');
   const [departureDate, setDepartureDate] = useState<Date | null>(null);
   const [returnDate, setReturnDate] = useState<Date | null>(null);
   const [guests, setGuests] = useState(2);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  
+  const [tripType, setTripType] = useState<'round-trip' | 'one-way'>('round-trip');
+  const [showExploreSuggestion, setShowExploreSuggestion] = useState(true);
+
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showSourceSuggestions, setShowSourceSuggestions] = useState(false);
   const [showDestSuggestions, setShowDestSuggestions] = useState(false);
@@ -49,11 +59,21 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
   const [destSuggestions, setDestSuggestions] = useState<string[]>([]);
   const [tempDepartureDate, setTempDepartureDate] = useState<Date | null>(null);
   const [tempReturnDate, setTempReturnDate] = useState<Date | null>(null);
-  
+  const [tempTripType, setTempTripType] = useState<'round-trip' | 'one-way'>('round-trip');
+
   const sourceRef = useRef<HTMLDivElement>(null);
   const destRef = useRef<HTMLDivElement>(null);
   const guestRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
+  const [sourceDropdownPos, setSourceDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const [destDropdownPos, setDestDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+
+  // Set initial destination from props
+  useEffect(() => {
+    if (initialDestination) {
+      setDestination(initialDestinationName || initialDestination);
+    }
+  }, [initialDestination, initialDestinationName]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -75,23 +95,45 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [focusedField]);
+
+  // Update dropdown positions on scroll/resize
+  useEffect(() => {
+    const updatePositions = () => {
+      if (showSourceSuggestions && sourceRef.current) {
+        const rect = sourceRef.current.getBoundingClientRect();
+        setSourceDropdownPos({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+      }
+      if (showDestSuggestions && destRef.current) {
+        const rect = destRef.current.getBoundingClientRect();
+        setDestDropdownPos({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+      }
+    };
+
+    window.addEventListener('scroll', updatePositions, true);
+    window.addEventListener('resize', updatePositions);
+    return () => {
+      window.removeEventListener('scroll', updatePositions, true);
+      window.removeEventListener('resize', updatePositions);
+    };
+  }, [showSourceSuggestions, showDestSuggestions]);
 
   useEffect(() => {
     setTempDepartureDate(departureDate);
     setTempReturnDate(returnDate);
-  }, [departureDate, returnDate]);
+    setTempTripType(tripType);
+  }, [departureDate, returnDate, tripType]);
 
   const handleDetectLocation = async () => {
     setIsLoadingLocation(true);
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        async position => {
           const { latitude, longitude } = position.coords;
-          
+
           try {
             const cityName = await getCityFromCoords(latitude, longitude);
             setSource(cityName);
@@ -101,30 +143,28 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
           }
           setIsLoadingLocation(false);
         },
-        (error) => {
-          console.error("Error getting location:", error);
-          alert("Unable to detect location. Please enter manually.");
+        error => {
+          console.error('Error getting location:', error);
+          alert('Unable to detect location. Please enter manually.');
           setIsLoadingLocation(false);
         }
       );
     } else {
-      alert("Geolocation is not supported by your browser");
+      alert('Geolocation is not supported by your browser');
       setIsLoadingLocation(false);
     }
   };
 
   const getCityFromCoords = async (lat: number, lng: number): Promise<string> => {
     const cities = [
-      { name: "Mumbai, Maharashtra", lat: 19.0760, lng: 72.8777, radius: 0.5 },
-      { name: "Delhi, India", lat: 28.7041, lng: 77.1025, radius: 0.5 },
-      { name: "Bangalore, Karnataka", lat: 12.9716, lng: 77.5946, radius: 0.5 },
-      { name: "Goa, India", lat: 15.2993, lng: 74.1240, radius: 0.5 },
+      { name: 'Mumbai, Maharashtra', lat: 19.076, lng: 72.8777, radius: 0.5 },
+      { name: 'Delhi, India', lat: 28.7041, lng: 77.1025, radius: 0.5 },
+      { name: 'Bangalore, Karnataka', lat: 12.9716, lng: 77.5946, radius: 0.5 },
+      { name: 'Goa, India', lat: 15.2993, lng: 74.124, radius: 0.5 },
     ];
 
     for (const city of cities) {
-      const distance = Math.sqrt(
-        Math.pow(lat - city.lat, 2) + Math.pow(lng - city.lng, 2)
-      );
+      const distance = Math.sqrt(Math.pow(lat - city.lat, 2) + Math.pow(lng - city.lng, 2));
       if (distance < city.radius) {
         return city.name;
       }
@@ -138,65 +178,69 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
 
   const fetchCitySuggestions = async (query: string): Promise<string[]> => {
     if (query.length < 2) return [];
-    
+
     try {
       // Using Nominatim (OpenStreetMap) - completely free, no API key needed
       // Removed featuretype=city to allow ANY location worldwide (cities, addresses, landmarks, etc.)
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?` +
-        `q=${encodeURIComponent(query)}&` +
-        `format=json&` +
-        `addressdetails=1&` +
-        `limit=5`,
+          `q=${encodeURIComponent(query)}&` +
+          `format=json&` +
+          `addressdetails=1&` +
+          `limit=5`,
         {
           headers: {
-            'User-Agent': 'VagabondApp/1.0' // Required by Nominatim
-          }
+            'User-Agent': 'BookOnceApp/1.0', // Required by Nominatim
+          },
         }
       );
-      
+
       if (!response.ok) {
         // Fallback to local suggestions if API fails
         return POPULAR_DESTINATIONS.filter(dest =>
           dest.toLowerCase().includes(query.toLowerCase())
         ).slice(0, 5);
       }
-      
+
       const data = await response.json();
-      
+
       // Format results to show full location details
       const formatted = data
         .map((place: any) => {
           // Build location string from most specific to least specific
           const parts = [];
-          
+
           // Add specific location (building, attraction, etc.)
-          if (place.name && place.name !== place.address?.city && place.name !== place.address?.country) {
+          if (
+            place.name &&
+            place.name !== place.address?.city &&
+            place.name !== place.address?.country
+          ) {
             parts.push(place.name);
           }
-          
+
           // Add city/town/village
           if (place.address?.city) parts.push(place.address.city);
           else if (place.address?.town) parts.push(place.address.town);
           else if (place.address?.village) parts.push(place.address.village);
-          
+
           // Add state/region if available
           if (place.address?.state) parts.push(place.address.state);
-          
+
           // Always add country
           if (place.address?.country) parts.push(place.address.country);
-          
+
           // If no parts, use display_name
           if (parts.length === 0) {
             return place.display_name.split(',').slice(0, 3).join(',');
           }
-          
+
           return parts.join(', ');
         })
-        .filter((value: string, index: number, self: string[]) => 
-          self.indexOf(value) === index // Remove duplicates
+        .filter(
+          (value: string, index: number, self: string[]) => self.indexOf(value) === index // Remove duplicates
         );
-      
+
       return formatted.slice(0, 5);
     } catch (error) {
       console.error('Error fetching locations:', error);
@@ -209,15 +253,16 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
 
   const handleSourceChange = (value: string) => {
     setSource(value);
-    
+
     if (value.length >= 2) {
       setShowSourceSuggestions(true);
-      
+      setShowExploreSuggestion(false);
+
       // Clear previous timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-      
+
       // Set new timer for debounced API call
       debounceTimerRef.current = setTimeout(async () => {
         const suggestions = await fetchCitySuggestions(value);
@@ -226,22 +271,24 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
     } else if (value.length === 0) {
       setSourceSuggestions(POPULAR_DESTINATIONS);
       setShowSourceSuggestions(false);
+      setShowExploreSuggestion(true);
     } else {
       setShowSourceSuggestions(false);
+      setShowExploreSuggestion(false);
     }
   };
 
   const handleDestChange = (value: string) => {
     setDestination(value);
-    
+
     if (value.length >= 2) {
       setShowDestSuggestions(true);
-      
+
       // Clear previous timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-      
+
       // Set new timer for debounced API call
       debounceTimerRef.current = setTimeout(async () => {
         const suggestions = await fetchCitySuggestions(value);
@@ -261,6 +308,10 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
     }
     setShowSourceSuggestions(true);
     setFocusedField('source');
+    if (sourceRef.current) {
+      const rect = sourceRef.current.getBoundingClientRect();
+      setSourceDropdownPos({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+    }
   };
 
   const handleDestFocus = () => {
@@ -269,11 +320,16 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
     }
     setShowDestSuggestions(true);
     setFocusedField('destination');
+    if (destRef.current) {
+      const rect = destRef.current.getBoundingClientRect();
+      setDestDropdownPos({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+    }
   };
 
   const selectSourceSuggestion = (suggestion: string) => {
     setSource(suggestion);
     setShowSourceSuggestions(false);
+    setShowExploreSuggestion(false);
     setFocusedField(null);
   };
 
@@ -284,43 +340,61 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
   };
 
   const handleExplore = () => {
-    if (!source || !destination || !departureDate || !returnDate) {
-      alert("Please fill in all required fields");
+    if (!source || !destination || !departureDate) {
+      alert('Please fill in source, destination, and departure date');
+      return;
+    }
+
+    if (tripType === 'round-trip' && !returnDate) {
+      alert('Please select a return date for round-trip');
       return;
     }
 
     setIsSearching(true);
-    
+
     setTimeout(() => {
       onExplore({
         source,
         destination,
         departureDate: departureDate.toISOString().split('T')[0],
-        returnDate: returnDate.toISOString().split('T')[0],
-        guests
+        returnDate: returnDate ? returnDate.toISOString().split('T')[0] : '',
+        guests,
       });
       setIsSearching(false);
     }, 1000);
   };
 
   const formatDateDisplay = () => {
-    if (!departureDate) return "Add dates";
-    if (!returnDate) return format(departureDate, 'MMM dd');
-    
-    const nights = Math.ceil((returnDate.getTime() - departureDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (!departureDate) return 'Add dates';
+    if (tripType === 'one-way' || !returnDate) return format(departureDate, 'MMM dd');
+
+    const nights = Math.ceil(
+      (returnDate.getTime() - departureDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
     return `${format(departureDate, 'MMM dd')} - ${format(returnDate, 'MMM dd')} (${nights}n)`;
   };
 
   const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (!range) return;
     setTempDepartureDate(range.from || null);
-    setTempReturnDate(range.to || null);
+    if (tempTripType === 'round-trip') {
+      setTempReturnDate(range.to || null);
+    }
   };
 
   const handleApplyDates = () => {
-    if (tempDepartureDate && tempReturnDate) {
+    if (!tempDepartureDate) return;
+
+    if (tempTripType === 'one-way') {
+      setDepartureDate(tempDepartureDate);
+      setReturnDate(null);
+      setTripType('one-way');
+      setShowDatePicker(false);
+      setFocusedField(null);
+    } else if (tempDepartureDate && tempReturnDate) {
       setDepartureDate(tempDepartureDate);
       setReturnDate(tempReturnDate);
+      setTripType('round-trip');
       setShowDatePicker(false);
       setFocusedField(null);
     }
@@ -347,12 +421,51 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-6xl mx-auto"
+      className="w-full max-w-6xl mx-auto relative z-50"
     >
       {/* Compact Horizontal Search Bar */}
-      <div className="bg-white rounded-full shadow-2xl p-2 flex items-center gap-2">
+      <div className="bg-white rounded-full shadow-2xl p-2 flex items-center gap-2 relative">
         {/* Source */}
-        <div ref={sourceRef} className="relative flex-1">
+        <div ref={sourceRef} className="relative flex-1 overflow-visible">
+          {/* Cute Explore Suggestion Tooltip */}
+          <AnimatePresence>
+            {showExploreSuggestion && source.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                transition={{ duration: 0.3, type: 'spring', bounce: 0.3 }}
+                className="absolute -top-16 left-0 z-50"
+              >
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-2xl shadow-xl relative">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Compass className="w-4 h-4" />
+                    <span>Don't know where to go?</span>
+                    <Button
+                      onClick={() => {
+                        navigate('/stays');
+                        setShowExploreSuggestion(false);
+                      }}
+                      size="sm"
+                      variant="secondary"
+                      className="h-6 px-2 text-xs bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    >
+                      Explore Places
+                    </Button>
+                    <button
+                      onClick={() => setShowExploreSuggestion(false)}
+                      className="ml-1 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  {/* Arrow pointing down */}
+                  <div className="absolute -bottom-1 left-8 w-2 h-2 bg-gradient-to-br from-purple-500 to-pink-500 rotate-45"></div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <motion.div
             animate={{
               scale: focusedField === 'source' ? 1.02 : 1,
@@ -372,14 +485,14 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                 type="text"
                 placeholder="Source"
                 value={source}
-                onChange={(e) => handleSourceChange(e.target.value)}
+                onChange={e => handleSourceChange(e.target.value)}
                 onFocus={handleSourceFocus}
                 className="w-full bg-transparent border-none outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:ring-0"
                 style={{ boxShadow: 'none' }}
               />
             </div>
           </motion.div>
-          
+
           <AnimatePresence>
             {showSourceSuggestions && sourceSuggestions.length > 0 && (
               <motion.div
@@ -387,8 +500,13 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
-                style={{ zIndex: 9999 }}
+                className="fixed bg-white rounded-xl shadow-xl border border-gray-200 overflow-y-auto overflow-x-hidden max-h-96 z-[9999]"
+                style={{ 
+                  top: `${sourceDropdownPos.top}px`, 
+                  left: `${sourceDropdownPos.left}px`, 
+                  width: `${sourceDropdownPos.width}px`,
+                  zIndex: 9999 
+                }}
               >
                 <button
                   onClick={handleDetectLocation}
@@ -402,12 +520,12 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                   )}
                   <div>
                     <div className="font-semibold text-blue-600 text-sm">
-                      {isLoadingLocation ? "Detecting..." : "Detect my location"}
+                      {isLoadingLocation ? 'Detecting...' : 'Detect my location'}
                     </div>
                     <div className="text-xs text-gray-500">Use current GPS location</div>
                   </div>
                 </button>
-                
+
                 {sourceSuggestions.map((suggestion, index) => (
                   <button
                     key={index}
@@ -426,7 +544,7 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
         <div className="w-px h-12 bg-gray-200" />
 
         {/* Destination */}
-        <div ref={destRef} className="relative flex-1">
+        <div ref={destRef} className="relative flex-1 overflow-visible">
           <motion.div
             animate={{
               scale: focusedField === 'destination' ? 1.02 : 1,
@@ -446,14 +564,14 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                 type="text"
                 placeholder="Destination"
                 value={destination}
-                onChange={(e) => handleDestChange(e.target.value)}
+                onChange={e => handleDestChange(e.target.value)}
                 onFocus={handleDestFocus}
                 className="w-full bg-transparent border-none outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:ring-0"
                 style={{ boxShadow: 'none' }}
               />
             </div>
           </motion.div>
-          
+
           <AnimatePresence>
             {showDestSuggestions && destSuggestions.length > 0 && (
               <motion.div
@@ -461,8 +579,13 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
-                style={{ zIndex: 9999 }}
+                className="fixed bg-white rounded-xl shadow-xl border border-gray-200 overflow-y-auto overflow-x-hidden max-h-96 z-[9999]"
+                style={{ 
+                  top: `${destDropdownPos.top}px`, 
+                  left: `${destDropdownPos.left}px`, 
+                  width: `${destDropdownPos.width}px`,
+                  zIndex: 9999 
+                }}
               >
                 {destSuggestions.map((suggestion, index) => (
                   <button
@@ -498,9 +621,7 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
             <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0" />
             <div className="min-w-0">
               <div className="text-xs font-semibold text-gray-500 mb-0.5">Dates</div>
-              <div className="text-sm font-medium text-gray-900">
-                {formatDateDisplay()}
-              </div>
+              <div className="text-sm font-medium text-gray-900">{formatDateDisplay()}</div>
             </div>
           </motion.div>
 
@@ -518,24 +639,80 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                   <div className="space-y-1">
                     <h4 className="font-medium text-xs">Select your travel dates</h4>
                     <p className="text-[10px] text-gray-500">
-                      {!tempDepartureDate && 'Choose your departure date'}
-                      {tempDepartureDate && !tempReturnDate && 'Choose your return date'}
-                      {tempDepartureDate && tempReturnDate && `${Math.ceil((tempReturnDate.getTime() - tempDepartureDate.getTime()) / (1000 * 60 * 60 * 24))} days selected`}
+                      {tempTripType === 'one-way' &&
+                        !tempDepartureDate &&
+                        'Choose your departure date'}
+                      {tempTripType === 'round-trip' &&
+                        !tempDepartureDate &&
+                        'Choose your departure date'}
+                      {tempTripType === 'round-trip' &&
+                        tempDepartureDate &&
+                        !tempReturnDate &&
+                        'Choose your return date'}
+                      {tempTripType === 'round-trip' &&
+                        tempDepartureDate &&
+                        tempReturnDate &&
+                        `${Math.ceil((tempReturnDate.getTime() - tempDepartureDate.getTime()) / (1000 * 60 * 60 * 24))} days selected`}
+                      {tempTripType === 'one-way' && tempDepartureDate && 'One-way trip selected'}
                     </p>
                   </div>
 
-                  <CalendarComponent
-                    mode="range"
-                    selected={{
-                      from: tempDepartureDate || undefined,
-                      to: tempReturnDate || undefined,
-                    }}
-                    onSelect={handleDateSelect}
-                    disabled={isDateDisabled}
-                    initialFocus
-                    numberOfMonths={1}
-                    className="rounded-md border scale-90 origin-top"
-                  />
+                  {/* Trip Type Selector */}
+                  <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+                    <button
+                      onClick={() => {
+                        setTempTripType('round-trip');
+                        if (tempDepartureDate && !tempReturnDate) {
+                          setTempReturnDate(addDays(tempDepartureDate, 3));
+                        }
+                      }}
+                      className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                        tempTripType === 'round-trip'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Round-trip
+                    </button>
+                    <button
+                      onClick={() => {
+                        setTempTripType('one-way');
+                        setTempReturnDate(null);
+                      }}
+                      className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                        tempTripType === 'one-way'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      One-way
+                    </button>
+                  </div>
+
+                  {tempTripType === 'one-way' ? (
+                    <CalendarComponent
+                      mode="single"
+                      selected={tempDepartureDate || undefined}
+                      onSelect={date => setTempDepartureDate(date || null)}
+                      disabled={isDateDisabled}
+                      initialFocus
+                      numberOfMonths={1}
+                      className="rounded-md border scale-90 origin-top"
+                    />
+                  ) : (
+                    <CalendarComponent
+                      mode="range"
+                      selected={{
+                        from: tempDepartureDate || undefined,
+                        to: tempReturnDate || undefined,
+                      }}
+                      onSelect={handleDateSelect}
+                      disabled={isDateDisabled}
+                      initialFocus
+                      numberOfMonths={1}
+                      className="rounded-md border scale-90 origin-top"
+                    />
+                  )}
 
                   <div className="flex gap-2">
                     <Button
@@ -545,6 +722,7 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                       onClick={() => {
                         setTempDepartureDate(departureDate);
                         setTempReturnDate(returnDate);
+                        setTempTripType(tripType);
                         setShowDatePicker(false);
                         setFocusedField(null);
                       }}
@@ -555,7 +733,9 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
                       size="sm"
                       className="flex-1 h-8 text-xs"
                       onClick={handleApplyDates}
-                      disabled={!tempDepartureDate || !tempReturnDate}
+                      disabled={
+                        !tempDepartureDate || (tempTripType === 'round-trip' && !tempReturnDate)
+                      }
                     >
                       Apply
                     </Button>
@@ -641,15 +821,6 @@ const JourneySearchCard = ({ onExplore }: JourneySearchCardProps) => {
         </motion.button>
       </div>
 
-      {/* Info Text */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-center text-sm text-white/80 mt-4"
-      >
-        ✨ Complete door-to-door journey planning • AI-powered routing • Real-time updates
-      </motion.p>
     </motion.div>
   );
 };

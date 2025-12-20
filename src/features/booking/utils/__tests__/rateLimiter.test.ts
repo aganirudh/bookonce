@@ -204,7 +204,7 @@ describe('enforceRateLimit', () => {
 describe('Pre-configured rate limiters', () => {
   it('should have correct configuration for availability limiter', () => {
     const userId = 'user1';
-    
+
     // Should allow 20 requests
     for (let i = 0; i < 20; i++) {
       const result = availabilityRateLimiter.check(userId);
@@ -221,7 +221,7 @@ describe('Pre-configured rate limiters', () => {
 
   it('should have correct configuration for booking limiter', () => {
     const userId = 'user2';
-    
+
     // Should allow 5 requests
     for (let i = 0; i < 5; i++) {
       const result = bookingRateLimiter.check(userId);

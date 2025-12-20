@@ -25,9 +25,7 @@ interface UseAvailabilityReturn {
  * Hook for checking hotel availability with debouncing and caching
  * Automatically debounces requests and uses cached results when available
  */
-export function useAvailability(
-  options: UseAvailabilityOptions = {}
-): UseAvailabilityReturn {
+export function useAvailability(options: UseAvailabilityOptions = {}): UseAvailabilityReturn {
   const { debounceMs = 500, enabled = true } = options;
 
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
@@ -61,36 +59,42 @@ export function useAvailability(
           abortControllerRef.current = new AbortController();
 
           const result = await bookingAPIService.checkAvailability(params);
-          
+
           setAvailability(result);
           setError(null);
 
           // Prefetch likely next dates (next day, next week)
           const checkIn = new Date(params.checkInDate);
           const checkOut = new Date(params.checkOutDate);
-          const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+          const nights = Math.ceil(
+            (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+          );
 
           // Prefetch next day
           const nextCheckIn = addDays(checkIn, 1);
           const nextCheckOut = addDays(nextCheckIn, nights);
-          bookingAPIService.prefetchAvailability(
-            params.hotelId,
-            format(nextCheckIn, 'yyyy-MM-dd'),
-            format(nextCheckOut, 'yyyy-MM-dd')
-          ).catch(() => {
-            // Ignore prefetch errors
-          });
+          bookingAPIService
+            .prefetchAvailability(
+              params.hotelId,
+              format(nextCheckIn, 'yyyy-MM-dd'),
+              format(nextCheckOut, 'yyyy-MM-dd')
+            )
+            .catch(() => {
+              // Ignore prefetch errors
+            });
 
           // Prefetch next week
           const weekCheckIn = addDays(checkIn, 7);
           const weekCheckOut = addDays(weekCheckIn, nights);
-          bookingAPIService.prefetchAvailability(
-            params.hotelId,
-            format(weekCheckIn, 'yyyy-MM-dd'),
-            format(weekCheckOut, 'yyyy-MM-dd')
-          ).catch(() => {
-            // Ignore prefetch errors
-          });
+          bookingAPIService
+            .prefetchAvailability(
+              params.hotelId,
+              format(weekCheckIn, 'yyyy-MM-dd'),
+              format(weekCheckOut, 'yyyy-MM-dd')
+            )
+            .catch(() => {
+              // Ignore prefetch errors
+            });
         } catch (err) {
           if (err instanceof Error) {
             // Don't set error if request was aborted

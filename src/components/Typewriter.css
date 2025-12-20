@@ -1,0 +1,37 @@
+.typewriter {
+  display: inline-block;
+  white-space: nowrap;
+}
+.typewriter-text {
+  display: inline-block;
+}
+.typewriter-cursor {
+  display: inline-block;
+  margin-left: 0.5rem;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  border-radius: 1px;
+  vertical-align: middle;
+  animation: type-cursor 1s steps(1) infinite;
+  opacity: 0.95;
+}
+
+@keyframes type-cursor {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .typewriter-cursor {
+    animation: none;
+  }
+}

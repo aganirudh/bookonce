@@ -66,10 +66,26 @@ describe('ErrorLoggingService', () => {
 
   describe('Error Statistics', () => {
     it('should calculate error statistics', () => {
-      errorLoggingService.logError(new Error('Error 1'), { component: 'ComponentA', step: 'step1' }, 'low');
-      errorLoggingService.logError(new Error('Error 2'), { component: 'ComponentA', step: 'step2' }, 'medium');
-      errorLoggingService.logError(new Error('Error 3'), { component: 'ComponentB', step: 'step1' }, 'high');
-      errorLoggingService.logError(new Error('Error 4'), { component: 'ComponentB', step: 'step1' }, 'critical');
+      errorLoggingService.logError(
+        new Error('Error 1'),
+        { component: 'ComponentA', step: 'step1' },
+        'low'
+      );
+      errorLoggingService.logError(
+        new Error('Error 2'),
+        { component: 'ComponentA', step: 'step2' },
+        'medium'
+      );
+      errorLoggingService.logError(
+        new Error('Error 3'),
+        { component: 'ComponentB', step: 'step1' },
+        'high'
+      );
+      errorLoggingService.logError(
+        new Error('Error 4'),
+        { component: 'ComponentB', step: 'step1' },
+        'critical'
+      );
 
       const stats = errorLoggingService.getErrorStats();
       expect(stats.total).toBe(4);
@@ -110,7 +126,7 @@ describe('ErrorLoggingService', () => {
     it('should resume logging when re-enabled', () => {
       errorLoggingService.setEnabled(false);
       errorLoggingService.logError(new Error('Error 1'), { component: 'Test' }, 'medium');
-      
+
       errorLoggingService.setEnabled(true);
       errorLoggingService.logError(new Error('Error 2'), { component: 'Test' }, 'medium');
 
@@ -132,9 +148,9 @@ describe('ErrorLoggingService', () => {
     it('should clear all errors', () => {
       errorLoggingService.logError(new Error('Error 1'), { component: 'Test' }, 'medium');
       errorLoggingService.logError(new Error('Error 2'), { component: 'Test' }, 'high');
-      
+
       expect(errorLoggingService.getErrors()).toHaveLength(2);
-      
+
       errorLoggingService.clearErrors();
       expect(errorLoggingService.getErrors()).toHaveLength(0);
     });
@@ -152,7 +168,11 @@ describe('ErrorLoggingService', () => {
     });
 
     it('should capture message', () => {
-      errorLoggingService.captureMessage('Something went wrong', { component: 'TestComponent' }, 'low');
+      errorLoggingService.captureMessage(
+        'Something went wrong',
+        { component: 'TestComponent' },
+        'low'
+      );
 
       const errors = errorLoggingService.getErrors();
       expect(errors).toHaveLength(1);

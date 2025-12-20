@@ -9,13 +9,13 @@
 export const PAYMENT_SECURITY_CONFIG = {
   // Minimum transaction amount for 3D Secure (in cents)
   THREE_D_SECURE_THRESHOLD: 50000, // $500
-  
+
   // HTTPS enforcement
   REQUIRE_HTTPS: true,
-  
+
   // Token expiration time (in milliseconds)
   TOKEN_EXPIRATION: 15 * 60 * 1000, // 15 minutes
-  
+
   // Maximum saved payment methods per user
   MAX_SAVED_METHODS: 5,
 } as const;
@@ -28,14 +28,14 @@ export function isSecureConnection(): boolean {
   if (typeof window === 'undefined') {
     return true; // Server-side is considered secure
   }
-  
+
   // Check if running on HTTPS
   const isHttps = window.location.protocol === 'https:';
-  
+
   // Allow localhost for development
-  const isLocalhost = window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1';
-  
+  const isLocalhost =
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
   return isHttps || (isLocalhost && process.env.NODE_ENV === 'development');
 }
 
@@ -47,7 +47,7 @@ export function enforceSecureConnection(): void {
   if (PAYMENT_SECURITY_CONFIG.REQUIRE_HTTPS && !isSecureConnection()) {
     throw new Error(
       'Payment operations require a secure HTTPS connection. ' +
-      'Please ensure your site is served over HTTPS.'
+        'Please ensure your site is served over HTTPS.'
     );
   }
 }
@@ -71,7 +71,7 @@ export function maskCardNumber(cardNumber: string): string {
   if (!cardNumber || cardNumber.length < 4) {
     return '****';
   }
-  
+
   const last4 = cardNumber.slice(-4);
   return `**** **** **** ${last4}`;
 }
@@ -85,9 +85,9 @@ export function maskCardNumber(cardNumber: string): string {
 export function validateNoCardNumbers(data: any): boolean {
   const cardNumberPattern = /\b\d{13,19}\b/g;
   const dataString = JSON.stringify(data);
-  
+
   const matches = dataString.match(cardNumberPattern);
-  
+
   if (matches && matches.length > 0) {
     console.error(
       'SECURITY WARNING: Potential card number detected in data!',
@@ -95,7 +95,7 @@ export function validateNoCardNumbers(data: any): boolean {
     );
     return false;
   }
-  
+
   return true;
 }
 
@@ -107,7 +107,7 @@ export function validateNoCardNumbers(data: any): boolean {
  */
 export function sanitizePaymentMetadata(metadata: Record<string, any>): Record<string, string> {
   const sanitized: Record<string, string> = {};
-  
+
   // Allowed fields that can be stored
   const allowedFields = [
     'bookingId',
@@ -118,13 +118,13 @@ export function sanitizePaymentMetadata(metadata: Record<string, any>): Record<s
     'checkOutDate',
     'roomType',
   ];
-  
+
   for (const key of allowedFields) {
     if (metadata[key] !== undefined && metadata[key] !== null) {
       sanitized[key] = String(metadata[key]);
     }
   }
-  
+
   return sanitized;
 }
 
@@ -149,7 +149,7 @@ export function isValidPaymentToken(token: string): boolean {
   // Stripe payment intent tokens start with 'pi_'
   // Stripe card tokens start with 'tok_'
   const validPrefixes = ['pm_', 'pi_', 'tok_', 'card_', 'src_'];
-  
+
   return validPrefixes.some(prefix => token.startsWith(prefix));
 }
 
@@ -163,15 +163,15 @@ export function isPaymentMethodExpired(expiryMonth: number, expiryYear: number):
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
-  
+
   if (expiryYear < currentYear) {
     return true;
   }
-  
+
   if (expiryYear === currentYear && expiryMonth < currentMonth) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -194,17 +194,17 @@ export function isValidPaymentAmount(amount: number): boolean {
   if (amount <= 0) {
     return false;
   }
-  
+
   // Amount must be an integer (no fractional cents)
   if (!Number.isInteger(amount)) {
     return false;
   }
-  
+
   // Amount must be reasonable (less than $1 million)
   if (amount > 100000000) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -214,7 +214,12 @@ export function isValidPaymentAmount(amount: number): boolean {
  * @param details - Event details
  */
 export function logSecurityEvent(
-  event: 'payment_initiated' | 'payment_completed' | 'payment_failed' | '3ds_required' | 'token_created',
+  event:
+    | 'payment_initiated'
+    | 'payment_completed'
+    | 'payment_failed'
+    | '3ds_required'
+    | 'token_created',
   details: Record<string, any>
 ): void {
   const logEntry = {
@@ -222,12 +227,12 @@ export function logSecurityEvent(
     timestamp: new Date().toISOString(),
     details: sanitizePaymentMetadata(details),
   };
-  
+
   // In development, log to console
   if (process.env.NODE_ENV === 'development') {
     console.log('[Payment Security]', logEntry);
   }
-  
+
   // In production, send to security monitoring service
   if (process.env.NODE_ENV === 'production') {
     // TODO: Send to security monitoring service
@@ -243,7 +248,7 @@ export function getPaymentCSP(): string {
   return [
     "default-src 'self'",
     "script-src 'self' https://js.stripe.com",
-    "frame-src https://js.stripe.com https://hooks.stripe.com",
+    'frame-src https://js.stripe.com https://hooks.stripe.com',
     "connect-src 'self' https://api.stripe.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",

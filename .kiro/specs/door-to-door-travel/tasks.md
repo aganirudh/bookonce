@@ -3,19 +3,61 @@
 ## Phase 1: Core Journey Planner (Hours 1-8)
 
 - [x] 1. Set up project structure and dependencies
-
-
   - Create journey types and interfaces
   - Set up feature folder structure
   - Install required packages (Google Maps, date-fns)
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 2. Create Journey Planner input component
-  - [ ] 2.1 Build location autocomplete inputs with Google Places API
-    - Source location input with autocomplete
-    - Destination location input with autocomplete
-    - Current location detection button
-    - _Requirements: 1.1, 1.2, 1.4_
+- [x] 1.5 Configure real API keys and environment setup
+
+
+
+
+
+  - [x] 1.5.1 Set up Google Cloud Console project
+
+
+    - Enable Google Maps JavaScript API
+    - Enable Places API
+    - Enable Directions API
+    - Enable Distance Matrix API
+    - Enable Geocoding API
+    - Create API key with domain restrictions
+    - Add  to .env
+    - _Requirements: 16.1, 16.7_
+  
+  - [x] 1.5.2 Configure RapidAPI for Skyscanner (already done, verify)
+
+
+    - Verify VITE_RAPIDAPI_KEY exists in .env
+    - Test existing SkyscannerService
+    - _Requirements: 16.2, 16.7_
+  
+  - [x] 1.5.3 Set up OpenWeather API
+
+
+    - Create OpenWeather account
+    - Get API key
+    - Add VITE_OPENWEATHER_API_KEY to .env
+    - _Requirements: 16.3, 16.7_
+  
+  - [x] 1.5.4 Create API service wrappers
+
+
+    - Create GoogleMapsService.ts for Maps API calls
+    - Create WeatherService.ts for OpenWeather calls
+    - Implement error handling and retry logic
+    - Implement caching using existing cacheStore
+    - _Requirements: 16.5, 16.6_
+
+- [ ] 2. Create Journey Planner input component with REAL Google Places API
+  - [ ] 2.1 Build location autocomplete inputs with Google Places Autocomplete widget (REAL API)
+    - Integrate Google Maps JavaScript API script
+    - Source location input with real autocomplete suggestions
+    - Destination location input with real autocomplete suggestions
+    - Current location detection using browser geolocation API
+    - Extract place_id, coordinates, and formatted address from real API responses
+    - _Requirements: 1.1, 1.2, 1.4, 16.1_
   
   - [ ] 2.2 Implement date picker for departure and return dates
     - Date range selector
@@ -36,19 +78,21 @@
     - Submit handler
     - _Requirements: 1.3_
 
-- [ ] 3. Implement route calculation engine
-  - [ ] 3.1 Create RouteCalculator service
-    - Distance calculation logic
-    - Inter-city vs intra-city detection
-    - Google Maps Directions API integration
-    - _Requirements: 3.1, 3.2, 4.1_
+- [ ] 3. Implement route calculation engine with REAL APIs
+  - [ ] 3.1 Create RouteCalculator service with real API integration
+    - Distance calculation using Google Distance Matrix API (REAL)
+    - Inter-city vs intra-city detection (>300km threshold)
+    - Google Maps Directions API integration for local transport (REAL)
+    - Error handling for API failures with user-friendly messages
+    - _Requirements: 3.1, 3.2, 4.1, 16.1, 16.5_
   
-  - [ ] 3.2 Build multi-modal route generation
-    - Local transport routing (walk, metro, bus)
-    - Long-distance transport (flight, train)
-    - Route segment combination logic
-    - Buffer time calculations
-    - _Requirements: 3.1, 3.2, 3.5_
+  - [ ] 3.2 Build multi-modal route generation using real data
+    - Local transport routing using Google Directions API with TRANSIT mode (REAL)
+    - Parse real transit data (bus, metro, train schedules)
+    - Extract real departure times, arrival times, and costs
+    - Route segment combination logic with real timing data
+    - Buffer time calculations based on real transfer times
+    - _Requirements: 3.1, 3.2, 3.5, 16.1_
   
   - [ ] 3.3 Implement mode-specific routing logic
     - Urgent mode: prioritize speed, direct routes
@@ -56,11 +100,12 @@
     - Route scoring algorithms
     - _Requirements: 2.2, 2.3_
   
-  - [ ] 3.4 Add mock flight and train data
-    - Sample flight routes and prices
-    - Sample train routes and schedules
-    - Provider information
-    - _Requirements: 3.1_
+  - [ ] 3.4 Integrate real Skyscanner API for flights
+    - Use existing SkyscannerService for flight search
+    - Implement airport lookup by city
+    - Handle real flight data and pricing
+    - Add error handling for API failures
+    - _Requirements: 3.1, 4.2, 16.2_
 
 - [ ] 4. Create route display component
   - [ ] 4.1 Build route comparison view
@@ -82,12 +127,13 @@
     - Update detailed itinerary view
     - _Requirements: 2.5_
 
-- [ ] 5. Integrate with existing hotel system
-  - [ ] 5.1 Fetch hotels at destination
-    - Use existing hotels.json data
-    - Filter by destination city
-    - Match to travel mode (budget/premium)
-    - _Requirements: 5.1, 5.2_
+- [ ] 5. Integrate with existing REAL hotel booking system
+  - [ ] 5.1 Fetch real hotels at destination using existing booking API
+    - Use existing BookingAPIService for real hotel data
+    - Filter by destination coordinates (not just city name)
+    - Match to travel mode (budget/premium) using real pricing
+    - Fetch real availability for selected dates
+    - _Requirements: 5.1, 5.2, 16.4_
   
   - [ ] 5.2 Display accommodation options in route
     - Hotel cards in itinerary
@@ -111,10 +157,10 @@
     - _Requirements: 6.1, 6.2_
   
   - [ ] 6.2 Implement booking flow for each segment type
-    - Flight/train booking (mock)
-    - Hotel booking (use existing system)
-    - Local transport booking (mock)
-    - _Requirements: 6.2_
+    - Flight booking redirect to Skyscanner deep links (real)
+    - Hotel booking (use existing real booking system)
+    - Local transport booking (Google Maps directions - informational)
+    - _Requirements: 6.2, 16.1, 16.2_
   
   - [ ] 6.3 Add booking failure handling
     - Alternative options generation
@@ -245,11 +291,12 @@
     - Navigation integration
     - _Requirements: 9.3, 9.4, 9.5_
   
-  - [ ] 13.3 Add weather integration
-    - OpenWeather API setup
-    - Weather-based recommendations
-    - Weather display in UI
-    - _Requirements: 4.4, 4.5, 9.1_
+  - [ ] 13.3 Add real weather integration
+    - OpenWeather API setup with real API key
+    - Fetch real-time weather data for locations
+    - Weather-based recommendations using live data
+    - Weather display in UI with current conditions
+    - _Requirements: 4.4, 4.5, 9.1, 16.3_
 
 - [ ] 14. Build cultural guidance feature
   - [ ] 14.1 Create cultural information database
@@ -330,7 +377,7 @@
     - Timing suggestions
     - Popular items
     - _Requirements: 14.5_
-
+VITE_GOOGLE_MAPS_API_KEY
 - [ ] 18. Build travel memory features
   - [ ] 18.1 Create auto-travel diary
     - Timeline of activities
