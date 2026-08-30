@@ -21,7 +21,7 @@ interface AIMessage {
 class BookOnceAIService {
   async generateItinerary(request: JourneyRequest): Promise<Itinerary> {
     const validatedRequest = JourneyRequestSchema.parse(request);
-    const prompt = `Propose a travel itinerary for the following request:\n${JSON.stringify(validatedRequest)}\n\nReturn only an itinerary JSON object. Candidate segments and summaries may be proposed, but duration, distance, and cost values are estimates, not authoritative calculations. Omit unavailable estimates and do not fabricate coordinates.`;
+    const prompt = `Propose a travel itinerary for the following request:\n${JSON.stringify(validatedRequest)}\n\nReturn only an itinerary JSON object matching the required schema. Keep segments in logical travel order, preserve the requested origin, destination, and dates, and omit unavailable fields. Candidate segments, times, durations, distances, and costs are suggestions or estimates rather than authoritative calculations. Do not fabricate coordinates.`;
     return aiClient.planItinerary(prompt);
   }
 

@@ -1,376 +1,166 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, MapPin, MessageSquare, Route, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Sparkles, Loader2, Route, MessageSquare } from 'lucide-react';
+import type { Itinerary } from '@/features/journey/schemas/aiSchemas';
+import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
+import { journeyEnrichmentService } from '@/features/journey/services/JourneyEnrichmentService';
+import { buildJourneyRequest, type JourneyFormData } from '@/features/journey/utils/journeyRequestMapper';
+import JourneyMap from '@/features/journey/components/JourneyMap';
+
+type RequestState = 'idle' | 'loading' | 'success' | 'error';
+
+const estimate = (value: number, unit: string) => `${value.toLocaleString()} ${unit}`;
+
+export const JourneyResult: React.FC<{ itinerary: Itinerary }> = ({ itinerary }) => (
+  <div className="space-y-6" data-testid="journey-result">
+    {itinerary.origin.latitude !== undefined && itinerary.origin.longitude !== undefined &&
+      itinerary.destination.latitude !== undefined && itinerary.destination.longitude !== undefined && (
+        <JourneyMap
+          origin={{ lat: itinerary.origin.latitude, lng: itinerary.origin.longitude, name: itinerary.origin.name }}
+          destination={{ lat: itinerary.destination.latitude, lng: itinerary.destination.longitude, name: itinerary.destination.name }}
+          route={itinerary.segments.flatMap(segment =>
+            (segment.routeGeometry ?? []).map(([lng, lat]) => ({ lat, lng }))
+          )}
+          height="360px"
+        />
+      )}
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Route className="h-5 w-5" />
+          {itinerary.origin.name} → {itinerary.destination.name}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-muted-foreground">{itinerary.summary}</p>
+        <div className="grid gap-3 text-sm sm:grid-cols-3">
+          {itinerary.totalDuration !== undefined && <p><b>Estimated total duration:</b> {estimate(itinerary.totalDuration, 'minutes')}</p>}
+          {itinerary.totalDistance !== undefined && <p><b>Estimated total distance:</b> {estimate(itinerary.totalDistance, 'km')}</p>}
+          {itinerary.estimatedTotalCost !== undefined && <p><b>Estimated total cost:</b> ₹{itinerary.estimatedTotalCost.toLocaleString()}</p>}
+        </div>
+      </CardContent>
+    </Card>
+
+    {itinerary.segments.map((segment, index) => (
+      <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
+        <CardHeader>
+          <CardTitle className="text-lg capitalize">
+            {index + 1}. {segment.mode}: {segment.from.name} → {segment.to.name}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
+          {segment.departureTime && <p><b>Suggested departure:</b> {segment.departureTime}</p>}
+          {segment.arrivalTime && <p><b>Suggested arrival:</b> {segment.arrivalTime}</p>}
+          {segment.routeDuration !== undefined
+            ? <p><b>Verified road duration:</b> {estimate(Math.round(segment.routeDuration / 60), 'minutes')}</p>
+            : segment.duration !== undefined && <p><b>Estimated duration:</b> {estimate(segment.duration, 'minutes')}</p>}
+          {segment.routeDistance !== undefined
+            ? <p><b>Verified road distance:</b> {estimate(Number((segment.routeDistance / 1000).toFixed(1)), 'km')}</p>
+            : segment.distance !== undefined && <p><b>Estimated distance:</b> {estimate(segment.distance, 'km')}</p>}
+          {segment.estimatedCost !== undefined && <p><b>Estimated cost:</b> ₹{segment.estimatedCost.toLocaleString()}</p>}
+          {segment.instructions && <p className="sm:col-span-2"><b>Suggested instructions:</b> {segment.instructions}</p>}
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+const initialForm: JourneyFormData = {
+  origin: '', destination: '', departureDate: '', departureTime: '09:00', returnDate: '',
+  travelers: '1', intent: 'leisure', userName: '',
+};
 
 const AIJourneyPlanner: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [journeyPlan, setJourneyPlan] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [requestState, setRequestState] = useState<RequestState>('idle');
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [error, setError] = useState('');
+  const [routeWarning, setRouteWarning] = useState('');
+  const [loadingLabel, setLoadingLabel] = useState('Generating Your Journey...');
   const [activeTab, setActiveTab] = useState('form');
+  const [form, setForm] = useState(initialForm);
+  const isLoading = requestState === 'loading';
+  const change = (field: keyof JourneyFormData, value: string) =>
+    setForm(previous => ({ ...previous, [field]: value }));
 
-  // Form state
-  const [formData, setFormData] = useState({
-    origin: '',
-    destination: '',
-    departureDate: '',
-    departureTime: '09:00',
-    returnDate: '',
-    travelers: '1',
-    intent: 'leisure' as 'urgent' | 'leisure',
-
-    userName: '',
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const generateJourneyPlan = async () => {
-    if (!formData.origin || !formData.destination || !formData.departureDate) {
+  const generate = async () => {
+    if (isLoading) return;
+    if (!form.origin.trim() || !form.destination.trim() || !form.departureDate) {
+      setRequestState('error');
       setError('Please fill in origin, destination, and departure date');
       return;
     }
-
-    setIsLoading(true);
+    setRequestState('loading');
     setError('');
-
+    setRouteWarning('');
+    setItinerary(null);
     try {
-      // Mock journey plan generation
-      const mockPlan = `
-## OUTBOUND JOURNEY
-
-**From:** ${formData.origin}
-**To:** ${formData.destination}
-**Date:** ${formData.departureDate}
-**Time:** ${formData.departureTime}
-**Travelers:** ${formData.travelers}
-**Style:** ${formData.intent === 'urgent' ? 'Fast & Efficient' : 'Leisurely & Scenic'}
-
-### Step 1: Prepare & Depart
-- Arrive at departure point 30 minutes early
-- Check weather and pack accordingly
-- Confirm all bookings
-
-### Step 2: Travel
-- Begin journey at ${formData.departureTime}
-- Follow recommended route
-- Take breaks as needed
-
-### Step 3: Arrive
-- Reach destination safely
-- Check into accommodation
-- Explore local area
-
-${
-  formData.returnDate
-    ? `
-## RETURN JOURNEY
-
-**From:** ${formData.destination}
-**To:** ${formData.origin}
-**Date:** ${formData.returnDate}
-
-### Step 1: Prepare
-- Pack belongings
-- Settle any local bills
-- Confirm return booking
-
-### Step 2: Travel Back
-- Depart on schedule
-- Follow return route
-- Enjoy the journey
-
-### Step 3: Arrive Home
-- Reach home safely
-- Unpack and rest
-- Share your experience
-`
-    : ''
-}
-      `;
-
-      setJourneyPlan(mockPlan);
+      setLoadingLabel('Generating Your Journey...');
+      const generated = await bookOnceAIService.generateItinerary(buildJourneyRequest(form));
+      setLoadingLabel('Verifying Route...');
+      const result = await journeyEnrichmentService.enrich(generated);
+      if (result.segments.some(segment => segment.routingStatus === 'unavailable')) {
+        setRouteWarning('Route details could not be verified for some segments.');
+      }
+      setItinerary(result);
+      setRequestState('success');
       setActiveTab('visualization');
-    } catch (err: any) {
-      setError(err.message || 'Failed to generate journey plan');
-    } finally {
-      setIsLoading(false);
+    } catch (caughtError) {
+      console.error('Itinerary generation failed', caughtError);
+      setRequestState('error');
+      setError("We couldn't generate this itinerary. Please try again.");
     }
   };
 
-  const extractOutboundJourney = (fullPlan: string): string => {
-    const sections = fullPlan.split(/##\s*(?:RETURN|Return)/i);
-    return sections[0] || fullPlan;
-  };
+  const empty = <Card><CardContent className="p-12 text-center">
+    <Route className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+    <h3 className="text-lg font-semibold mb-2">No Journey Plan Yet</h3>
+    <p className="text-muted-foreground mb-4">Fill out the journey details and generate your AI-powered plan.</p>
+    <Button onClick={() => setActiveTab('form')} variant="outline">Plan Your Journey</Button>
+  </CardContent></Card>;
 
-  const extractReturnJourney = (fullPlan: string): string => {
-    const sections = fullPlan.split(/##\s*(?:RETURN|Return)/i);
-    return sections[1] || '';
-  };
+  return <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <Card className="bg-gradient-accent text-primary-foreground"><CardHeader>
+      <CardTitle className="flex items-center gap-3 text-2xl"><Sparkles className="h-8 w-8" />AI Journey Planner</CardTitle>
+      <p className="text-primary-foreground/80">Get personalized, step-by-step journey plans powered by AI</p>
+    </CardHeader></Card>
 
-  return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <Card className="bg-gradient-accent text-primary-foreground">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-2xl">
-            <Sparkles className="h-8 w-8" />
-            AI Journey Planner
-          </CardTitle>
-          <p className="text-primary-foreground/80">
-            Get personalized, step-by-step journey plans powered by AI
-          </p>
-        </CardHeader>
-      </Card>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="form" className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Plan Journey
-          </TabsTrigger>
-          <TabsTrigger value="visualization" className="flex items-center gap-2">
-            <Route className="h-4 w-4" />
-            Visual Journey
-          </TabsTrigger>
-          <TabsTrigger value="chat" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            AI Response
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Journey Planning Form */}
-        <TabsContent value="form" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Journey Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Personal Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="userName">Your Name (Optional)</Label>
-                  <Input
-                    id="userName"
-                    placeholder="e.g., Alex"
-                    value={formData.userName}
-                    onChange={e => handleInputChange('userName', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="travelers">Number of Travelers</Label>
-                  <Input
-                    id="travelers"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={formData.travelers}
-                    onChange={e => handleInputChange('travelers', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Route Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="origin">From</Label>
-                  <Input
-                    id="origin"
-                    placeholder="e.g., Mumbai, India"
-                    value={formData.origin}
-                    onChange={e => handleInputChange('origin', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="destination">To</Label>
-                  <Input
-                    id="destination"
-                    placeholder="e.g., Goa, India"
-                    value={formData.destination}
-                    onChange={e => handleInputChange('destination', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Date & Time */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="departureDate">Departure Date</Label>
-                  <Input
-                    id="departureDate"
-                    type="date"
-                    value={formData.departureDate}
-                    onChange={e => handleInputChange('departureDate', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="departureTime">Departure Time</Label>
-                  <Input
-                    id="departureTime"
-                    type="time"
-                    value={formData.departureTime}
-                    onChange={e => handleInputChange('departureTime', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="returnDate">Return Date (Optional)</Label>
-                  <Input
-                    id="returnDate"
-                    type="date"
-                    value={formData.returnDate}
-                    onChange={e => handleInputChange('returnDate', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Preferences */}
-              <div>
-                <Label>Travel Style</Label>
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    variant={formData.intent === 'urgent' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleInputChange('intent', 'urgent')}
-                  >
-                    🚀 Fast & Efficient
-                  </Button>
-                  <Button
-                    variant={formData.intent === 'leisure' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleInputChange('intent', 'leisure')}
-                  >
-                    🌟 Leisurely & Scenic
-                  </Button>
-                </div>
-              </div>
-
-              {/* Generate Button */}
-              <Button
-                onClick={generateJourneyPlan}
-                disabled={isLoading}
-                className="w-full bg-gradient-accent hover:opacity-90"
-                size="lg"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Generating Your Journey...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Generate AI Journey Plan
-                  </>
-                )}
-              </Button>
-
-              {error && (
-                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-                  {error}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Visual Journey */}
-        <TabsContent value="visualization" className="space-y-6">
-          {journeyPlan ? (
-            <div className="space-y-6">
-              {/* Outbound Journey */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Route className="h-5 w-5" />
-                    Outbound Journey
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <pre className="whitespace-pre-wrap text-sm text-foreground">
-                      {extractOutboundJourney(journeyPlan)}
-                    </pre>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Return Journey */}
-              {formData.returnDate && extractReturnJourney(journeyPlan) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Route className="h-5 w-5" />
-                      Return Journey
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <pre className="whitespace-pre-wrap text-sm text-foreground">
-                        {extractReturnJourney(journeyPlan)}
-                      </pre>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Route className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No Journey Plan Yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Fill out the journey details and generate your AI-powered plan to see the visual
-                  journey cards.
-                </p>
-                <Button onClick={() => setActiveTab('form')} variant="outline">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Plan Your Journey
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* AI Response */}
-        <TabsContent value="chat" className="space-y-6">
-          {journeyPlan ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  AI Generated Journey Plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted p-4 rounded-lg">
-                  <pre className="whitespace-pre-wrap text-sm text-foreground font-mono">
-                    {journeyPlan}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No AI Response Yet</h3>
-                <p className="text-muted-foreground">
-                  Generate a journey plan to see the detailed AI response.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="form"><MapPin className="h-4 w-4 mr-2" />Plan Journey</TabsTrigger>
+        <TabsTrigger value="visualization"><Route className="h-4 w-4 mr-2" />Visual Journey</TabsTrigger>
+        <TabsTrigger value="chat"><MessageSquare className="h-4 w-4 mr-2" />AI Response</TabsTrigger>
+      </TabsList>
+      {routeWarning && <div role="status" className="my-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">{routeWarning}</div>}
+      <TabsContent value="form"><Card><CardHeader><CardTitle>Journey Details</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div><Label htmlFor="userName">Your Name (Optional)</Label><Input id="userName" value={form.userName} onChange={e => change('userName', e.target.value)} /></div>
+            <div><Label htmlFor="travelers">Number of Travelers</Label><Input id="travelers" type="number" min="1" max="10" value={form.travelers} onChange={e => change('travelers', e.target.value)} /></div>
+            <div><Label htmlFor="origin">From</Label><Input id="origin" value={form.origin} onChange={e => change('origin', e.target.value)} /></div>
+            <div><Label htmlFor="destination">To</Label><Input id="destination" value={form.destination} onChange={e => change('destination', e.target.value)} /></div>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div><Label htmlFor="departureDate">Departure Date</Label><Input id="departureDate" type="date" value={form.departureDate} onChange={e => change('departureDate', e.target.value)} /></div>
+            <div><Label htmlFor="departureTime">Departure Time</Label><Input id="departureTime" type="time" value={form.departureTime} onChange={e => change('departureTime', e.target.value)} /></div>
+            <div><Label htmlFor="returnDate">Return Date (Optional)</Label><Input id="returnDate" type="date" value={form.returnDate} onChange={e => change('returnDate', e.target.value)} /></div>
+          </div>
+          <div><Label>Travel Style</Label><div className="flex gap-2 mt-2">
+            <Button type="button" variant={form.intent === 'urgent' ? 'default' : 'outline'} onClick={() => change('intent', 'urgent')}>Fast &amp; Efficient</Button>
+            <Button type="button" variant={form.intent === 'leisure' ? 'default' : 'outline'} onClick={() => change('intent', 'leisure')}>Leisurely &amp; Scenic</Button>
+          </div></div>
+          <Button onClick={generate} disabled={isLoading} className="w-full" size="lg">
+            {isLoading ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" />{loadingLabel}</> : <><Sparkles className="h-5 w-5 mr-2" />Generate AI Journey Plan</>}
+          </Button>
+          {error && <div role="alert" className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">{error}</div>}
+        </CardContent></Card></TabsContent>
+      <TabsContent value="visualization">{itinerary ? <JourneyResult itinerary={itinerary} /> : empty}</TabsContent>
+      <TabsContent value="chat">{itinerary ? <JourneyResult itinerary={itinerary} /> : empty}</TabsContent>
+    </Tabs>
+  </div>;
 };
 
 export default AIJourneyPlanner;

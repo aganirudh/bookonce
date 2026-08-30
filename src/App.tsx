@@ -21,6 +21,7 @@ const Auth = lazy(() => import('./pages/Auth'));
 const Stays = lazy(() => import('./pages/Stays'));
 const TravelUtilities = lazy(() => import('./pages/TravelUtilities'));
 const JourneyPlanner = lazy(() => import('./pages/JourneyPlanner'));
+const AIJourneyPlannerPage = lazy(() => import('./pages/AIJourneyPlannerPage'));
 const RoutePlanning = lazy(() => import('./pages/RoutePlanning'));
 const QRPayment = lazy(() => import('./pages/QRPayment'));
 const BookingConfirmation = lazy(() => import('./pages/BookingConfirmation'));
@@ -98,6 +99,7 @@ const App = () => {
                     <Route path="/stays" element={<Stays />} />
                     <Route path="/utilities" element={<TravelUtilities />} />
                     <Route path="/journey" element={<JourneyPlanner />} />
+                    <Route path="/ai-journey" element={<AIJourneyPlannerPage />} />
                     <Route path="/journey/plan" element={<RoutePlanning />} />
                     <Route path="/qr-payment" element={<QRPayment />} />
                     <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmation />} />

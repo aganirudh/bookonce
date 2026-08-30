@@ -46,6 +46,12 @@ export const JourneySegmentSchema = z.object({
   distance: z.number().nonnegative().optional(),
   estimatedCost: z.number().nonnegative().optional(),
   instructions: z.string().trim().min(1).optional(),
+  // Deterministic routing fields. Distance is meters, duration is seconds,
+  // and geometry uses the routing-provider [longitude, latitude] convention.
+  routeDistance: z.number().nonnegative().optional(),
+  routeDuration: z.number().nonnegative().optional(),
+  routeGeometry: z.array(z.tuple([z.number(), z.number()])).optional(),
+  routingStatus: z.enum(['routed', 'unsupported', 'unavailable']).optional(),
 });
 
 export const ItinerarySchema = z.object({
@@ -57,5 +63,4 @@ export const ItinerarySchema = z.object({
   estimatedTotalCost: z.number().nonnegative().optional(),
   summary: z.string().trim().min(1),
 });
-
 

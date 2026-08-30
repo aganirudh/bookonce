@@ -117,7 +117,12 @@ class RoutingService {
     end: RoutePoint,
     mode: 'walk' | 'drive' | 'bike'
   ): Promise<Route> {
-    const profile = mode === 'walk' ? 'foot' : mode === 'bike' ? 'bike' : 'car';
+    // The configured public OSRM demo exposes its driving profile only. Never
+    // present a driving route as authoritative walking or cycling data.
+    if (mode !== 'drive') {
+      throw new Error(`OSRM fallback does not support ${mode} routing`);
+    }
+    const profile = 'driving';
     const url = `${this.OSRM_BASE_URL}/route/v1/${profile}/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&steps=true`;
 
     const response = await fetch(url);
