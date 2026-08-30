@@ -10,6 +10,8 @@ import nodemailer from 'nodemailer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import aiRouter from './server/routes/ai.js';
+import geocodingRouter from './server/routes/geocoding.js';
+import routingRouter from './server/routes/routing.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -32,6 +34,8 @@ app.use(
 );
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/ai', aiRouter);
+app.use('/api/geocoding', geocodingRouter);
+app.use('/api/routing', routingRouter);
 
 // Email sending endpoint
 app.post('/api/send-email', async (req, res) => {
