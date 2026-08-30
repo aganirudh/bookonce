@@ -1,24 +1,44 @@
 /**
- * Simple Express server for sending emails via Gmail
+ * BookOnce backend.
  * Run with: node server.js
  */
 
-const express = require('express');
-const nodemailer = require('nodemailer');
-const cors = require('cors');
-require('dotenv').config();
+import cors from 'cors';
+import 'dotenv/config';
+import express from 'express';
+import nodemailer from 'nodemailer';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import aiRouter from './server/routes/ai.js';
 
 const app = express();
-const PORT = 3001;
+const PORT = Number(process.env.PORT) || 3001;
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://127.0.0.1:8080')
+  .split(',')
+  .map(origin => origin.trim());
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin not allowed by CORS'));
+    },
+  })
+);
+app.use(express.json({ limit: '100kb' }));
+app.use('/api/ai', aiRouter);
 
 // Email sending endpoint
 app.post('/api/send-email', async (req, res) => {
   try {
-    const { to, subject, otp, gmailEmail, gmailPassword } = req.body;
+    const { to, subject, otp } = req.body;
+    const gmailEmail = process.env.GMAIL_EMAIL;
+    const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
     // Validate inputs
     if (!to || !otp || !gmailEmail || !gmailPassword) {
@@ -78,21 +98,25 @@ app.post('/api/send-email', async (req, res) => {
     // Send email
     await transporter.sendMail(mailOptions);
 
-    console.log(`✅ Email sent to ${to}`);
     res.json({ success: true, message: 'Email sent successfully' });
   } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ error: 'Failed to send email', details: error.message });
+    console.error('Email sending failed');
+    res.status(500).json({ error: 'Failed to send email' });
   }
 });
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Email server is running' });
+  res.json({ status: 'OK', message: 'BookOnce backend is running' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`📧 Email server running on http://localhost:${PORT}`);
-  console.log(`📨 Send emails to: http://localhost:${PORT}/api/send-email`);
-});
+export { app };
+
+const isDirectExecution =
+  process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  app.listen(PORT, () => {
+    console.log(`BookOnce backend listening on http://localhost:${PORT}`);
+  });
+}

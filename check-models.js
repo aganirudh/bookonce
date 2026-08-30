@@ -1,5 +1,10 @@
 
-const apiKey = "AIzaSyD2jN0GjWx-Tstv5lu1QUaDGiVMgB8nGl8";
+import 'dotenv/config';
+
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  throw new Error('GEMINI_API_KEY is required');
+}
 const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
 
 async function listModels() {

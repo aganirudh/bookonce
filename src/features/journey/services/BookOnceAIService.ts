@@ -1,100 +1,30 @@
 /**
  * BookOnce AI Service
  *
- * AI-powered travel advisor with SambaNova primary and Groq fallback
+ * AI-powered travel advisor.
  * Provides intelligent recommendations for all aspects of travel
  */
 
 import type { JourneyContext, AIRecommendations } from '../types/aiAdvisor';
-
-// AI Provider Configuration
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_MODEL = 'gemini-2.5-flash'; // User explicitly requested 2.5 flash
-
-// Debug: Log if API key is loaded
-console.log('🔑 AI Provider Status:');
-if (GEMINI_API_KEY) {
-  console.log('  ✅ Gemini API Key loaded:', GEMINI_API_KEY.substring(0, 10) + '...');
-} else {
-  console.log('  ❌ Gemini API Key NOT loaded');
-}
-
-const AI_PROVIDER = GEMINI_API_KEY ? 'gemini' : null;
-console.log('  🤖 Primary Provider:', AI_PROVIDER || 'NONE');
-
-type AIProvider = 'gemini';
+import { aiClient } from '@/services/AIClient';
 
 interface AIMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-interface AIResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
-
 class BookOnceAIService {
-  private currentProvider: AIProvider | null = AI_PROVIDER;
-  private genAI: GoogleGenerativeAI | null = null;
-
-  constructor() {
-    if (GEMINI_API_KEY) {
-      this.genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    }
-  }
-
-  /**
-   * Call AI (Gemini)
-   */
+  /** Send the existing prompt format through the backend AI API. */
   private async callAI(messages: AIMessage[]): Promise<string> {
-    if (!this.genAI) {
-      throw new Error(
-        'Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your .env file'
-      );
-    }
+    const systemMessage = messages.find(message => message.role === 'system');
+    const conversationMessages = messages.filter(message => message.role !== 'system');
+    let prompt = systemMessage ? `${systemMessage.content}\n\n` : '';
 
-    try {
-      const model = this.genAI.getGenerativeModel({
-        model: GEMINI_MODEL,
-        // tools: [{ googleSearch: {} } as any], // Disabled: Cannot use tools with JSON mime type
-        generationConfig: { responseMimeType: 'application/json' },
-      });
+    conversationMessages.forEach(message => {
+      prompt += `${message.role === 'user' ? 'User' : 'Model'}: ${message.content}\n`;
+    });
 
-      // Convert messages to Gemini format
-      // Gemini expects a prompt or chat history. 
-      // For simple request/response, we can combine system prompt and user message.
-
-      const systemMessage = messages.find(m => m.role === 'system');
-      const userMessages = messages.filter(m => m.role !== 'system');
-
-      let prompt = '';
-      if (systemMessage) {
-        prompt += `${systemMessage.content}\n\n`;
-      }
-
-      // Add conversation history
-      userMessages.forEach(msg => {
-        prompt += `${msg.role === 'user' ? 'User' : 'Model'}: ${msg.content}\n`;
-      });
-
-      console.log('🚀 Calling Gemini API...');
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-
-      console.log('✅ Gemini response received');
-      return text;
-
-    } catch (error) {
-      console.error('❌ Gemini API failed:', error);
-      throw error;
-    }
+    return aiClient.chat(prompt);
   }
 
 
@@ -417,11 +347,6 @@ Respond in a friendly, conversational tone. Be the travel expert they wish they 
    */
   async answerQuestion(question: string, context: JourneyContext): Promise<string> {
     // Check if any AI provider is configured
-    if (!AI_PROVIDER) {
-      console.error('No AI provider configured');
-      return 'AI service is not configured. Please add VITE_SAMBANOVA_API_KEY or VITE_GROQ_API_KEY to your .env file.';
-    }
-
     const systemPrompt = `You are BookOnce AI, a friendly and knowledgeable travel advisor. Answer travel questions with practical, helpful advice. Keep responses concise but informative.`;
 
     try {

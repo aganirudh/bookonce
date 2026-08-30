@@ -9,6 +9,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { aiClient } from '@/services/AIClient';
 
 // Major world currencies
 const CURRENCIES = [
@@ -270,49 +271,11 @@ const AIPacker = () => {
     const newMessages: Message[] = [...messages, { role: 'user', content: userMessage }];
     setMessages(newMessages);
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
     try {
-      // Using Google Gemini API (FREE - 60 requests/minute!)
       const prompt = `You are a helpful travel packing assistant. Create a practical packing list for this trip: "${userMessage}". 
 
 Provide a concise packing list with each item on a new line starting with "- ". Consider the destination, duration, activities, and weather. Be specific and helpful. List 10-15 essential items.`;
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: prompt,
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 500,
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      const assistantMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-      if (!assistantMessage) {
-        throw new Error('No response from Gemini');
-      }
+      const assistantMessage = await aiClient.chat(prompt);
 
       setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
 
