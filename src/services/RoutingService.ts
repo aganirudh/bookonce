@@ -16,13 +16,29 @@ export interface RouteSegment {
 }
 
 export interface Route {
+  id?: string;
+  provider?: string;
+  providerRouteIndex?: number;
   segments: RouteSegment[];
   totalDistance: number;
   totalDuration: number;
   summary: string;
 }
 
-interface RoutingApiResponse { success: boolean; data?: Route; error?: string }
+interface RoutingApiResponse<T> { success: boolean; data?: T; error?: string }
+
+async function readRoutingResponse<T>(response: Response, fallback: string): Promise<T> {
+  let payload: RoutingApiResponse<T>;
+  try {
+    payload = (await response.json()) as RoutingApiResponse<T>;
+  } catch {
+    throw new Error(fallback);
+  }
+  if (!response.ok || !payload.success || payload.data === undefined) {
+    throw new Error(payload.error || fallback);
+  }
+  return payload.data;
+}
 
 class RoutingService {
   async getRoute(
@@ -36,17 +52,21 @@ class RoutingService {
       body: JSON.stringify({ start, end, mode }),
     });
 
-    let payload: RoutingApiResponse;
-    try {
-      payload = (await response.json()) as RoutingApiResponse;
-    } catch {
-      throw new Error('Failed to calculate route. Please try again.');
-    }
+    return readRoutingResponse(response, 'Failed to calculate route. Please try again.');
+  }
 
-    if (!response.ok || !payload.success || !payload.data) {
-      throw new Error(payload.error || 'Failed to calculate route. Please try again.');
-    }
-    return payload.data;
+  async getRoutes(
+    start: RoutePoint,
+    end: RoutePoint,
+    mode: 'walk' | 'drive' | 'bike' = 'drive',
+    maxAlternatives = 3
+  ): Promise<Route[]> {
+    const response = await fetch('/api/routing/routes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start, end, mode, maxAlternatives }),
+    });
+    return readRoutingResponse(response, 'Failed to calculate route alternatives. Please try again.');
   }
 
   async getMultiModalRoute(start: RoutePoint, end: RoutePoint): Promise<Route> {

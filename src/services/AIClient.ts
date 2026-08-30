@@ -1,4 +1,5 @@
 import { ItinerarySchema, type Itinerary } from '@/features/journey/schemas/aiSchemas';
+import { PreferenceExtractionSchema, type PreferenceExtraction } from '@/features/journey/optimization/preferenceSchema';
 
 interface AIChatResponse {
   success: boolean;
@@ -13,6 +14,18 @@ interface AIItineraryResponse {
 }
 
 class AIClient {
+  async interpretOptimizationPreferences(text: string): Promise<PreferenceExtraction> {
+    const response = await fetch('/api/ai/preferences', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }),
+    });
+    let payload: AIItineraryResponse;
+    try { payload = (await response.json()) as AIItineraryResponse; } catch { throw new Error('Malformed AI response'); }
+    if (!response.ok || !payload.success) throw new Error(payload.error || 'Unable to interpret route preferences');
+    const parsed = PreferenceExtractionSchema.safeParse(payload.data);
+    if (!parsed.success) throw new Error('AI returned invalid route preferences');
+    return parsed.data;
+  }
+
   async chat(message: string): Promise<string> {
     const response = await fetch('/api/ai/chat', {
       method: 'POST',

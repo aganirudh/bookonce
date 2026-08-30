@@ -45,6 +45,13 @@ describe('AIJourneyPlanner', () => {
     vi.mocked(journeyEnrichmentService.enrich).mockImplementation(async value => value);
   });
 
+  it('renders the optional route-preference field', () => {
+    render(<AIJourneyPlanner />);
+    expect(screen.getByLabelText('Route preferences (Optional)')).toHaveAttribute(
+      'placeholder', 'e.g. Cheapest possible, but avoid long walks'
+    );
+  });
+
   it('maps its form data into the existing JourneyRequest contract', () => {
     const request = buildJourneyRequest({
       origin: ' Pune ', destination: ' Mumbai ', departureDate: '2026-09-15',
@@ -74,7 +81,9 @@ describe('AIJourneyPlanner', () => {
     expect(bookOnceAIService.generateItinerary).toHaveBeenCalledTimes(1);
     resolveRequest(itinerary);
     expect(await screen.findByText(/Pune → Mumbai/)).toBeInTheDocument();
-    expect(journeyEnrichmentService.enrich).toHaveBeenCalledWith(itinerary);
+    expect(journeyEnrichmentService.enrich).toHaveBeenCalledWith(itinerary, expect.objectContaining({
+      constraints: {}, preferenceLabel: 'Balanced',
+    }));
   });
 
   it('renders structured segments and available estimates', () => {
@@ -103,8 +112,45 @@ describe('AIJourneyPlanner', () => {
     render(<JourneyResult itinerary={{ ...itinerary, segments: [routed] }} travelStyle="urgent" />);
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Why this route?');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Only verified route currently available');
-    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Optimized primarily for time');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('BookOnce optimized this route for time');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Optimization score: 100/100');
+  });
+
+  it('shows only real alternatives and updates metrics, explanation, and map geometry locally', () => {
+    const firstGeometry: [number, number][] = [[77, 12], [78, 13]];
+    const secondGeometry: [number, number][] = [[77, 12], [79, 14]];
+    const explanation = (dominantPreference: 'time' | 'walking', advantage: string) => ({ dominantPreference, advantages: [advantage], tradeOffs: [] });
+    const routed = {
+      ...itinerary.segments[0],
+      routeDistance: 10000,
+      routeDuration: 600,
+      routeGeometry: firstGeometry,
+      routingStatus: 'routed' as const,
+      selectedRouteCandidateId: 'recommended',
+      routingAlternatives: [
+        { id: 'recommended', label: 'Primary route', mode: 'drive' as const, distance: 10000, duration: 600, geometry: firstGeometry, rank: 1, score: 0, qualityScore: 100, explanation: explanation('time', 'Fastest eligible option') },
+        { id: 'alternate', label: 'Alternative 1', mode: 'drive' as const, distance: 12000, duration: 900, geometry: secondGeometry, rank: 2, score: 0.3, qualityScore: 70, explanation: explanation('walking', 'Least known walking distance') },
+      ],
+    };
+    const result = { ...itinerary, origin: { name: 'Pune', latitude: 12, longitude: 77 }, destination: { name: 'Mumbai', latitude: 13, longitude: 78 }, segments: [routed] };
+    render(<JourneyResult itinerary={result} />);
+    expect(screen.getByRole('button', { name: 'Recommended' })).toBeInTheDocument();
+    expect(screen.queryByText('Cheapest')).not.toBeInTheDocument();
+    expect(screen.getByText(/Verified road duration:/).closest('p')).toHaveTextContent('10 minutes');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Fastest eligible option');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alternative 1' }));
+    expect(screen.getByText(/Verified road duration:/).closest('p')).toHaveTextContent('15 minutes');
+    expect(screen.getByText(/Verified road distance:/).closest('p')).toHaveTextContent('12 km');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Least known walking distance');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('70/100');
+    expect(screen.getByTestId('journey-map').getAttribute('data-props')).toContain('[{"lat":12,"lng":77},{"lat":14,"lng":79}]');
+  });
+
+  it('does not render alternative controls for one real candidate', () => {
+    const routed = { ...itinerary.segments[0], routeDistance: 1000, routeDuration: 100, routingStatus: 'routed' as const };
+    render(<JourneyResult itinerary={{ ...itinerary, segments: [routed] }} />);
+    expect(screen.queryByLabelText('Route alternatives')).not.toBeInTheDocument();
   });
 
   it('renders estimates when authoritative route values are absent', () => {

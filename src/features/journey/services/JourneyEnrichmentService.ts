@@ -1,6 +1,16 @@
 import type { Itinerary, JourneySegment, Location } from '../schemas/aiSchemas';
 import { geocodingService, type GeocodingResult } from '@/services/GeocodingService';
-import { routingService } from '@/services/RoutingService';
+import { routingService, type Route } from '@/services/RoutingService';
+import { routesToCandidates } from '../optimization/adapters';
+import { preferencesForTravelStyle } from '../optimization/presets';
+import { rankRoutes } from '../optimization/RouteOptimizer';
+import type { OptimizationPreferences, RouteConstraints } from '../optimization/types';
+
+export interface JourneyOptimizationOptions {
+  preferences: OptimizationPreferences;
+  constraints?: RouteConstraints;
+  preferenceLabel?: string;
+}
 
 export type RoadRoutingMode = 'walk' | 'drive' | 'bike';
 
@@ -17,7 +27,12 @@ function routingModeFor(mode: JourneySegment['mode']): RoadRoutingMode | undefin
 }
 
 class JourneyEnrichmentService {
-  async enrich(itinerary: Itinerary): Promise<Itinerary> {
+  async enrich(itinerary: Itinerary, optimization: 'urgent' | 'leisure' | JourneyOptimizationOptions = 'leisure'): Promise<Itinerary> {
+    const preferences = typeof optimization === 'string' ? preferencesForTravelStyle(optimization) : optimization.preferences;
+    const constraints = typeof optimization === 'string' ? {} : optimization.constraints ?? {};
+    const preferenceLabel = typeof optimization === 'string'
+      ? (optimization === 'urgent' ? 'Fastest' : 'Balanced')
+      : optimization.preferenceLabel;
     const geocodeCache = new Map<string, GeocodingResult | null>();
 
     const geocode = async (location: Location): Promise<Location> => {
@@ -54,6 +69,10 @@ class JourneyEnrichmentService {
         routeDistance: undefined,
         routeDuration: undefined,
         routeGeometry: undefined,
+        selectedRouteCandidateId: undefined,
+        routingAlternatives: undefined,
+        optimizationPreferenceLabel: undefined,
+        optimizationWarnings: undefined,
       };
 
       if (!mode) {
@@ -70,16 +89,42 @@ class JourneyEnrichmentService {
       }
 
       try {
-        const route = await routingService.getRoute(
-          { lat: from.latitude, lng: from.longitude, address: from.name },
-          { lat: to.latitude, lng: to.longitude, address: to.name },
-          mode
-        );
+        const start = { lat: from.latitude, lng: from.longitude, address: from.name };
+        const end = { lat: to.latitude, lng: to.longitude, address: to.name };
+        let routes: Route[];
+        try {
+          routes = await routingService.getRoutes(start, end, mode, 3);
+        } catch {
+          routes = [await routingService.getRoute(start, end, mode)];
+        }
+        const candidates = routesToCandidates(routes, mode);
+        const ranking = rankRoutes(candidates, preferences, constraints);
+        const selected = ranking.ranked[0];
+        if (!selected?.candidate.route) throw new Error('No valid route candidates');
+        const route = selected.candidate.route;
         segments.push({
           ...baseSegment,
           routeDistance: route.totalDistance,
           routeDuration: route.totalDuration,
           routeGeometry: route.segments.flatMap(routeSegment => routeSegment.geometry),
+          selectedRouteCandidateId: selected.candidate.id,
+          optimizationPreferenceLabel: preferenceLabel,
+          optimizationWarnings: candidates.every(candidate => candidate.cost === undefined) &&
+            (constraints.maxCost !== undefined || preferences.costWeight >= Math.max(preferences.timeWeight, preferences.walkingWeight, preferences.transfersWeight, preferences.comfortWeight ?? 0))
+            ? ['Cost could not be verified for these route options.']
+            : undefined,
+          routingAlternatives: ranking.ranked.map(ranked => ({
+            id: ranked.candidate.id,
+            label: ranked.candidate.label,
+            mode,
+            distance: ranked.candidate.distanceMeters ?? ranked.candidate.route!.totalDistance,
+            duration: ranked.candidate.durationSeconds,
+            geometry: ranked.candidate.route!.segments.flatMap(routeSegment => routeSegment.geometry),
+            rank: ranked.rank,
+            score: ranked.score,
+            qualityScore: ranked.qualityScore,
+            explanation: ranked.explanation,
+          })),
           routingStatus: 'routed',
         });
       } catch {

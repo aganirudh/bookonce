@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { Itinerary } from '@/features/journey/schemas/aiSchemas';
+import type { Itinerary, JourneySegment } from '@/features/journey/schemas/aiSchemas';
 import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
 import { journeyEnrichmentService } from '@/features/journey/services/JourneyEnrichmentService';
 import { buildJourneyRequest, type JourneyFormData } from '@/features/journey/utils/journeyRequestMapper';
@@ -13,21 +13,95 @@ import JourneyMap from '@/features/journey/components/JourneyMap';
 import { segmentToCandidate } from '@/features/journey/optimization/adapters';
 import { preferencesForTravelStyle } from '@/features/journey/optimization/presets';
 import { getBestRoute } from '@/features/journey/optimization/RouteOptimizer';
+import { fallbackPreferences, preferenceInterpreter } from '@/features/journey/optimization/PreferenceInterpreter';
 
 type RequestState = 'idle' | 'loading' | 'success' | 'error';
 
 const estimate = (value: number, unit: string) => `${value.toLocaleString()} ${unit}`;
 
-export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urgent' | 'leisure' }> = ({ itinerary, travelStyle = 'leisure' }) => (
-  <div className="space-y-6" data-testid="journey-result">
+type RoutingAlternative = NonNullable<JourneySegment['routingAlternatives']>[number];
+
+function selectedAlternative(segment: JourneySegment, selectedId?: string): RoutingAlternative | undefined {
+  return segment.routingAlternatives?.find(route => route.id === selectedId) ??
+    segment.routingAlternatives?.find(route => route.id === segment.selectedRouteCandidateId) ??
+    segment.routingAlternatives?.[0];
+}
+
+const JourneySegmentCard: React.FC<{
+  segment: JourneySegment;
+  index: number;
+  selectedId?: string;
+  travelStyle: 'urgent' | 'leisure';
+  onSelect: (id: string) => void;
+}> = ({ segment, index, selectedId, travelStyle, onSelect }) => {
+  const selected = selectedAlternative(segment, selectedId);
+  const fallbackCandidate = segment.routingStatus === 'routed' ? segmentToCandidate(segment, index) : null;
+  const fallbackOptimized = fallbackCandidate
+    ? getBestRoute([fallbackCandidate], preferencesForTravelStyle(travelStyle))
+    : undefined;
+  const explanation = selected?.explanation ?? fallbackOptimized?.explanation;
+  const qualityScore = selected?.qualityScore ?? fallbackOptimized?.qualityScore;
+  const fastestDuration = segment.routingAlternatives?.reduce(
+    (minimum, route) => Math.min(minimum, route.duration),
+    Number.POSITIVE_INFINITY
+  );
+  const routeDuration = selected?.duration ?? segment.routeDuration;
+  const routeDistance = selected?.distance ?? segment.routeDistance;
+
+  return <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
+    <CardHeader>
+      <CardTitle className="text-lg capitalize">
+        {index + 1}. {segment.mode}: {segment.from.name} → {segment.to.name}
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
+      {segment.routingAlternatives && segment.routingAlternatives.length > 1 && <div className="sm:col-span-2 flex flex-wrap gap-2" aria-label="Route alternatives">
+        {segment.routingAlternatives.map(route => {
+          const isSelected = route.id === selected?.id;
+          const label = route.rank === 1
+            ? 'Recommended'
+            : route.duration === fastestDuration ? 'Fastest' : `Alternative ${route.rank - 1}`;
+          return <Button key={route.id} type="button" size="sm" variant={isSelected ? 'default' : 'outline'} onClick={() => onSelect(route.id)}>
+            {label}
+          </Button>;
+        })}
+      </div>}
+      {segment.departureTime && <p><b>Suggested departure:</b> {segment.departureTime}</p>}
+      {segment.arrivalTime && <p><b>Suggested arrival:</b> {segment.arrivalTime}</p>}
+      {routeDuration !== undefined
+        ? <p><b>Verified road duration:</b> {estimate(Math.round(routeDuration / 60), 'minutes')}</p>
+        : segment.duration !== undefined && <p><b>Estimated duration:</b> {estimate(segment.duration, 'minutes')}</p>}
+      {routeDistance !== undefined
+        ? <p><b>Verified road distance:</b> {estimate(Number((routeDistance / 1000).toFixed(1)), 'km')}</p>
+        : segment.distance !== undefined && <p><b>Estimated distance:</b> {estimate(segment.distance, 'km')}</p>}
+      {segment.estimatedCost !== undefined && <p><b>Estimated cost:</b> ₹{segment.estimatedCost.toLocaleString()}</p>}
+      {segment.instructions && <p className="sm:col-span-2"><b>Suggested instructions:</b> {segment.instructions}</p>}
+      {explanation && qualityScore !== undefined && <div className="sm:col-span-2 rounded-lg border bg-muted/40 p-3" data-testid="route-explanation">
+        <p className="font-semibold">Why this route?</p>
+        <p className="text-muted-foreground">BookOnce optimized this route for {segment.optimizationPreferenceLabel ?? explanation.dominantPreference}.</p>
+        {segment.optimizationWarnings?.map(warning => <p key={warning}>⚠ {warning}</p>)}
+        {explanation.advantages.map(reason => <p key={reason}>✓ {reason}</p>)}
+        {explanation.tradeOffs.map(reason => <p key={reason}>⚠ {reason}</p>)}
+        <p><b>Optimization score:</b> {qualityScore}/100</p>
+      </div>}
+    </CardContent>
+  </Card>;
+};
+
+export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urgent' | 'leisure' }> = ({ itinerary, travelStyle = 'leisure' }) => {
+  const [selectedRoutes, setSelectedRoutes] = useState<Record<number, string>>({});
+  const routeGeometry = itinerary.segments.flatMap((segment, index) =>
+    (selectedAlternative(segment, selectedRoutes[index])?.geometry ?? segment.routeGeometry ?? [])
+      .map(([lng, lat]) => ({ lat, lng }))
+  );
+
+  return <div className="space-y-6" data-testid="journey-result">
     {itinerary.origin.latitude !== undefined && itinerary.origin.longitude !== undefined &&
       itinerary.destination.latitude !== undefined && itinerary.destination.longitude !== undefined && (
         <JourneyMap
           origin={{ lat: itinerary.origin.latitude, lng: itinerary.origin.longitude, name: itinerary.origin.name }}
           destination={{ lat: itinerary.destination.latitude, lng: itinerary.destination.longitude, name: itinerary.destination.name }}
-          route={itinerary.segments.flatMap(segment =>
-            (segment.routeGeometry ?? []).map(([lng, lat]) => ({ lat, lng }))
-          )}
+          route={routeGeometry}
           height="360px"
         />
       )}
@@ -48,44 +122,21 @@ export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urge
       </CardContent>
     </Card>
 
-    {itinerary.segments.map((segment, index) => {
-      const candidate = segment.routingStatus === 'routed' ? segmentToCandidate(segment, index) : null;
-      const optimized = candidate
-        ? getBestRoute([candidate], preferencesForTravelStyle(travelStyle))
-        : undefined;
-      return <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
-        <CardHeader>
-          <CardTitle className="text-lg capitalize">
-            {index + 1}. {segment.mode}: {segment.from.name} → {segment.to.name}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
-          {segment.departureTime && <p><b>Suggested departure:</b> {segment.departureTime}</p>}
-          {segment.arrivalTime && <p><b>Suggested arrival:</b> {segment.arrivalTime}</p>}
-          {segment.routeDuration !== undefined
-            ? <p><b>Verified road duration:</b> {estimate(Math.round(segment.routeDuration / 60), 'minutes')}</p>
-            : segment.duration !== undefined && <p><b>Estimated duration:</b> {estimate(segment.duration, 'minutes')}</p>}
-          {segment.routeDistance !== undefined
-            ? <p><b>Verified road distance:</b> {estimate(Number((segment.routeDistance / 1000).toFixed(1)), 'km')}</p>
-            : segment.distance !== undefined && <p><b>Estimated distance:</b> {estimate(segment.distance, 'km')}</p>}
-          {segment.estimatedCost !== undefined && <p><b>Estimated cost:</b> ₹{segment.estimatedCost.toLocaleString()}</p>}
-          {segment.instructions && <p className="sm:col-span-2"><b>Suggested instructions:</b> {segment.instructions}</p>}
-          {optimized && <div className="sm:col-span-2 rounded-lg border bg-muted/40 p-3" data-testid="route-explanation">
-            <p className="font-semibold">Why this route?</p>
-            <p className="text-muted-foreground capitalize">Optimized primarily for {optimized.explanation.dominantPreference}.</p>
-            {optimized.explanation.advantages.map(reason => <p key={reason}>✓ {reason}</p>)}
-            {optimized.explanation.tradeOffs.map(reason => <p key={reason}>⚠ {reason}</p>)}
-            <p><b>Optimization score:</b> {optimized.qualityScore}/100</p>
-          </div>}
-        </CardContent>
-      </Card>
-    })}
+    {itinerary.segments.map((segment, index) => <JourneySegmentCard
+      key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}
+      segment={segment}
+      index={index}
+      selectedId={selectedRoutes[index]}
+      travelStyle={travelStyle}
+      onSelect={id => setSelectedRoutes(previous => ({ ...previous, [index]: id }))}
+    />)}
   </div>
-);
+};
 
 const initialForm: JourneyFormData = {
   origin: '', destination: '', departureDate: '', departureTime: '09:00', returnDate: '',
   travelers: '1', intent: 'leisure', userName: '',
+  routePreferenceText: '',
 };
 
 const AIJourneyPlanner: React.FC = () => {
@@ -113,9 +164,19 @@ const AIJourneyPlanner: React.FC = () => {
     setItinerary(null);
     try {
       setLoadingLabel('Generating Your Journey...');
-      const generated = await bookOnceAIService.generateItinerary(buildJourneyRequest(form));
+      const interpretationPromise = form.routePreferenceText?.trim()
+        ? preferenceInterpreter.interpret(form.routePreferenceText, form.intent)
+        : Promise.resolve(fallbackPreferences(form.intent));
+      const [generated, interpreted] = await Promise.all([
+        bookOnceAIService.generateItinerary(buildJourneyRequest(form)),
+        interpretationPromise,
+      ]);
       setLoadingLabel('Verifying Route...');
-      const result = await journeyEnrichmentService.enrich(generated);
+      const result = await journeyEnrichmentService.enrich(generated, {
+        preferences: interpreted.preferences,
+        constraints: interpreted.constraints,
+        preferenceLabel: interpreted.summary,
+      });
       if (result.segments.some(segment => segment.routingStatus === 'unavailable')) {
         setRouteWarning('Route details could not be verified for some segments.');
       }
@@ -166,6 +227,7 @@ const AIJourneyPlanner: React.FC = () => {
             <Button type="button" variant={form.intent === 'urgent' ? 'default' : 'outline'} onClick={() => change('intent', 'urgent')}>Fast &amp; Efficient</Button>
             <Button type="button" variant={form.intent === 'leisure' ? 'default' : 'outline'} onClick={() => change('intent', 'leisure')}>Leisurely &amp; Scenic</Button>
           </div></div>
+          <div><Label htmlFor="routePreferenceText">Route preferences (Optional)</Label><Input id="routePreferenceText" placeholder="e.g. Cheapest possible, but avoid long walks" value={form.routePreferenceText} onChange={e => change('routePreferenceText', e.target.value)} /></div>
           <Button onClick={generate} disabled={isLoading} className="w-full" size="lg">
             {isLoading ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" />{loadingLabel}</> : <><Sparkles className="h-5 w-5 mr-2" />Generate AI Journey Plan</>}
           </Button>

@@ -19,4 +19,23 @@ describe('RoutingService backend client', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: vi.fn().mockResolvedValue({ success: false, error: 'Routing mode is unavailable' }) }));
     await expect(routingService.getRoute({ lat: 12, lng: 77 }, { lat: 13, lng: 78 }, 'walk')).rejects.toThrow('Routing mode is unavailable');
   });
+
+  it('requests multiple normalized routes from the BookOnce alternatives endpoint', async () => {
+    const alternatives = [route, { ...route, id: 'alternative', totalDuration: 100 }];
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, data: alternatives }) });
+    vi.stubGlobal('fetch', fetchMock);
+    const start = { lat: 12, lng: 77 };
+    const end = { lat: 13, lng: 78 };
+    await expect(routingService.getRoutes(start, end, 'drive', 3)).resolves.toEqual(alternatives);
+    expect(fetchMock).toHaveBeenCalledWith('/api/routing/routes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start, end, mode: 'drive', maxAlternatives: 3 }),
+    });
+  });
+
+  it('returns a safe alternatives client error without provider-specific handling', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: vi.fn().mockResolvedValue({ success: false, error: 'Unable to calculate routes' }) }));
+    await expect(routingService.getRoutes({ lat: 12, lng: 77 }, { lat: 13, lng: 78 })).rejects.toThrow('Unable to calculate routes');
+  });
 });

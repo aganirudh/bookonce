@@ -9,6 +9,7 @@ export interface JourneyFormData {
   travelers: string;
   intent: 'urgent' | 'leisure';
   userName: string;
+  routePreferenceText?: string;
 }
 
 export function buildJourneyRequest(form: JourneyFormData): JourneyRequest {

@@ -51,6 +51,25 @@ export const JourneySegmentSchema = z.object({
   routeDistance: z.number().nonnegative().optional(),
   routeDuration: z.number().nonnegative().optional(),
   routeGeometry: z.array(z.tuple([z.number(), z.number()])).optional(),
+  selectedRouteCandidateId: z.string().optional(),
+  optimizationPreferenceLabel: z.string().optional(),
+  optimizationWarnings: z.array(z.string()).optional(),
+  routingAlternatives: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    mode: z.enum(['walk', 'drive', 'bike']),
+    distance: z.number().nonnegative(),
+    duration: z.number().nonnegative(),
+    geometry: z.array(z.tuple([z.number(), z.number()])),
+    rank: z.number().int().positive(),
+    score: z.number().nonnegative(),
+    qualityScore: z.number().int().min(0).max(100),
+    explanation: z.object({
+      dominantPreference: z.enum(['time', 'cost', 'walking', 'transfers', 'comfort']),
+      advantages: z.array(z.string()),
+      tradeOffs: z.array(z.string()),
+    }),
+  })).optional(),
   routingStatus: z.enum(['routed', 'unsupported', 'unavailable']).optional(),
 });
 
@@ -63,4 +82,3 @@ export const ItinerarySchema = z.object({
   estimatedTotalCost: z.number().nonnegative().optional(),
   summary: z.string().trim().min(1),
 });
-

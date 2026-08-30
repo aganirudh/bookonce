@@ -1,9 +1,31 @@
 import { Router } from 'express';
 import { ItinerarySchema } from '../../src/features/journey/schemas/aiSchemas.runtime.js';
-import { generateGeminiItinerary, generateGeminiReply } from '../services/gemini.js';
+import { PreferenceExtractionSchema } from '../../src/features/journey/optimization/preferenceSchema.runtime.js';
+import { generateGeminiItinerary, generateGeminiPreferences, generateGeminiReply } from '../services/gemini.js';
 
 const router = Router();
 const MAX_MESSAGE_LENGTH = 20_000;
+const MAX_PREFERENCE_LENGTH = 2_000;
+
+router.post('/preferences', async (req, res) => {
+  const { text } = req.body ?? {};
+  if (typeof text !== 'string' || !text.trim() || text.length > MAX_PREFERENCE_LENGTH) {
+    return res.status(400).json({ success: false, error: 'Valid preference text is required' });
+  }
+  try {
+    const rawReply = await generateGeminiPreferences(text.trim());
+    let candidate;
+    try { candidate = JSON.parse(rawReply); } catch { candidate = null; }
+    const parsed = PreferenceExtractionSchema.safeParse(candidate);
+    if (!parsed.success) {
+      return res.status(502).json({ success: false, error: 'Unable to interpret route preferences' });
+    }
+    return res.json({ success: true, data: parsed.data });
+  } catch {
+    console.error('AI preference request failed');
+    return res.status(500).json({ success: false, error: 'Unable to interpret route preferences' });
+  }
+});
 
 router.post('/chat', async (req, res) => {
   const { message, responseFormat = 'text' } = req.body ?? {};

@@ -50,4 +50,17 @@ describe('AIClient', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockRejectedValue(new SyntaxError('private response')) }));
     await expect(aiClient.chat('Plan it')).rejects.toThrow('Malformed AI response');
   });
+
+  it('requests and independently validates route preferences', async () => {
+    const data = { preset: 'FASTEST' };
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, data }) });
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(aiClient.interpretOptimizationPreferences('fastest')).resolves.toEqual(data);
+    expect(fetchMock).toHaveBeenCalledWith('/api/ai/preferences', expect.objectContaining({ body: JSON.stringify({ text: 'fastest' }) }));
+  });
+
+  it('rejects preference responses containing route decisions', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, data: { preset: 'FASTEST', routeId: 'fake' } }) }));
+    await expect(aiClient.interpretOptimizationPreferences('fastest')).rejects.toThrow('invalid route preferences');
+  });
 });

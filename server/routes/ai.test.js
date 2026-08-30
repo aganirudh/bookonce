@@ -3,10 +3,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 vi.mock('../services/gemini.js', () => ({
   generateGeminiReply: vi.fn(),
   generateGeminiItinerary: vi.fn(),
+  generateGeminiPreferences: vi.fn(),
 }));
 
 import { app } from '../../server.js';
-import { generateGeminiItinerary, generateGeminiReply } from '../services/gemini.js';
+import { generateGeminiItinerary, generateGeminiPreferences, generateGeminiReply } from '../services/gemini.js';
 
 const validItinerary = {
   origin: { name: 'Pune' },
@@ -110,5 +111,31 @@ describe('POST /api/ai/chat', () => {
     const body = await response.json();
     expect(body).toEqual({ success: false, error: 'Unable to process AI request' });
     expect(JSON.stringify(body)).not.toContain('provider secret');
+  });
+});
+
+describe('POST /api/ai/preferences', () => {
+  let server;
+  let baseUrl;
+  beforeAll(async () => {
+    server = app.listen(0);
+    await new Promise(resolve => server.once('listening', resolve));
+    baseUrl = `http://127.0.0.1:${server.address().port}`;
+  });
+  afterAll(async () => { await new Promise(resolve => server.close(resolve)); });
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns only validated structured preferences', async () => {
+    vi.mocked(generateGeminiPreferences).mockResolvedValue(JSON.stringify({ preset: 'CHEAPEST', constraints: { maxCost: 500 } }));
+    const response = await fetch(`${baseUrl}/api/ai/preferences`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'under 500 and cheapest' }) });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ success: true, data: { preset: 'CHEAPEST', constraints: { maxCost: 500 } } });
+  });
+
+  it('rejects malformed or structurally unsupported provider output safely', async () => {
+    vi.mocked(generateGeminiPreferences).mockResolvedValue(JSON.stringify({ preset: 'FASTEST', selectedRouteId: 'fake' }));
+    const response = await fetch(`${baseUrl}/api/ai/preferences`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'fastest' }) });
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({ success: false, error: 'Unable to interpret route preferences' });
   });
 });

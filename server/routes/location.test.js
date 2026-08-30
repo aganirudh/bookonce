@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../services/geocoding.js', () => ({ searchLocations: vi.fn(), reverseLocation: vi.fn() }));
-vi.mock('../services/routing.js', () => ({ getRoute: vi.fn() }));
+vi.mock('../services/routing.js', () => ({ getRoute: vi.fn(), getRoutes: vi.fn() }));
 
 import { app } from '../../server.js';
 import { searchLocations } from '../services/geocoding.js';
-import { getRoute } from '../services/routing.js';
+import { getRoute, getRoutes } from '../services/routing.js';
 
 describe('location API routes', () => {
   let server;
@@ -68,5 +68,24 @@ describe('location API routes', () => {
     const response = await fetch(`${baseUrl}/api/routing/route`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ start: { lat: 12, lng: 77 }, end: { lat: 13, lng: 78 }, mode: 'drive' }) });
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({ success: false, error: 'Unable to calculate route' });
+  });
+
+  it('accepts alternatives requests and defaults to three routes', async () => {
+    vi.mocked(getRoutes).mockResolvedValue([]);
+    const response = await fetch(`${baseUrl}/api/routing/routes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ start: { lat: 12, lng: 77 }, end: { lat: 13, lng: 78 }, mode: 'drive' }) });
+    expect(response.status).toBe(200);
+    expect(getRoutes).toHaveBeenCalledWith({ lat: 12, lng: 77 }, { lat: 13, lng: 78 }, 'drive', 3);
+  });
+
+  it.each([0, 4, 1.5])('rejects invalid maxAlternatives %s', async maxAlternatives => {
+    const response = await fetch(`${baseUrl}/api/routing/routes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ start: { lat: 12, lng: 77 }, end: { lat: 13, lng: 78 }, mode: 'drive', maxAlternatives }) });
+    expect(response.status).toBe(400);
+  });
+
+  it('returns safe alternatives provider errors', async () => {
+    vi.mocked(getRoutes).mockRejectedValue(new Error('private provider details'));
+    const response = await fetch(`${baseUrl}/api/routing/routes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ start: { lat: 12, lng: 77 }, end: { lat: 13, lng: 78 }, mode: 'drive' }) });
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({ success: false, error: 'Unable to calculate routes' });
   });
 });

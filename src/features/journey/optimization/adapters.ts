@@ -27,6 +27,19 @@ export function routeToCandidate(
   };
 }
 
+export function routesToCandidates(
+  routes: readonly Route[],
+  mode: 'walk' | 'drive' | 'bike'
+): RouteCandidate[] {
+  return routes.map((route, index) => routeToCandidate(
+    route.id ?? `${mode}-${route.provider ?? 'bookonce'}-${route.providerRouteIndex ?? index}-${Math.round(route.totalDistance)}-${Math.round(route.totalDuration)}`,
+    index === 0 ? 'Primary route' : `Alternative ${index}`,
+    mode,
+    route,
+    mode === 'walk' ? { walkingDistanceMeters: route.totalDistance } : {}
+  ));
+}
+
 export function segmentToCandidate(segment: JourneySegment, index: number): RouteCandidate | null {
   const durationSeconds = segment.routeDuration ??
     (segment.duration !== undefined ? segment.duration * 60 : undefined);
