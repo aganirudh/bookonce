@@ -1,0 +1,61 @@
+import { z } from 'zod';
+
+export const LocationSchema = z.object({
+  name: z.string().trim().min(1),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+});
+
+export const TravelStyleSchema = z.enum(['urgent', 'leisure']);
+
+export const JourneyRequestSchema = z.object({
+  origin: LocationSchema,
+  destination: LocationSchema,
+  departureDate: z.string().date(),
+  returnDate: z.string().date().optional(),
+  travelers: z.number().int().positive(),
+  travelStyle: TravelStyleSchema,
+  preferences: z
+    .object({
+      budget: z.enum(['low', 'medium', 'high']).optional(),
+      pace: z.enum(['relaxed', 'moderate', 'fast']).optional(),
+      interests: z.array(z.string().trim().min(1)).optional(),
+    })
+    .optional(),
+});
+
+export const TransportModeSchema = z.enum([
+  'walk',
+  'metro',
+  'bus',
+  'taxi',
+  'flight',
+  'train',
+  'car',
+  'auto',
+  'rapido',
+]);
+
+export const JourneySegmentSchema = z.object({
+  mode: TransportModeSchema,
+  from: LocationSchema,
+  to: LocationSchema,
+  departureTime: z.string().trim().min(1).optional(),
+  arrivalTime: z.string().trim().min(1).optional(),
+  duration: z.number().nonnegative().optional(),
+  distance: z.number().nonnegative().optional(),
+  estimatedCost: z.number().nonnegative().optional(),
+  instructions: z.string().trim().min(1).optional(),
+});
+
+export const ItinerarySchema = z.object({
+  origin: LocationSchema,
+  destination: LocationSchema,
+  segments: z.array(JourneySegmentSchema),
+  totalDuration: z.number().nonnegative().optional(),
+  totalDistance: z.number().nonnegative().optional(),
+  estimatedTotalCost: z.number().nonnegative().optional(),
+  summary: z.string().trim().min(1),
+});
+
+

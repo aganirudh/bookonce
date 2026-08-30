@@ -2,10 +2,18 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 vi.mock('../services/gemini.js', () => ({
   generateGeminiReply: vi.fn(),
+  generateGeminiItinerary: vi.fn(),
 }));
 
 import { app } from '../../server.js';
-import { generateGeminiReply } from '../services/gemini.js';
+import { generateGeminiItinerary, generateGeminiReply } from '../services/gemini.js';
+
+const validItinerary = {
+  origin: { name: 'Pune' },
+  destination: { name: 'Mumbai' },
+  segments: [],
+  summary: 'A proposed journey.',
+};
 
 describe('POST /api/ai/chat', () => {
   let server;
@@ -67,5 +75,40 @@ describe('POST /api/ai/chat', () => {
       success: false,
       error: 'Unable to process AI request',
     });
+  });
+
+  it('returns validated structured itinerary data', async () => {
+    vi.mocked(generateGeminiItinerary).mockResolvedValue(JSON.stringify(validItinerary));
+    const response = await fetch(`${baseUrl}/api/ai/chat`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Plan a trip', responseFormat: 'itinerary' }),
+    });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ success: true, data: validItinerary });
+  });
+
+  it('rejects malformed Gemini JSON without exposing it', async () => {
+    vi.mocked(generateGeminiItinerary).mockResolvedValue('{secret malformed');
+    const response = await fetch(`${baseUrl}/api/ai/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Plan', responseFormat: 'itinerary' }) });
+    expect(response.status).toBe(502);
+    const body = await response.json();
+    expect(body).toEqual({ success: false, error: 'AI returned an invalid itinerary' });
+    expect(JSON.stringify(body)).not.toContain('secret');
+  });
+
+  it('rejects an invalid itinerary shape', async () => {
+    vi.mocked(generateGeminiItinerary).mockResolvedValue(JSON.stringify({ summary: 'missing fields' }));
+    const response = await fetch(`${baseUrl}/api/ai/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Plan', responseFormat: 'itinerary' }) });
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({ success: false, error: 'AI returned an invalid itinerary' });
+  });
+
+  it('returns a safe 5xx when structured Gemini generation fails', async () => {
+    vi.mocked(generateGeminiItinerary).mockRejectedValue(new Error('provider secret exception'));
+    const response = await fetch(`${baseUrl}/api/ai/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Plan', responseFormat: 'itinerary' }) });
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body).toEqual({ success: false, error: 'Unable to process AI request' });
+    expect(JSON.stringify(body)).not.toContain('provider secret');
   });
 });

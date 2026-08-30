@@ -7,6 +7,11 @@
 
 import type { JourneyContext, AIRecommendations } from '../types/aiAdvisor';
 import { aiClient } from '@/services/AIClient';
+import {
+  JourneyRequestSchema,
+  type Itinerary,
+  type JourneyRequest,
+} from '../schemas/aiSchemas';
 
 interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -14,6 +19,12 @@ interface AIMessage {
 }
 
 class BookOnceAIService {
+  async generateItinerary(request: JourneyRequest): Promise<Itinerary> {
+    const validatedRequest = JourneyRequestSchema.parse(request);
+    const prompt = `Propose a travel itinerary for the following request:\n${JSON.stringify(validatedRequest)}\n\nReturn only an itinerary JSON object. Candidate segments and summaries may be proposed, but duration, distance, and cost values are estimates, not authoritative calculations. Omit unavailable estimates and do not fabricate coordinates.`;
+    return aiClient.planItinerary(prompt);
+  }
+
   /** Send the existing prompt format through the backend AI API. */
   private async callAI(messages: AIMessage[]): Promise<string> {
     const systemMessage = messages.find(message => message.role === 'system');

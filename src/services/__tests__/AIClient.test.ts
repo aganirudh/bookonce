@@ -32,4 +32,22 @@ describe('AIClient', () => {
 
     await expect(aiClient.chat('Plan a trip')).rejects.toThrow('Unable to process AI request');
   });
+
+  it('requests and validates a structured itinerary', async () => {
+    const data = { origin: { name: 'Pune' }, destination: { name: 'Mumbai' }, segments: [], summary: 'A proposed journey.' };
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, data }) });
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(aiClient.planItinerary('Plan it')).resolves.toEqual(data);
+    expect(fetchMock).toHaveBeenCalledWith('/api/ai/chat', expect.objectContaining({ body: JSON.stringify({ message: 'Plan it', responseFormat: 'itinerary' }) }));
+  });
+
+  it('rejects a malformed structured response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, data: { summary: 'missing fields' } }) }));
+    await expect(aiClient.planItinerary('Plan it')).rejects.toThrow('AI returned an invalid itinerary');
+  });
+
+  it('rejects non-JSON API responses safely', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockRejectedValue(new SyntaxError('private response')) }));
+    await expect(aiClient.chat('Plan it')).rejects.toThrow('Malformed AI response');
+  });
 });
