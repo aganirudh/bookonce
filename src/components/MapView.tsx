@@ -34,6 +34,7 @@ import heatspots from '../data/heatspots.json';
 import echoes from '../data/echoes.json';
 import { reviewService } from '../services/ReviewService';
 import { safetyService } from '../services/SafetyService';
+import { geocodingService, type GeocodingResult } from '../services/GeocodingService';
 import { MapTutorial } from './MapTutorial';
 import { CommunityReviewModal } from './CommunityReviewModal';
 import { Button } from './ui/button';
@@ -583,7 +584,7 @@ const MapView = ({ isOpen, onClose, onEchoClick, isNearby }: MapViewProps) => {
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<GeocodingResult[]>([]);
   const [pois, setPois] = useState<POIData[]>([]);
   const [poisLoading, setPoisLoading] = useState(false);
   const [safetyData, setSafetyData] = useState<any[]>([]);
@@ -611,29 +612,20 @@ const MapView = ({ isOpen, onClose, onEchoClick, isNearby }: MapViewProps) => {
     }
 
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`,
-        {
-          headers: {
-            'User-Agent': 'BookOnceApp/1.0',
-          },
-        }
-      );
-      const data = await response.json();
-      setSearchResults(data);
+      setSearchResults(await geocodingService.searchLocation(query));
     } catch (error) {
       console.error('Search error:', error);
     }
   };
 
-  const handleSelectLocation = (result: any) => {
+  const handleSelectLocation = (result: GeocodingResult) => {
     if (mapInstance) {
-      mapInstance.flyTo([parseFloat(result.lat), parseFloat(result.lon)], 10, {
+      mapInstance.flyTo([result.lat, result.lng], 10, {
         duration: 1.5,
       });
       setSearchQuery('');
       setSearchResults([]);
-      handleMapClick(parseFloat(result.lat), parseFloat(result.lon));
+      handleMapClick(result.lat, result.lng);
     }
   };
 
@@ -703,30 +695,9 @@ const MapView = ({ isOpen, onClose, onEchoClick, isNearby }: MapViewProps) => {
       let locationName = `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
 
       try {
-        const geoResponse = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
-          {
-            headers: {
-              'User-Agent': 'BookOnceApp/1.0',
-            },
-          }
-        );
-
-        if (geoResponse.ok) {
-          const geoData = await geoResponse.json();
-          if (geoData.address) {
-            const parts = [];
-            if (geoData.address.city) parts.push(geoData.address.city);
-            else if (geoData.address.town) parts.push(geoData.address.town);
-            else if (geoData.address.village) parts.push(geoData.address.village);
-
-            if (geoData.address.country) parts.push(geoData.address.country);
-
-            if (parts.length > 0) {
-              locationName = parts.join(', ');
-            }
-          }
-        }
+        const geoData = await geocodingService.reverseGeocode(lat, lng);
+        const parts = [geoData.address.city, geoData.address.country].filter(Boolean);
+        locationName = parts.join(', ') || geoData.displayName || locationName;
       } catch (geoError) {
         console.log('Geocoding failed, using coordinates:', geoError);
       }
@@ -907,10 +878,10 @@ const MapView = ({ isOpen, onClose, onEchoClick, isNearby }: MapViewProps) => {
                       className="w-full px-4 py-3 text-left text-sm hover:bg-secondary transition-colors border-b border-border last:border-b-0"
                     >
                       <div className="font-medium text-foreground">
-                        {result.display_name.split(',')[0]}
+                        {result.displayName.split(',')[0]}
                       </div>
                       <div className="text-xs text-muted-foreground line-clamp-1">
-                        {result.display_name}
+                        {result.displayName}
                       </div>
                     </button>
                   ))}

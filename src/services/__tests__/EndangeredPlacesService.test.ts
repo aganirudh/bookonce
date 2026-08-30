@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EndangeredPlacesService } from '../EndangeredPlacesService';
+import { geocodingService } from '../GeocodingService';
 
-// Mock the fetch function
-global.fetch = vi.fn();
+vi.mock('../GeocodingService', () => ({
+  geocodingService: { searchLocation: vi.fn() },
+}));
 
 describe('EndangeredPlacesService', () => {
   let service: EndangeredPlacesService;
@@ -47,8 +49,7 @@ describe('EndangeredPlacesService', () => {
   });
 
   it('should handle location matching when geocoding fails', async () => {
-    // Mock fetch to simulate API failure
-    (global.fetch as any).mockRejectedValue(new Error('API Error'));
+    vi.mocked(geocodingService.searchLocation).mockRejectedValue(new Error('API Error'));
 
     const places = await service.findNearbyEndangeredPlaces('Mumbai');
     expect(Array.isArray(places)).toBe(true);
@@ -56,17 +57,7 @@ describe('EndangeredPlacesService', () => {
   });
 
   it('should handle successful geocoding and distance calculation', async () => {
-    // Mock successful geocoding response
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => [
-        {
-          lat: '19.0760',
-          lon: '72.8777',
-          display_name: 'Mumbai, Maharashtra, India',
-        },
-      ],
-    });
+    vi.mocked(geocodingService.searchLocation).mockResolvedValue([{ lat: 19.076, lng: 72.8777, displayName: 'Mumbai, Maharashtra, India', address: { city: 'Mumbai', state: 'Maharashtra', country: 'India' }, type: 'city' }]);
 
     const places = await service.findNearbyEndangeredPlaces('Mumbai');
     expect(Array.isArray(places)).toBe(true);

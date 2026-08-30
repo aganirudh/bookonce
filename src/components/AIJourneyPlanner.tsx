@@ -10,12 +10,15 @@ import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService
 import { journeyEnrichmentService } from '@/features/journey/services/JourneyEnrichmentService';
 import { buildJourneyRequest, type JourneyFormData } from '@/features/journey/utils/journeyRequestMapper';
 import JourneyMap from '@/features/journey/components/JourneyMap';
+import { segmentToCandidate } from '@/features/journey/optimization/adapters';
+import { preferencesForTravelStyle } from '@/features/journey/optimization/presets';
+import { getBestRoute } from '@/features/journey/optimization/RouteOptimizer';
 
 type RequestState = 'idle' | 'loading' | 'success' | 'error';
 
 const estimate = (value: number, unit: string) => `${value.toLocaleString()} ${unit}`;
 
-export const JourneyResult: React.FC<{ itinerary: Itinerary }> = ({ itinerary }) => (
+export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urgent' | 'leisure' }> = ({ itinerary, travelStyle = 'leisure' }) => (
   <div className="space-y-6" data-testid="journey-result">
     {itinerary.origin.latitude !== undefined && itinerary.origin.longitude !== undefined &&
       itinerary.destination.latitude !== undefined && itinerary.destination.longitude !== undefined && (
@@ -45,8 +48,12 @@ export const JourneyResult: React.FC<{ itinerary: Itinerary }> = ({ itinerary })
       </CardContent>
     </Card>
 
-    {itinerary.segments.map((segment, index) => (
-      <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
+    {itinerary.segments.map((segment, index) => {
+      const candidate = segment.routingStatus === 'routed' ? segmentToCandidate(segment, index) : null;
+      const optimized = candidate
+        ? getBestRoute([candidate], preferencesForTravelStyle(travelStyle))
+        : undefined;
+      return <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
         <CardHeader>
           <CardTitle className="text-lg capitalize">
             {index + 1}. {segment.mode}: {segment.from.name} → {segment.to.name}
@@ -63,9 +70,16 @@ export const JourneyResult: React.FC<{ itinerary: Itinerary }> = ({ itinerary })
             : segment.distance !== undefined && <p><b>Estimated distance:</b> {estimate(segment.distance, 'km')}</p>}
           {segment.estimatedCost !== undefined && <p><b>Estimated cost:</b> ₹{segment.estimatedCost.toLocaleString()}</p>}
           {segment.instructions && <p className="sm:col-span-2"><b>Suggested instructions:</b> {segment.instructions}</p>}
+          {optimized && <div className="sm:col-span-2 rounded-lg border bg-muted/40 p-3" data-testid="route-explanation">
+            <p className="font-semibold">Why this route?</p>
+            <p className="text-muted-foreground capitalize">Optimized primarily for {optimized.explanation.dominantPreference}.</p>
+            {optimized.explanation.advantages.map(reason => <p key={reason}>✓ {reason}</p>)}
+            {optimized.explanation.tradeOffs.map(reason => <p key={reason}>⚠ {reason}</p>)}
+            <p><b>Optimization score:</b> {optimized.qualityScore}/100</p>
+          </div>}
         </CardContent>
       </Card>
-    ))}
+    })}
   </div>
 );
 
@@ -157,8 +171,8 @@ const AIJourneyPlanner: React.FC = () => {
           </Button>
           {error && <div role="alert" className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">{error}</div>}
         </CardContent></Card></TabsContent>
-      <TabsContent value="visualization">{itinerary ? <JourneyResult itinerary={itinerary} /> : empty}</TabsContent>
-      <TabsContent value="chat">{itinerary ? <JourneyResult itinerary={itinerary} /> : empty}</TabsContent>
+      <TabsContent value="visualization">{itinerary ? <JourneyResult itinerary={itinerary} travelStyle={form.intent} /> : empty}</TabsContent>
+      <TabsContent value="chat">{itinerary ? <JourneyResult itinerary={itinerary} travelStyle={form.intent} /> : empty}</TabsContent>
     </Tabs>
   </div>;
 };

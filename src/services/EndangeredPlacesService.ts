@@ -1,4 +1,5 @@
 import vanishingDataRaw from '@/data/vanishing-destinations.json';
+import { geocodingService } from './GeocodingService';
 
 export interface EndangeredPlace {
   id: number;
@@ -41,26 +42,8 @@ export class EndangeredPlacesService {
    */
   private async getCoordinatesFromLocation(location: string): Promise<[number, number] | null> {
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-          `q=${encodeURIComponent(location)}&` +
-          `format=json&` +
-          `limit=1`,
-        {
-          headers: {
-            'User-Agent': 'BookOnceApp/1.0',
-          },
-        }
-      );
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      if (data.length > 0) {
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      }
-
-      return null;
+      const [result] = await geocodingService.searchLocation(location);
+      return result ? [result.lat, result.lng] : null;
     } catch (error) {
       console.error('Error geocoding location:', error);
       return null;

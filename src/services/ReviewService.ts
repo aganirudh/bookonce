@@ -3,9 +3,11 @@
  *
  * Integrates multiple free APIs to provide reviews and POI data:
  * - Overpass API (OpenStreetMap) - POI data with ratings
- * - Nominatim - Location details
+ * - BookOnce geocoding service - Location details
  * - Open-Meteo - Weather context
  */
+
+import { geocodingService } from './GeocodingService';
 
 interface POIData {
   id: string;
@@ -33,7 +35,6 @@ interface Review {
 
 class ReviewService {
   private readonly OVERPASS_API = 'https://overpass-api.de/api/interpreter';
-  private readonly NOMINATIM_API = 'https://nominatim.openstreetmap.org';
 
   /**
    * Get Points of Interest near coordinates with review data
@@ -92,19 +93,8 @@ class ReviewService {
 
           // Get address using reverse geocoding
           try {
-            const addressResponse = await fetch(
-              `${this.NOMINATIM_API}/reverse?lat=${element.lat}&lon=${element.lon}&format=json&zoom=18`,
-              {
-                headers: {
-                  'User-Agent': 'BookOnceApp/1.0',
-                },
-              }
-            );
-
-            if (addressResponse.ok) {
-              const addressData = await addressResponse.json();
-              poi.address = this.formatAddress(addressData.address);
-            }
+            const address = await geocodingService.reverseGeocode(element.lat, element.lon);
+            poi.address = geocodingService.formatAddress(address);
           } catch (error) {
             console.log('Address lookup failed for POI:', poi.name);
           }
@@ -134,31 +124,18 @@ class ReviewService {
    */
   async searchPlaces(query: string, lat?: number, lng?: number): Promise<POIData[]> {
     try {
-      // Use Nominatim to search for places
-      const searchUrl =
-        lat && lng
-          ? `${this.NOMINATIM_API}/search?q=${encodeURIComponent(query)}&format=json&limit=10&lat=${lat}&lon=${lng}&bounded=1&viewbox=${lng - 0.1},${lat - 0.1},${lng + 0.1},${lat + 0.1}`
-          : `${this.NOMINATIM_API}/search?q=${encodeURIComponent(query)}&format=json&limit=10`;
+      const results = await geocodingService.searchLocation(query);
+      const boundedResults = lat !== undefined && lng !== undefined
+        ? results.filter(result => Math.abs(result.lat - lat) <= 0.1 && Math.abs(result.lng - lng) <= 0.1)
+        : results;
 
-      const response = await fetch(searchUrl, {
-        headers: {
-          'User-Agent': 'BookOnceApp/1.0',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Search failed');
-      }
-
-      const results = await response.json();
-
-      return results.map((result: any) => {
+      return boundedResults.map(result => {
         const poi: POIData = {
-          id: result.place_id.toString(),
-          name: result.display_name.split(',')[0],
-          type: this.categorizeFromClass(result.class, result.type),
-          coordinates: [parseFloat(result.lat), parseFloat(result.lon)],
-          address: result.display_name,
+          id: `${result.lat},${result.lng}`,
+          name: result.displayName.split(',')[0],
+          type: this.categorizeFromClass(result.type, result.type),
+          coordinates: [result.lat, result.lng],
+          address: result.displayName,
         };
 
         poi.reviews = this.generateSyntheticReviews(poi);

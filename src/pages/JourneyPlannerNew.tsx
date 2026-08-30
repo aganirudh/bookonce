@@ -2,8 +2,8 @@
  * Journey Planner Page
  *
  * Complete door-to-door journey planning with:
- * - Location search (Nominatim - free)
- * - Route calculation (OpenRouteService - free)
+ * - Location search through the BookOnce backend
+ * - Route calculation through the BookOnce backend
  * - Weather forecast (Open-Meteo - free)
  * - Interactive map (Leaflet + OpenStreetMap - free)
  */
@@ -379,7 +379,7 @@ export default function JourneyPlannerNew() {
       <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-800">
           <strong>100% Free Services:</strong> This journey planner uses OpenStreetMap (maps),
-          Nominatim (geocoding), OpenRouteService (routing), and Open-Meteo (weather) - all
+          BookOnce geocoding and routing services, plus Open-Meteo weather - all
           completely free and open-source!
         </p>
       </div>

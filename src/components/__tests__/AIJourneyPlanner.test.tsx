@@ -98,6 +98,15 @@ describe('AIJourneyPlanner', () => {
     expect(screen.queryByText(/999 km/)).not.toBeInTheDocument();
   });
 
+  it('shows a deterministic explanation only for a verified route', () => {
+    const routed = { ...itinerary.segments[0], routeDistance: 145000, routeDuration: 10800, routingStatus: 'routed' as const };
+    render(<JourneyResult itinerary={{ ...itinerary, segments: [routed] }} travelStyle="urgent" />);
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Why this route?');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Only verified route currently available');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Optimized primarily for time');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Optimization score: 100/100');
+  });
+
   it('renders estimates when authoritative route values are absent', () => {
     render(<JourneyResult itinerary={{ ...itinerary, segments: [{ ...itinerary.segments[0], distance: 12, duration: 30 }] }} />);
     expect(screen.getByText(/Estimated distance:/).closest('p')).toHaveTextContent('12 km');

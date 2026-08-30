@@ -47,7 +47,7 @@ class FreeTransitService {
 
   /**
    * Get transit directions with real-time links
-   * Uses OpenRouteService for route + Google Maps for real-time
+   * Uses the BookOnce routing service plus Google Maps for real-time context
    */
   async getTransitDirections(from: string, to: string): Promise<TransitStep[]> {
     // For Bengaluru example: M S Ramaiah to R V College

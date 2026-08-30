@@ -6,6 +6,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { geocodingService } from '@/services/GeocodingService';
 
 interface JourneySearchCardProps {
   onExplore: (params: JourneySearchParams) => void;
@@ -180,63 +181,9 @@ const JourneySearchCard = ({
     if (query.length < 2) return [];
 
     try {
-      // Using Nominatim (OpenStreetMap) - completely free, no API key needed
-      // Removed featuretype=city to allow ANY location worldwide (cities, addresses, landmarks, etc.)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-          `q=${encodeURIComponent(query)}&` +
-          `format=json&` +
-          `addressdetails=1&` +
-          `limit=5`,
-        {
-          headers: {
-            'User-Agent': 'BookOnceApp/1.0', // Required by Nominatim
-          },
-        }
-      );
-
-      if (!response.ok) {
-        // Fallback to local suggestions if API fails
-        return POPULAR_DESTINATIONS.filter(dest =>
-          dest.toLowerCase().includes(query.toLowerCase())
-        ).slice(0, 5);
-      }
-
-      const data = await response.json();
-
-      // Format results to show full location details
+      const data = await geocodingService.searchLocation(query);
       const formatted = data
-        .map((place: any) => {
-          // Build location string from most specific to least specific
-          const parts = [];
-
-          // Add specific location (building, attraction, etc.)
-          if (
-            place.name &&
-            place.name !== place.address?.city &&
-            place.name !== place.address?.country
-          ) {
-            parts.push(place.name);
-          }
-
-          // Add city/town/village
-          if (place.address?.city) parts.push(place.address.city);
-          else if (place.address?.town) parts.push(place.address.town);
-          else if (place.address?.village) parts.push(place.address.village);
-
-          // Add state/region if available
-          if (place.address?.state) parts.push(place.address.state);
-
-          // Always add country
-          if (place.address?.country) parts.push(place.address.country);
-
-          // If no parts, use display_name
-          if (parts.length === 0) {
-            return place.display_name.split(',').slice(0, 3).join(',');
-          }
-
-          return parts.join(', ');
-        })
+        .map(place => place.displayName)
         .filter(
           (value: string, index: number, self: string[]) => self.indexOf(value) === index // Remove duplicates
         );

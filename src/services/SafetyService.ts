@@ -9,6 +9,8 @@
  * - Community safety reports
  */
 
+import { geocodingService } from './GeocodingService';
+
 interface SafetyData {
   id: string;
   type: 'crime' | 'police' | 'hospital' | 'emergency' | 'alert' | 'community';
@@ -57,7 +59,6 @@ interface SocialAlert {
 
 class SafetyService {
   private readonly OVERPASS_API = 'https://overpass-api.de/api/interpreter';
-  private readonly NOMINATIM_API = 'https://nominatim.openstreetmap.org';
 
   // Note: In production, you'd use real APIs. These are simulated for demo
   private readonly CRIME_API_BASE = 'https://api.crime-data.org'; // Simulated
@@ -418,28 +419,9 @@ class SafetyService {
 
   private async getAreaName(lat: number, lng: number): Promise<string> {
     try {
-      const response = await fetch(
-        `${this.NOMINATIM_API}/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
-        {
-          headers: {
-            'User-Agent': 'BookOnceApp/1.0',
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.address) {
-          const parts = [];
-          if (data.address.city) parts.push(data.address.city);
-          else if (data.address.town) parts.push(data.address.town);
-          else if (data.address.village) parts.push(data.address.village);
-
-          if (data.address.country) parts.push(data.address.country);
-
-          return parts.join(', ') || 'Unknown Area';
-        }
-      }
+      const result = await geocodingService.reverseGeocode(lat, lng);
+      const parts = [result.address.city, result.address.country].filter(Boolean);
+      return parts.join(', ') || result.displayName || 'Unknown Area';
     } catch (error) {
       console.error('Error getting area name:', error);
     }
