@@ -46,6 +46,9 @@ export const JourneySegmentSchema = z.object({
   distance: z.number().nonnegative().optional(),
   estimatedCost: z.number().nonnegative().optional(),
   instructions: z.string().trim().min(1).optional(),
+  activityId: z.string().trim().min(1).optional(),
+  activityCategory: z.enum(['indoor', 'outdoor', 'mixed', 'transport']).optional(),
+  flexibility: z.enum(['fixed', 'flexible']).optional(),
   // Deterministic routing fields. Distance is meters, duration is seconds,
   // and geometry uses the routing-provider [longitude, latitude] convention.
   routeDistance: z.number().nonnegative().optional(),

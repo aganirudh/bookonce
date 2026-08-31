@@ -5,6 +5,7 @@ import { JourneyRequestSchema } from '@/features/journey/schemas/aiSchemas';
 import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
 import { buildJourneyRequest } from '@/features/journey/utils/journeyRequestMapper';
 import { journeyEnrichmentService } from '@/features/journey/services/JourneyEnrichmentService';
+import { weatherService } from '@/services/WeatherService';
 
 vi.mock('@/features/journey/services/BookOnceAIService', () => ({
   bookOnceAIService: { generateItinerary: vi.fn() },
@@ -12,6 +13,7 @@ vi.mock('@/features/journey/services/BookOnceAIService', () => ({
 vi.mock('@/features/journey/services/JourneyEnrichmentService', () => ({
   journeyEnrichmentService: { enrich: vi.fn() },
 }));
+vi.mock('@/services/WeatherService', () => ({ weatherService: { getForecast: vi.fn() } }));
 vi.mock('@/features/journey/components/JourneyMap', () => ({
   default: (props: unknown) => <div data-testid="journey-map" data-props={JSON.stringify(props)} />,
 }));
@@ -187,5 +189,30 @@ describe('AIJourneyPlanner', () => {
     expect(screen.queryByTestId('journey-result')).not.toBeInTheDocument();
     expect(screen.queryByText(/provider secret/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Prepare & Depart/i)).not.toBeInTheDocument();
+  });
+
+  it('shows and applies a deterministic weather replan without moving fixed events', async () => {
+    const weatherItinerary = {
+      ...itinerary,
+      destination: { name: 'Mumbai', latitude: 19, longitude: 72 },
+      segments: [
+        { ...itinerary.segments[0], activityId: 'park', activityCategory: 'outdoor' as const, flexibility: 'flexible' as const, departureTime: '09:00', instructions: 'Park visit' },
+        { ...itinerary.segments[0], activityId: 'museum', activityCategory: 'indoor' as const, flexibility: 'flexible' as const, departureTime: '11:00', instructions: 'Museum visit' },
+      ],
+    };
+    vi.mocked(bookOnceAIService.generateItinerary).mockResolvedValue(itinerary);
+    vi.mocked(journeyEnrichmentService.enrich).mockResolvedValue(weatherItinerary);
+    vi.mocked(weatherService.getForecast).mockResolvedValue({ status: 'available', hourly: [
+      { timestamp: '2026-09-15T09:00', temperatureC: 28, apparentTemperatureC: 29, precipitationProbability: 90, precipitationMm: 5, weatherCode: 65, windSpeedKph: 10 },
+      { timestamp: '2026-09-15T11:00', temperatureC: 28, apparentTemperatureC: 29, precipitationProbability: 0, precipitationMm: 0, weatherCode: 0, windSpeedKph: 5 },
+    ] });
+    render(<AIJourneyPlanner />); fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: 'Generate AI Journey Plan' }));
+    expect(await screen.findByRole('button', { name: 'Apply suggested replan' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Apply suggested replan' }));
+    const instructions = screen.getAllByText(/visit$/i).map(node => node.textContent);
+    expect(instructions[0]).toContain('Museum visit');
+    expect(screen.getByTestId('weather-notice')).toHaveTextContent('Suggested weather replan applied');
+    expect(screen.queryByText(/danger|Gemini.*replan/i)).not.toBeInTheDocument();
   });
 });

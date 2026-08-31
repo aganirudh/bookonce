@@ -14,6 +14,10 @@ import { segmentToCandidate } from '@/features/journey/optimization/adapters';
 import { preferencesForTravelStyle } from '@/features/journey/optimization/presets';
 import { getBestRoute } from '@/features/journey/optimization/RouteOptimizer';
 import { fallbackPreferences, preferenceInterpreter } from '@/features/journey/optimization/PreferenceInterpreter';
+import { weatherService } from '@/services/WeatherService';
+import { evaluateWeatherCompatibility, nearestWeatherHour } from '@/features/journey/weather/WeatherCompatibilityEngine';
+import { proposeWeatherReplan } from '@/features/journey/replanning/ItineraryReplanner';
+import type { WeatherActivity } from '@/features/journey/weather/types';
 
 type RequestState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -146,6 +150,8 @@ const AIJourneyPlanner: React.FC = () => {
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [error, setError] = useState('');
   const [routeWarning, setRouteWarning] = useState('');
+  const [weatherNotice, setWeatherNotice] = useState('');
+  const [suggestedItinerary, setSuggestedItinerary] = useState<Itinerary | null>(null);
   const [loadingLabel, setLoadingLabel] = useState('Generating Your Journey...');
   const [activeTab, setActiveTab] = useState('form');
   const [form, setForm] = useState(initialForm);
@@ -163,6 +169,8 @@ const AIJourneyPlanner: React.FC = () => {
     setRequestState('loading');
     setError('');
     setRouteWarning('');
+    setWeatherNotice('');
+    setSuggestedItinerary(null);
     setItinerary(null);
     try {
       setLoadingLabel('Generating Your Journey...');
@@ -181,6 +189,38 @@ const AIJourneyPlanner: React.FC = () => {
       });
       if (result.segments.some(segment => segment.routingStatus === 'unavailable')) {
         setRouteWarning('Route details could not be verified for some segments.');
+      }
+      if (result.destination.latitude !== undefined && result.destination.longitude !== undefined) {
+        try {
+          const forecast = await weatherService.getForecast(result.destination.latitude, result.destination.longitude, form.departureDate);
+          if (forecast.status === 'unavailable-out-of-range') {
+            setWeatherNotice('Weather forecast unavailable for these travel dates.');
+          } else {
+            const activities: WeatherActivity[] = result.segments.map((segment, index) => ({
+              id: segment.activityId ?? `segment-${index}`,
+              title: segment.instructions ?? `${segment.from.name} to ${segment.to.name}`,
+              category: segment.activityCategory ?? 'transport',
+              flexibility: segment.flexibility ?? 'fixed',
+              timestamp: segment.departureTime ? `${form.departureDate}T${segment.departureTime}` : undefined,
+              durationMinutes: segment.duration,
+            }));
+            const compatibility = activities.map(activity => evaluateWeatherCompatibility(
+              activity,
+              activity.timestamp ? nearestWeatherHour(activity.timestamp, forecast.hourly) : undefined
+            ));
+            const unsuitable = compatibility.find(item => item.compatibility === 'unsuitable');
+            if (unsuitable) setWeatherNotice('Weather may make a planned outdoor activity less suitable.');
+            const replan = proposeWeatherReplan(activities, compatibility);
+            if (replan.changes.some(change => change.type === 'swap')) {
+              const byId = new Map<string, JourneySegment>(result.segments.map((segment, index) => [segment.activityId ?? `segment-${index}`, segment]));
+              setSuggestedItinerary({ ...result, segments: replan.proposed.map(activity => ({ ...byId.get(activity.id)!, departureTime: activity.timestamp?.slice(11, 16) })) });
+            } else if (replan.changes.some(change => change.type === 'warning')) {
+              setWeatherNotice('Replanning suggestion unavailable; weather conflict detected.');
+            }
+          }
+        } catch {
+          setWeatherNotice('Weather forecast is temporarily unavailable. Your itinerary is still usable.');
+        }
       }
       setItinerary(result);
       setRequestState('success');
@@ -212,6 +252,8 @@ const AIJourneyPlanner: React.FC = () => {
         <TabsTrigger value="chat"><MessageSquare className="h-4 w-4 mr-2" />AI Response</TabsTrigger>
       </TabsList>
       {routeWarning && <div role="status" className="my-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">{routeWarning}</div>}
+      {weatherNotice && <div data-testid="weather-notice" className="my-4 p-4 bg-sky-50 border border-sky-200 rounded-lg text-sky-900">{weatherNotice}</div>}
+      {suggestedItinerary && <Button type="button" variant="outline" onClick={() => { setItinerary(suggestedItinerary); setSuggestedItinerary(null); setWeatherNotice('Suggested weather replan applied.'); }}>Apply suggested replan</Button>}
       <TabsContent value="form"><Card><CardHeader><CardTitle>Journey Details</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
