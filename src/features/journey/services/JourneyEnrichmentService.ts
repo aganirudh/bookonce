@@ -5,6 +5,7 @@ import { routesToCandidates } from '../optimization/adapters';
 import { preferencesForTravelStyle } from '../optimization/presets';
 import { rankRoutes } from '../optimization/RouteOptimizer';
 import type { OptimizationPreferences, RouteConstraints } from '../optimization/types';
+import type { CostEstimateMode } from '../cost/types';
 
 export interface JourneyOptimizationOptions {
   preferences: OptimizationPreferences;
@@ -24,6 +25,12 @@ export const AI_TO_ROUTING_MODE = {
 
 function routingModeFor(mode: JourneySegment['mode']): RoadRoutingMode | undefined {
   return AI_TO_ROUTING_MODE[mode as keyof typeof AI_TO_ROUTING_MODE];
+}
+
+function costModeFor(mode: JourneySegment['mode']): CostEstimateMode | undefined {
+  return mode === 'walk' || mode === 'car' || mode === 'taxi' || mode === 'auto' || mode === 'rapido'
+    ? mode
+    : undefined;
 }
 
 class JourneyEnrichmentService {
@@ -97,7 +104,8 @@ class JourneyEnrichmentService {
         } catch {
           routes = [await routingService.getRoute(start, end, mode)];
         }
-        const candidates = routesToCandidates(routes, mode);
+        // Alternatives share the visible segment mode, currency, and model, so their estimates are comparable.
+        const candidates = routesToCandidates(routes, mode, costModeFor(segment.mode));
         const ranking = rankRoutes(candidates, preferences, constraints);
         const selected = ranking.ranked[0];
         if (!selected?.candidate.route) throw new Error('No valid route candidates');
@@ -108,6 +116,10 @@ class JourneyEnrichmentService {
           routeDuration: route.totalDuration,
           routeGeometry: route.segments.flatMap(routeSegment => routeSegment.geometry),
           selectedRouteCandidateId: selected.candidate.id,
+          estimatedCost: selected.candidate.costEstimate?.estimatedCost ?? segment.estimatedCost,
+          costEstimateSource: selected.candidate.costEstimate ? 'bookonce-estimate' : (segment.estimatedCost !== undefined ? 'ai-suggested' : undefined),
+          costEstimateModel: selected.candidate.costEstimate?.model,
+          costCurrency: selected.candidate.costEstimate?.currency,
           optimizationPreferenceLabel: preferenceLabel,
           optimizationWarnings: candidates.every(candidate => candidate.cost === undefined) &&
             (constraints.maxCost !== undefined || preferences.costWeight >= Math.max(preferences.timeWeight, preferences.walkingWeight, preferences.transfersWeight, preferences.comfortWeight ?? 0))
@@ -123,6 +135,10 @@ class JourneyEnrichmentService {
             rank: ranked.rank,
             score: ranked.score,
             qualityScore: ranked.qualityScore,
+            estimatedCost: ranked.candidate.costEstimate?.estimatedCost,
+            costEstimateSource: ranked.candidate.costEstimate?.source,
+            costEstimateModel: ranked.candidate.costEstimate?.model,
+            costCurrency: ranked.candidate.costEstimate?.currency,
             explanation: ranked.explanation,
           })),
           routingStatus: 'routed',

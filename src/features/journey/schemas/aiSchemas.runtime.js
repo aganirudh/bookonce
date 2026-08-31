@@ -54,6 +54,9 @@ export const JourneySegmentSchema = z.object({
   selectedRouteCandidateId: z.string().optional(),
   optimizationPreferenceLabel: z.string().optional(),
   optimizationWarnings: z.array(z.string()).optional(),
+  costEstimateSource: z.enum(['bookonce-estimate', 'ai-suggested']).optional(),
+  costEstimateModel: z.string().optional(),
+  costCurrency: z.literal('INR').optional(),
   routingAlternatives: z.array(z.object({
     id: z.string(),
     label: z.string(),
@@ -64,6 +67,10 @@ export const JourneySegmentSchema = z.object({
     rank: z.number().int().positive(),
     score: z.number().nonnegative(),
     qualityScore: z.number().int().min(0).max(100),
+    estimatedCost: z.number().nonnegative().optional(),
+    costEstimateSource: z.literal('bookonce-estimate').optional(),
+    costEstimateModel: z.string().optional(),
+    costCurrency: z.literal('INR').optional(),
     explanation: z.object({
       dominantPreference: z.enum(['time', 'cost', 'walking', 'transfers', 'comfort']),
       advantages: z.array(z.string()),

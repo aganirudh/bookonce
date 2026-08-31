@@ -1,5 +1,6 @@
 import type { JourneySegment } from '../schemas/aiSchemas';
 import type { Route } from '@/services/RoutingService';
+import type { TravelCostEstimate } from '../cost/types';
 
 export type OptimizationMetric = 'time' | 'cost' | 'walking' | 'transfers' | 'comfort';
 
@@ -9,6 +10,7 @@ export interface RouteCandidate {
   mode: string;
   durationSeconds: number;
   cost?: number;
+  costEstimate?: TravelCostEstimate;
   walkingDistanceMeters?: number;
   transfers?: number;
   distanceMeters?: number;

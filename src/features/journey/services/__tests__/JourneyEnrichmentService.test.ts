@@ -109,6 +109,20 @@ describe('JourneyEnrichmentService', () => {
     });
     expect(result.segments[0].routingAlternatives).toHaveLength(2);
     expect(result.segments[0].routingAlternatives?.[0]).toMatchObject({ id: 'fast', rank: 1 });
-    expect(result.segments[0].routingAlternatives?.every(route => !('cost' in route))).toBe(true);
+    expect(result.segments[0].routingAlternatives?.every(route => route.estimatedCost === 0)).toBe(true);
+    expect(result.segments[0]).toMatchObject({
+      estimatedCost: 0,
+      costEstimateSource: 'bookonce-estimate',
+      costEstimateModel: 'walking-monetary-v1',
+      costCurrency: 'INR',
+    });
+  });
+
+  it('replaces an AI road estimate with a deterministic BookOnce estimate', async () => {
+    const result = await journeyEnrichmentService.enrich({
+      ...baseItinerary,
+      segments: [{ ...baseItinerary.segments[0], mode: 'taxi', estimatedCost: 9999 }],
+    }, 'leisure');
+    expect(result.segments[0]).toMatchObject({ estimatedCost: 2400, costEstimateSource: 'bookonce-estimate', costEstimateModel: 'taxi-distance-v1' });
   });
 });

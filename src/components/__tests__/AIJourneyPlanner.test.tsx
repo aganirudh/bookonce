@@ -90,7 +90,8 @@ describe('AIJourneyPlanner', () => {
     render(<JourneyResult itinerary={itinerary} />);
     expect(screen.getByText(/train: Pune Station → Mumbai Station/i)).toBeInTheDocument();
     expect(screen.getByText(/Estimated duration:/)).toBeInTheDocument();
-    expect(screen.getByText(/Estimated cost:/)).toBeInTheDocument();
+    expect(screen.getByText(/Suggested estimated cost:/)).toBeInTheDocument();
+    expect(screen.queryByText(/live price/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Confirm the platform/)).toBeInTheDocument();
   });
 
@@ -128,8 +129,8 @@ describe('AIJourneyPlanner', () => {
       routingStatus: 'routed' as const,
       selectedRouteCandidateId: 'recommended',
       routingAlternatives: [
-        { id: 'recommended', label: 'Primary route', mode: 'drive' as const, distance: 10000, duration: 600, geometry: firstGeometry, rank: 1, score: 0, qualityScore: 100, explanation: explanation('time', 'Fastest eligible option') },
-        { id: 'alternate', label: 'Alternative 1', mode: 'drive' as const, distance: 12000, duration: 900, geometry: secondGeometry, rank: 2, score: 0.3, qualityScore: 70, explanation: explanation('walking', 'Least known walking distance') },
+        { id: 'recommended', label: 'Primary route', mode: 'drive' as const, distance: 10000, duration: 600, estimatedCost: 240, costEstimateSource: 'bookonce-estimate' as const, costEstimateModel: 'taxi-distance-v1', costCurrency: 'INR' as const, geometry: firstGeometry, rank: 1, score: 0, qualityScore: 100, explanation: explanation('time', 'Fastest eligible option') },
+        { id: 'alternate', label: 'Alternative 1', mode: 'drive' as const, distance: 12000, duration: 900, estimatedCost: 275, costEstimateSource: 'bookonce-estimate' as const, costEstimateModel: 'taxi-distance-v1', costCurrency: 'INR' as const, geometry: secondGeometry, rank: 2, score: 0.3, qualityScore: 70, explanation: explanation('walking', 'Least known walking distance') },
       ],
     };
     const result = { ...itinerary, origin: { name: 'Pune', latitude: 12, longitude: 77 }, destination: { name: 'Mumbai', latitude: 13, longitude: 78 }, segments: [routed] };
@@ -138,12 +139,14 @@ describe('AIJourneyPlanner', () => {
     expect(screen.queryByText('Cheapest')).not.toBeInTheDocument();
     expect(screen.getByText(/Verified road duration:/).closest('p')).toHaveTextContent('10 minutes');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Fastest eligible option');
+    expect(screen.getByText(/BookOnce estimated cost:/).closest('p')).toHaveTextContent('Approx. ₹240');
 
     fireEvent.click(screen.getByRole('button', { name: 'Alternative 1' }));
     expect(screen.getByText(/Verified road duration:/).closest('p')).toHaveTextContent('15 minutes');
     expect(screen.getByText(/Verified road distance:/).closest('p')).toHaveTextContent('12 km');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Least known walking distance');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('70/100');
+    expect(screen.getByText(/BookOnce estimated cost:/).closest('p')).toHaveTextContent('Approx. ₹275');
     expect(screen.getByTestId('journey-map').getAttribute('data-props')).toContain('[{"lat":12,"lng":77},{"lat":14,"lng":79}]');
   });
 

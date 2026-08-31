@@ -47,6 +47,8 @@ const JourneySegmentCard: React.FC<{
   );
   const routeDuration = selected?.duration ?? segment.routeDuration;
   const routeDistance = selected?.distance ?? segment.routeDistance;
+  const routeCost = selected?.estimatedCost ?? segment.estimatedCost;
+  const routeCostSource = selected?.costEstimateSource ?? segment.costEstimateSource;
 
   return <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
     <CardHeader>
@@ -74,7 +76,7 @@ const JourneySegmentCard: React.FC<{
       {routeDistance !== undefined
         ? <p><b>Verified road distance:</b> {estimate(Number((routeDistance / 1000).toFixed(1)), 'km')}</p>
         : segment.distance !== undefined && <p><b>Estimated distance:</b> {estimate(segment.distance, 'km')}</p>}
-      {segment.estimatedCost !== undefined && <p><b>Estimated cost:</b> ₹{segment.estimatedCost.toLocaleString()}</p>}
+      {routeCost !== undefined && <p><b>{routeCostSource === 'bookonce-estimate' ? 'BookOnce estimated cost' : 'Suggested estimated cost'}:</b> Approx. ₹{routeCost.toLocaleString()}</p>}
       {segment.instructions && <p className="sm:col-span-2"><b>Suggested instructions:</b> {segment.instructions}</p>}
       {explanation && qualityScore !== undefined && <div className="sm:col-span-2 rounded-lg border bg-muted/40 p-3" data-testid="route-explanation">
         <p className="font-semibold">Why this route?</p>

@@ -1,9 +1,12 @@
 import type { JourneySegment } from '../schemas/aiSchemas';
 import type { Route } from '@/services/RoutingService';
 import type { RouteCandidate } from './types';
+import { estimateTravelCost } from '../cost/TravelCostEstimator';
+import type { CostEstimateMode, TravelCostEstimate } from '../cost/types';
 
 interface CandidateEstimates {
   cost?: number;
+  costEstimate?: TravelCostEstimate;
   walkingDistanceMeters?: number;
   transfers?: number;
   comfortScore?: number;
@@ -29,15 +32,22 @@ export function routeToCandidate(
 
 export function routesToCandidates(
   routes: readonly Route[],
-  mode: 'walk' | 'drive' | 'bike'
+  mode: 'walk' | 'drive' | 'bike',
+  costMode?: CostEstimateMode
 ): RouteCandidate[] {
-  return routes.map((route, index) => routeToCandidate(
+  return routes.map((route, index) => {
+    const costEstimate = costMode ? estimateTravelCost(costMode, route.totalDistance, route.totalDuration) : undefined;
+    return routeToCandidate(
     route.id ?? `${mode}-${route.provider ?? 'bookonce'}-${route.providerRouteIndex ?? index}-${Math.round(route.totalDistance)}-${Math.round(route.totalDuration)}`,
     index === 0 ? 'Primary route' : `Alternative ${index}`,
     mode,
     route,
-    mode === 'walk' ? { walkingDistanceMeters: route.totalDistance } : {}
-  ));
+    {
+      ...(mode === 'walk' ? { walkingDistanceMeters: route.totalDistance } : {}),
+      ...(costEstimate ? { cost: costEstimate.estimatedCost, costEstimate } : {}),
+    }
+  );
+  });
 }
 
 export function segmentToCandidate(segment: JourneySegment, index: number): RouteCandidate | null {
