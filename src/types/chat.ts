@@ -20,6 +20,7 @@ export interface ChatMessage {
 
   /** Timestamp when the message was created */
   timestamp: Date;
+  toolTrace?: Array<{ tool: string; label: string; status: 'success' | 'failed' }>;
 }
 
 /**

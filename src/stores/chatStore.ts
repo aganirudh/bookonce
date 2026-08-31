@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { ChatMessage, ChatStore } from '@/types/chat';
-import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
+import { aiClient } from '@/services/AIClient';
 
 // ============================================================================
 // Initial State
@@ -97,44 +97,23 @@ export const useChatStore = create<ChatStore>()(
         setLoading(true);
 
         try {
-          // Create a simple journey context for general chat
-          const context = {
-            origin: 'Current Location',
-            destination: 'Travel Destination',
-            departureDate: new Date().toISOString().split('T')[0],
-            travelers: 1,
-            intent: 'leisure' as const,
-            visitor: 'first-time' as const,
-            departureTime: '09:00',
-          };
-
-          // Prepare conversation history (last 10 messages for context)
-          const conversationHistory = messages.slice(-10).map(msg => ({
-            role: msg.role,
-            content: msg.content,
-          }));
-
-          // Send message to BookOnce AI (Groq) with conversation history
-          const response = await bookOnceAIService.answerQuestionWithHistory(
-            trimmedContent,
-            context,
-            conversationHistory
-          );
+          const response = await aiClient.runAgent(trimmedContent);
 
           // Create AI response message
           const aiMessage: ChatMessage = {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content: response,
+            content: response.reply,
             timestamp: new Date(),
+            toolTrace: response.toolTrace,
           };
 
           // Add AI response to messages
           addMessage(aiMessage);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Handle errors
           const errorMessage =
-            error?.message ||
+            (error instanceof Error ? error.message : '') ||
             'Unable to connect to Groq API. Please check your internet connection or try again later.';
           setError(errorMessage);
           console.error('Error sending message:', error);

@@ -13,6 +13,7 @@ import aiRouter from './server/routes/ai.js';
 import geocodingRouter from './server/routes/geocoding.js';
 import routingRouter from './server/routes/routing.js';
 import weatherRouter from './server/routes/weather.js';
+import agentRouter from './server/routes/agent.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -38,6 +39,7 @@ app.use('/api/ai', aiRouter);
 app.use('/api/geocoding', geocodingRouter);
 app.use('/api/routing', routingRouter);
 app.use('/api/weather', weatherRouter);
+app.use('/api/ai/agent', agentRouter);
 
 // Email sending endpoint
 app.post('/api/send-email', async (req, res) => {

@@ -168,6 +168,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
 
       {/* Message content */}
       <div className="flex-1 min-w-0">
+        {!isUser && message.toolTrace && message.toolTrace.length > 0 && <ul className="mb-2 text-xs text-muted-foreground" aria-label="BookOnce tool actions">
+          {message.toolTrace.map((entry, index) => <li key={`${entry.tool}-${index}`}>{entry.status === 'success' ? '✓' : '⚠'} {entry.label}</li>)}
+        </ul>}
         <div className="flex items-baseline gap-2 mb-1">
           <span className="text-sm font-semibold" id={`message-${message.id}-sender`}>
             {isUser ? 'You' : 'BookOnce AI'}

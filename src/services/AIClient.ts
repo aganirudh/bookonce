@@ -14,6 +14,14 @@ interface AIItineraryResponse {
 }
 
 class AIClient {
+  async runAgent(message: string, context?: { itineraryId?: string; locale?: string }) {
+    const response = await fetch('/api/ai/agent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, ...(context ? { context } : {}) }) });
+    let payload: { success: boolean; reply?: string; toolTrace?: Array<{ tool: string; label: string; status: 'success' | 'failed' }>; data?: Record<string, unknown>; error?: string };
+    try { payload = await response.json(); } catch { throw new Error('Malformed agent response'); }
+    if (!response.ok || !payload.success || typeof payload.reply !== 'string') throw new Error(payload.error || 'Unable to run travel agent');
+    return { reply: payload.reply, toolTrace: payload.toolTrace ?? [], data: payload.data ?? {} };
+  }
+
   async interpretOptimizationPreferences(text: string): Promise<PreferenceExtraction> {
     const response = await fetch('/api/ai/preferences', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }),

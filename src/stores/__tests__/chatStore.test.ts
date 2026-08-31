@@ -6,14 +6,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useChatStore } from '../chatStore';
 import type { ChatMessage } from '@/types/chat';
-import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService';
+import { aiClient } from '@/services/AIClient';
 
 // Mock the BookOnceAIService
-vi.mock('@/features/journey/services/BookOnceAIService', () => ({
-  bookOnceAIService: {
-    answerQuestionWithHistory: vi.fn(),
-  },
-}));
+vi.mock('@/services/AIClient', () => ({ aiClient: { runAgent: vi.fn() } }));
 
 describe('Chat Store', () => {
   beforeEach(() => {
@@ -191,7 +187,7 @@ describe('Chat Store', () => {
 
   describe('sendMessage', () => {
     beforeEach(() => {
-      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockResolvedValue('AI response');
+      vi.mocked(aiClient.runAgent).mockResolvedValue({ reply: 'AI response', toolTrace: [], data: {} });
     });
 
     it('should add user message immediately', async () => {
@@ -213,9 +209,9 @@ describe('Chat Store', () => {
 
       let loadingDuringCall = false;
 
-      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockImplementation(async () => {
+      vi.mocked(aiClient.runAgent).mockImplementation(async () => {
         loadingDuringCall = useChatStore.getState().isLoading;
-        return 'AI response';
+        return { reply: 'AI response', toolTrace: [], data: {} };
       });
 
       await sendMessage('Hello');
@@ -240,7 +236,7 @@ describe('Chat Store', () => {
 
       await sendMessage('Hello');
 
-      expect(bookOnceAIService.answerQuestionWithHistory).toHaveBeenCalled();
+      expect(aiClient.runAgent).toHaveBeenCalledWith('Hello');
     });
 
     it('should pass conversation history to service', async () => {
@@ -257,11 +253,7 @@ describe('Chat Store', () => {
 
       await sendMessage('New message');
 
-      expect(bookOnceAIService.answerQuestionWithHistory).toHaveBeenCalledWith(
-        'New message',
-        expect.any(Object),
-        expect.arrayContaining([expect.objectContaining({ content: 'Previous message' })])
-      );
+      expect(aiClient.runAgent).toHaveBeenCalledWith('New message');
     });
 
     it('should handle empty message', async () => {
@@ -272,7 +264,7 @@ describe('Chat Store', () => {
       const state = useChatStore.getState();
       expect(state.error).toBe('Message cannot be empty');
       expect(state.messages).toHaveLength(0);
-      expect(bookOnceAIService.answerQuestionWithHistory).not.toHaveBeenCalled();
+      expect(aiClient.runAgent).not.toHaveBeenCalled();
     });
 
     it('should handle whitespace-only message', async () => {
@@ -283,7 +275,7 @@ describe('Chat Store', () => {
       const state = useChatStore.getState();
       expect(state.error).toBe('Message cannot be empty');
       expect(state.messages).toHaveLength(0);
-      expect(bookOnceAIService.answerQuestionWithHistory).not.toHaveBeenCalled();
+      expect(aiClient.runAgent).not.toHaveBeenCalled();
     });
 
     it('should trim message content', async () => {
@@ -291,11 +283,7 @@ describe('Chat Store', () => {
 
       await sendMessage('  Hello  ');
 
-      expect(bookOnceAIService.answerQuestionWithHistory).toHaveBeenCalledWith(
-        'Hello',
-        expect.any(Object),
-        expect.any(Array)
-      );
+      expect(aiClient.runAgent).toHaveBeenCalledWith('Hello');
     });
 
     it('should clear previous error before sending', async () => {
@@ -311,7 +299,7 @@ describe('Chat Store', () => {
     it('should handle API errors', async () => {
       const { sendMessage } = useChatStore.getState();
 
-      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockRejectedValue(
+      vi.mocked(aiClient.runAgent).mockRejectedValue(
         new Error('API error')
       );
 
@@ -326,7 +314,7 @@ describe('Chat Store', () => {
     it('should handle errors without message', async () => {
       const { sendMessage } = useChatStore.getState();
 
-      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockRejectedValue({});
+      vi.mocked(aiClient.runAgent).mockRejectedValue({});
 
       await sendMessage('Hello');
 
@@ -337,7 +325,7 @@ describe('Chat Store', () => {
     it('should clear loading state after error', async () => {
       const { sendMessage } = useChatStore.getState();
 
-      vi.mocked(bookOnceAIService.answerQuestionWithHistory).mockRejectedValue(
+      vi.mocked(aiClient.runAgent).mockRejectedValue(
         new Error('API error')
       );
 

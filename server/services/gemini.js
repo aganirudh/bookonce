@@ -12,6 +12,8 @@ function getModel() {
   return client.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-2.5-flash' });
 }
 
+export function getGeminiModel() { return getModel(); }
+
 export async function generateGeminiReply(message) {
   const result = await getModel().generateContent(message);
   const reply = result.response.text();

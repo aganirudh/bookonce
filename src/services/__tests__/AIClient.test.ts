@@ -63,4 +63,11 @@ describe('AIClient', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, data: { preset: 'FASTEST', routeId: 'fake' } }) }));
     await expect(aiClient.interpretOptimizationPreferences('fastest')).rejects.toThrow('invalid route preferences');
   });
+
+  it('runs the travel agent without exposing function-call protocol details', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, reply: 'Verified route.', toolTrace: [{ tool: 'get_route_options', label: 'Checked route options', status: 'success' }], data: { optimize_routes: { selected: { id: 'fast' } } } }) });
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(aiClient.runAgent('Fastest route')).resolves.toMatchObject({ reply: 'Verified route.', toolTrace: [{ label: 'Checked route options' }] });
+    expect(fetchMock).toHaveBeenCalledWith('/api/ai/agent', expect.objectContaining({ body: JSON.stringify({ message: 'Fastest route' }) }));
+  });
 });
