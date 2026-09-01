@@ -5,17 +5,24 @@ import { googleAuth } from '@/auth/googleAuth';
 import { emailAuth } from '@/auth/emailAuth';
 import { emailOTPAuth } from '@/auth/emailOTPAuth';
 
-interface AuthUser {
+export interface AuthUser {
   uid: string;
+  userId?: string;
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
   phoneNumber: string | null;
   emailVerified: boolean;
   authMethod?: 'google' | 'email' | 'email-otp' | 'anonymous';
+  firstName?: string;
+  lastName?: string;
+  notificationPreferences?: {
+    email: { enabled: boolean; types: string[] };
+    push: { enabled: boolean; types: string[] };
+  };
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -31,6 +38,9 @@ interface AuthContextType {
   verifyEmailOTP: (email: string, otp: string) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
+  updateProfile: (
+    updates: Partial<Pick<AuthUser, 'firstName' | 'lastName' | 'displayName'>>
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -162,6 +172,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { success: result.success, message: result.message };
   };
 
+  const updateProfile = async (
+    updates: Partial<Pick<AuthUser, 'firstName' | 'lastName' | 'displayName'>>
+  ) => {
+    if (!user) throw new Error('No user logged in');
+    setUser(current => (current ? { ...current, ...updates } : current));
+  };
+
   const value: AuthContextType = {
     user,
     isLoading,
@@ -173,6 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     verifyEmailOTP,
     logout,
     resetPassword,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

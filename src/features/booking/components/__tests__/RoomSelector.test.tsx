@@ -232,7 +232,7 @@ describe('RoomSelector Component', () => {
         />
       );
 
-      const selectButton = screen.getByRole('button', { name: /select room/i });
+      const selectButton = screen.getByRole('button', { name: /select .* room/i });
       await user.click(selectButton);
 
       expect(mockOnRoomSelect).toHaveBeenCalledWith(mockRooms[0]);
@@ -252,8 +252,8 @@ describe('RoomSelector Component', () => {
         <RoomSelector rooms={mockRooms} selectedRoomId="room-1" onRoomSelect={mockOnRoomSelect} />
       );
 
-      const deluxeCard = screen.getByText('Deluxe Room').closest('div[class*="rounded"]');
-      expect(deluxeCard).toHaveClass('ring-2', 'ring-primary');
+      const deluxeCard = screen.getByRole('article', { name: /Deluxe Room/i });
+      expect(deluxeCard).toHaveClass('border-primary', 'border-2');
     });
 
     it('should change button text to "Selected" for selected room', () => {
@@ -261,7 +261,7 @@ describe('RoomSelector Component', () => {
         <RoomSelector rooms={mockRooms} selectedRoomId="room-1" onRoomSelect={mockOnRoomSelect} />
       );
 
-      const selectedButton = screen.getByRole('button', { name: /^selected$/i });
+      const selectedButton = screen.getByRole('button', { name: /selected .* room/i });
       expect(selectedButton).toBeInTheDocument();
     });
 
@@ -370,7 +370,7 @@ describe('RoomSelector Component', () => {
         <RoomSelector rooms={mockRooms} selectedRoomId={null} onRoomSelect={mockOnRoomSelect} />
       );
 
-      const cards = screen.getAllByRole('button', { name: /select room|selected|sold out/i });
+      const cards = screen.getAllByRole('button', { name: /select .* room|selected .* room|sold out/i });
       expect(cards.length).toBeGreaterThan(0);
     });
 
@@ -403,7 +403,7 @@ describe('RoomSelector Component', () => {
         </div>
       );
 
-      const selectButton = screen.getByRole('button', { name: /select room/i });
+      const selectButton = screen.getByRole('button', { name: /select .* room/i });
       await user.click(selectButton);
 
       // onRoomSelect should be called

@@ -113,7 +113,7 @@ describe('ThemeContext', () => {
 
     await waitFor(() => {
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        'vagabond-theme-preference',
+        'bookonce-theme-preference',
         expect.stringContaining('"theme":"dark"')
       );
     });

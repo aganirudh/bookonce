@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from '@/pages/Index';
 import BookingHistory from '@/pages/BookingHistory';
 import { useBookingStore } from '@/features/booking/stores/bookingStore';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // Mock dependencies
 vi.mock('@/features/booking/utils/paymentSecurity', () => ({
@@ -39,7 +40,9 @@ describe('End-to-End Booking Flow', () => {
   const renderWithProviders = (component: React.ReactElement) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>{component}</BrowserRouter>
+        <ThemeProvider>
+          <BrowserRouter>{component}</BrowserRouter>
+        </ThemeProvider>
       </QueryClientProvider>
     );
   };
@@ -67,7 +70,7 @@ describe('End-to-End Booking Flow', () => {
 
     // Verify the page loads
     await waitFor(() => {
-      expect(screen.getByText(/Vagabond/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/BookOnce/i)).not.toHaveLength(0);
     });
 
     // Test passes if the page renders without errors
@@ -260,7 +263,7 @@ describe('End-to-End Booking Flow', () => {
 
     // Verify initial page load
     await waitFor(() => {
-      expect(screen.getByText(/Vagabond/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/BookOnce/i)).not.toHaveLength(0);
     });
 
     // Test complete journey validation

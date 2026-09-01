@@ -25,6 +25,7 @@ import {
 import { cn } from '@/lib/utils';
 
 export type TravelIntent = 'urgent' | 'leisure' | null;
+export type VisitorType = 'first-time' | 'returning';
 
 const JourneyPlanner = () => {
   const navigate = useNavigate();

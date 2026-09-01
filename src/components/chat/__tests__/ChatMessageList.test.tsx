@@ -35,7 +35,7 @@ describe('ChatMessageList Component', () => {
     it('should render empty state when no messages', () => {
       render(<ChatMessageList messages={[]} />);
 
-      expect(screen.getByText(/Welcome to Vagabond AI!/i)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome to BookOnce AI!/i)).toBeInTheDocument();
       expect(screen.getByText(/Restaurant recommendations/i)).toBeInTheDocument();
       expect(screen.getByText(/Ask me anything!/i)).toBeInTheDocument();
     });
@@ -63,7 +63,7 @@ describe('ChatMessageList Component', () => {
       render(<ChatMessageList messages={mockMessages} />);
 
       const userMessage = screen.getByText('Hello, can you help me find a restaurant?');
-      const messageContainer = userMessage.closest('.bg-blue-50');
+      const messageContainer = userMessage.closest('[role="article"]');
 
       expect(messageContainer).toBeInTheDocument();
       expect(screen.getAllByText('You').length).toBeGreaterThan(0);
@@ -73,10 +73,10 @@ describe('ChatMessageList Component', () => {
       render(<ChatMessageList messages={mockMessages} />);
 
       const aiMessage = screen.getByText(/Of course! I'd be happy to help/);
-      const messageContainer = aiMessage.closest('.bg-gray-50');
+      const messageContainer = aiMessage.closest('[role="article"]');
 
       expect(messageContainer).toBeInTheDocument();
-      expect(screen.getByText('Vagabond AI')).toBeInTheDocument();
+      expect(screen.getByText('BookOnce AI')).toBeInTheDocument();
     });
 
     it('should display message content correctly', () => {
@@ -107,7 +107,7 @@ describe('ChatMessageList Component', () => {
       expect(youLabels).toHaveLength(2); // 2 user messages
 
       // Should have "Vagabond AI" labels for AI messages
-      const aiLabels = screen.getAllByText('Vagabond AI');
+      const aiLabels = screen.getAllByText('BookOnce AI');
       expect(aiLabels).toHaveLength(1); // 1 AI message
     });
   });

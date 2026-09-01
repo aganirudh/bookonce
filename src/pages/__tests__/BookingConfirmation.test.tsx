@@ -19,6 +19,9 @@ vi.mock('@/features/booking/utils/confirmationActions');
 vi.mock('canvas-confetti', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ isAuthenticated: true }),
+}));
 
 // Mock booking data
 const mockBooking: BookingConfirmationType = {
@@ -121,24 +124,29 @@ function renderWithProviders(bookingId: string = 'booking-123') {
 describe('BookingConfirmation Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(bookingAPIService.getBooking).mockReset();
   });
 
   describe('Loading State', () => {
-    it('should display loading spinner while fetching booking', () => {
+    it('should display loading spinner while fetching booking', async () => {
+      let resolveBooking!: (booking: BookingConfirmationType) => void;
       vi.mocked(bookingAPIService.getBooking).mockImplementation(
-        () => new Promise(() => {}) // Never resolves
+        () => new Promise(resolve => { resolveBooking = resolve; })
       );
 
       renderWithProviders();
 
       expect(screen.getByText('Loading your booking details...')).toBeInTheDocument();
-      expect(screen.getByRole('status')).toBeInTheDocument(); // Loader icon
+      expect(screen.getByText('Loading your booking details...')).toBeVisible();
+
+      resolveBooking(mockBooking);
+      await screen.findByText('REF-ABC123');
     });
   });
 
   describe('Error State', () => {
     it('should display error message when booking not found', async () => {
-      vi.mocked(bookingAPIService.getBooking).mockRejectedValue(new Error('Booking not found'));
+      vi.mocked(bookingAPIService.getBooking).mockResolvedValue(null as never);
 
       renderWithProviders();
 
@@ -154,7 +162,7 @@ describe('BookingConfirmation Page', () => {
 
     it('should navigate to home when return button clicked', async () => {
       const user = userEvent.setup();
-      vi.mocked(bookingAPIService.getBooking).mockRejectedValue(new Error('Booking not found'));
+      vi.mocked(bookingAPIService.getBooking).mockResolvedValue(null as never);
 
       renderWithProviders();
 
@@ -165,8 +173,7 @@ describe('BookingConfirmation Page', () => {
       const returnButton = screen.getByRole('button', { name: /return to home/i });
       await user.click(returnButton);
 
-      // Check that navigation was attempted (URL would change in real app)
-      expect(returnButton).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/');
     });
   });
 
@@ -218,8 +225,8 @@ describe('BookingConfirmation Page', () => {
 
       expect(screen.getByText(/Wednesday, December 25, 2024/)).toBeInTheDocument();
       expect(screen.getAllByText(/5 nights/).length).toBeGreaterThan(0);
-      expect(screen.getByText('3:00 PM')).toBeInTheDocument();
-      expect(screen.getByText('11:00 AM')).toBeInTheDocument();
+      expect(screen.getByText('15:00')).toBeInTheDocument();
+      expect(screen.getByText('11:00')).toBeInTheDocument();
     });
 
     it('should display room details', async () => {

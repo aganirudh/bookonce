@@ -127,7 +127,8 @@ describe('PricingSummary Component', () => {
       expect(mockOnCurrencyChange).toHaveBeenCalledWith('EUR');
     });
 
-    it('should display converted pricing when available', () => {
+    it('should display converted pricing when selected', async () => {
+      const user = userEvent.setup();
       const pricingWithConversion: PricingDetails = {
         ...mockPricing,
         convertedTotal: {
@@ -137,7 +138,10 @@ describe('PricingSummary Component', () => {
         },
       };
 
-      render(<PricingSummary pricing={pricingWithConversion} />);
+      render(<PricingSummary pricing={pricingWithConversion} onCurrencyChange={vi.fn()} />);
+
+      await user.click(screen.getByRole('combobox'));
+      await user.click(await screen.findByRole('option', { name: 'EUR' }));
 
       // Should show conversion notice
       expect(screen.getByText(/original price/i)).toBeInTheDocument();
@@ -315,7 +319,7 @@ describe('PricingSummary Component', () => {
 
       render(<PricingSummary pricing={zeroPricing} />);
 
-      expect(screen.getByText('$0.00')).toBeInTheDocument();
+      expect(screen.getAllByText('$0.00')).not.toHaveLength(0);
     });
 
     it('should format large amounts correctly', () => {
@@ -331,7 +335,7 @@ describe('PricingSummary Component', () => {
 
       render(<PricingSummary pricing={largePricing} />);
 
-      expect(screen.getByText('$35,000.00')).toBeInTheDocument();
+      expect(screen.getAllByText('$35,000.00')).not.toHaveLength(0);
     });
   });
 

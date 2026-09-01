@@ -20,14 +20,29 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChatStore } from '@/stores/chatStore';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import type { LucideIcon } from 'lucide-react';
 
 interface NavbarProps {
-  onSafetyClick: () => void;
-  isOffline: boolean;
+  onSafetyClick?: () => void;
+  isOffline?: boolean;
   onMapClick?: () => void;
 }
 
-const Navbar = ({ onSafetyClick, isOffline, onMapClick }: NavbarProps) => {
+interface NavItem {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  isRoute: boolean;
+  highlight?: boolean;
+  isActive?: boolean;
+  onClick?: () => void;
+}
+
+export const Navbar = ({
+  onSafetyClick = () => undefined,
+  isOffline = false,
+  onMapClick,
+}: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -47,7 +62,7 @@ const Navbar = ({ onSafetyClick, isOffline, onMapClick }: NavbarProps) => {
     }
   }, [isDashboardOpen]);
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { icon: Home, label: 'Home', href: '/', isRoute: true },
     { icon: Building2, label: 'Explore', href: '/stays', isRoute: true },
     { icon: Compass, label: 'Utilities', href: '/utilities', isRoute: true },
@@ -81,12 +96,13 @@ const Navbar = ({ onSafetyClick, isOffline, onMapClick }: NavbarProps) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-3">
             {navItems.map(item => {
-              const className = `flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${item.highlight
+              const className = `flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                item.highlight
                   ? item.isActive
                     ? 'bg-gradient-accent text-primary-foreground shadow-glow ring-2 ring-primary/50'
                     : 'bg-gradient-accent text-primary-foreground shadow-glow'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`;
+              }`;
 
               const content = (
                 <>
@@ -161,10 +177,11 @@ const Navbar = ({ onSafetyClick, isOffline, onMapClick }: NavbarProps) => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={onSafetyClick}
-              className={`p-2 rounded-xl transition-all ${isOffline
+              className={`p-2 rounded-xl transition-all ${
+                isOffline
                   ? 'bg-destructive text-destructive-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`}
+              }`}
               title={isOffline ? 'Safety Mode Active' : 'Safety Information'}
             >
               <Shield className="w-5 h-5" />
@@ -290,12 +307,13 @@ const Navbar = ({ onSafetyClick, isOffline, onMapClick }: NavbarProps) => {
         >
           <div className="glass-strong rounded-2xl mt-2 p-4 space-y-2">
             {navItems.map(item => {
-              const className = `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${item.highlight
+              const className = `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                item.highlight
                   ? item.isActive
                     ? 'bg-gradient-accent text-primary-foreground ring-2 ring-primary/50'
                     : 'bg-gradient-accent text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`;
+              }`;
 
               const content = (
                 <>

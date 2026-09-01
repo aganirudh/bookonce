@@ -92,6 +92,7 @@ describe('Theme Fallbacks and Error Handling', () => {
       Object.defineProperty(document, 'cookie', {
         value: 'test-key=test-value; other=value',
         writable: true,
+        configurable: true,
       });
 
       const value = FallbackStorage.getItem('test-key');
@@ -132,9 +133,8 @@ describe('Theme Fallbacks and Error Handling', () => {
       });
 
       // Mock time to be during dark hours (e.g., 10 PM)
-      const mockDate = new Date();
-      mockDate.setHours(22);
-      vi.spyOn(global, 'Date').mockImplementation(() => mockDate);
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 0, 1, 22));
 
       const theme = getFallbackSystemTheme();
       expect(theme).toBe('dark');
@@ -146,9 +146,8 @@ describe('Theme Fallbacks and Error Handling', () => {
       });
 
       // Mock time to be during light hours (e.g., 2 PM)
-      const mockDate = new Date();
-      mockDate.setHours(14);
-      vi.spyOn(global, 'Date').mockImplementation(() => mockDate);
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 0, 1, 14));
 
       const theme = getFallbackSystemTheme();
       expect(theme).toBe('light');

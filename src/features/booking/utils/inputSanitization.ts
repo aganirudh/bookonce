@@ -257,7 +257,7 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
   const sanitized: any = {};
 
   for (const key in obj) {
-    if (Object.hasOwn(obj, key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const value = obj[key];
 
       if (typeof value === 'string') {

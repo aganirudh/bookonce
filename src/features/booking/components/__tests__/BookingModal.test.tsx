@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { BookingModal } from '../BookingModal';
 import { useBookingStore } from '../../stores/bookingStore';
 import { bookingAPIService } from '../../services/BookingAPIService';
@@ -15,6 +16,13 @@ import type { Hotel, AvailabilityResponse, PricingDetails, PaymentIntent } from 
 // Mock the services
 vi.mock('../../services/BookingAPIService');
 vi.mock('../../services/PaymentAPIService');
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: null, isAuthenticated: false }),
+}));
+vi.mock('react-router-dom', async importOriginal => ({
+  ...(await importOriginal<typeof import('react-router-dom')>()),
+  useNavigate: () => vi.fn(),
+}));
 
 // Mock useAvailability hook
 vi.mock('../../hooks/useAvailability', () => ({
@@ -122,7 +130,9 @@ describe('BookingModal Integration Tests', () => {
 
   describe('Modal Opening and Initialization', () => {
     it('should initialize booking when modal opens', async () => {
-      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
+      const { rerender } = render(
+        <BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />
+      );
 
       await waitFor(() => {
         const state = useBookingStore.getState();
@@ -341,7 +351,7 @@ describe('BookingModal Integration Tests', () => {
 
       render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
 
-      const closeButton = screen.getByRole('button', { name: /close/i });
+      const closeButton = screen.getAllByRole('button', { name: /close/i }).at(-1)!;
       await user.click(closeButton);
 
       expect(mockOnClose).toHaveBeenCalled();
@@ -350,7 +360,20 @@ describe('BookingModal Integration Tests', () => {
     it('should cleanup booking state when modal closes', async () => {
       const user = userEvent.setup();
 
-      render(<BookingModal hotel={mockHotel} isOpen={true} onClose={mockOnClose} />);
+      function ControlledBookingModal() {
+        const [isOpen, setIsOpen] = useState(true);
+        return (
+          <BookingModal
+            hotel={mockHotel}
+            isOpen={isOpen}
+            onClose={() => {
+              mockOnClose();
+              setIsOpen(false);
+            }}
+          />
+        );
+      }
+      render(<ControlledBookingModal />);
 
       // Initialize booking
       const { startBooking } = useBookingStore.getState();
@@ -361,7 +384,7 @@ describe('BookingModal Integration Tests', () => {
       });
 
       // Close modal
-      const closeButton = screen.getByRole('button', { name: /close/i });
+      const closeButton = screen.getAllByRole('button', { name: /close/i }).at(-1)!;
       await user.click(closeButton);
 
       await waitFor(() => {

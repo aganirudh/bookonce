@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GuestInfoForm } from '../GuestInfoForm';
 import type { GuestInfo } from '@/types/booking';
@@ -184,20 +184,11 @@ describe('GuestInfoForm Component', () => {
       });
     });
 
-    it('should show error when special requests exceed max length', async () => {
-      const user = userEvent.setup();
+    it('should prevent special requests from exceeding max length', () => {
       render(<GuestInfoForm onSubmit={mockOnSubmit} />);
 
       const specialRequestsInput = screen.getByLabelText(/special requests/i);
-      const longText = 'a'.repeat(501);
-      await user.type(specialRequestsInput, longText);
-      await user.tab();
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/special requests must be less than 500 characters/i)
-        ).toBeInTheDocument();
-      });
+      expect(specialRequestsInput).toHaveAttribute('maxlength', '500');
     });
   });
 
@@ -257,12 +248,11 @@ describe('GuestInfoForm Component', () => {
     });
 
     it('should accept phone with country code and dashes', async () => {
-      const user = userEvent.setup();
       render(<GuestInfoForm onSubmit={mockOnSubmit} />);
 
       const phoneInput = screen.getByLabelText(/phone number/i);
-      await user.type(phoneInput, '+1-555-123-4567');
-      await user.tab();
+      fireEvent.change(phoneInput, { target: { value: '+1-555-123-4567' } });
+      fireEvent.blur(phoneInput);
 
       await waitFor(() => {
         expect(screen.queryByText(/please enter a valid phone number/i)).not.toBeInTheDocument();
@@ -270,12 +260,11 @@ describe('GuestInfoForm Component', () => {
     });
 
     it('should accept phone with parentheses', async () => {
-      const user = userEvent.setup();
       render(<GuestInfoForm onSubmit={mockOnSubmit} />);
 
       const phoneInput = screen.getByLabelText(/phone number/i);
-      await user.type(phoneInput, '+1 (555) 123-4567');
-      await user.tab();
+      fireEvent.change(phoneInput, { target: { value: '+1 (555) 123-4567' } });
+      fireEvent.blur(phoneInput);
 
       await waitFor(() => {
         expect(screen.queryByText(/please enter a valid phone number/i)).not.toBeInTheDocument();

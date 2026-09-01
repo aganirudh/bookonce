@@ -7,6 +7,7 @@ import BookingConfirmation from '@/pages/BookingConfirmation';
 import BookingHistory from '@/pages/BookingHistory';
 import UserProfile from '@/pages/UserProfile';
 import NotFound from '@/pages/NotFound';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // Mock payment security to bypass HTTPS check in tests
 vi.mock('@/features/booking/utils/paymentSecurity', () => ({
@@ -59,7 +60,9 @@ describe('App Integration - Navigation Flow', () => {
   const renderWithProviders = (ui: React.ReactElement, initialEntries = ['/']) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
+        <ThemeProvider>
+          <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
+        </ThemeProvider>
       </QueryClientProvider>
     );
   };
@@ -72,7 +75,7 @@ describe('App Integration - Navigation Flow', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Vagabond/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/BookOnce/i)).not.toHaveLength(0);
     });
   });
 

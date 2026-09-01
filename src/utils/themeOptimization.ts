@@ -123,7 +123,7 @@ export const minimizeCSSRecalculation = () => {
  * Performance monitoring for theme changes
  */
 export class ThemePerformanceMonitor {
-  private startTime: number = 0;
+  private startTime: number | null = null;
   private measurements: number[] = [];
 
   start() {
@@ -131,11 +131,11 @@ export class ThemePerformanceMonitor {
   }
 
   end() {
-    if (this.startTime === 0) return;
+    if (this.startTime === null) return;
 
     const duration = performance.now() - this.startTime;
     this.measurements.push(duration);
-    this.startTime = 0;
+    this.startTime = null;
 
     // Keep only last 10 measurements
     if (this.measurements.length > 10) {
@@ -156,7 +156,7 @@ export class ThemePerformanceMonitor {
 
   reset() {
     this.measurements = [];
-    this.startTime = 0;
+    this.startTime = null;
   }
 }
 

@@ -2,7 +2,7 @@
  * Error Handling Utilities Unit Tests
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   BookingAPIError,
   determineErrorType,
@@ -176,9 +176,10 @@ describe('Error Handling Utilities', () => {
       const fn = vi.fn().mockRejectedValue(new Error('Always fails'));
 
       const promise = retryWithBackoff(fn, { maxRetries: 2 });
+      const rejection = expect(promise).rejects.toThrow('Always fails');
       await vi.runAllTimersAsync();
 
-      await expect(promise).rejects.toThrow('Always fails');
+      await rejection;
       expect(fn).toHaveBeenCalledTimes(3); // Initial + 2 retries
     });
 
@@ -187,9 +188,10 @@ describe('Error Handling Utilities', () => {
       const fn = vi.fn().mockRejectedValue(error);
 
       const promise = retryWithBackoff(fn);
+      const rejection = expect(promise).rejects.toThrow('Invalid');
       await vi.runAllTimersAsync();
 
-      await expect(promise).rejects.toThrow('Invalid');
+      await rejection;
       expect(fn).toHaveBeenCalledTimes(1);
     });
 

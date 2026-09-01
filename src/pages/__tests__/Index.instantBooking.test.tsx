@@ -5,9 +5,9 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import Index from '../Index';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // Mock the AuthContext
 vi.mock('@/contexts/AuthContext', () => ({
@@ -24,9 +24,13 @@ vi.mock('@/contexts/AuthContext', () => ({
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-    img: ({ children, ...props }: any) => <img {...props}>{children}</img>,
+    div: ({ children, ...props }: React.ComponentProps<'div'>) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: React.ComponentProps<'button'>) => (
+      <button {...props}>{children}</button>
+    ),
+    img: (props: React.ComponentProps<'img'>) => <img {...props} />,
+    nav: ({ children, ...props }: React.ComponentProps<'nav'>) => <nav {...props}>{children}</nav>,
+    a: ({ children, ...props }: React.ComponentProps<'a'>) => <a {...props}>{children}</a>,
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -35,7 +39,9 @@ describe('Index Page - Instant Booking Filter', () => {
   const renderIndex = () => {
     return render(
       <BrowserRouter>
-        <Index />
+        <ThemeProvider>
+          <Index />
+        </ThemeProvider>
       </BrowserRouter>
     );
   };
@@ -48,25 +54,13 @@ describe('Index Page - Instant Booking Filter', () => {
     expect(buttons.length).toBeGreaterThan(0);
   });
 
-  it('should filter hotels when instant booking filter is toggled', async () => {
-    const user = userEvent.setup();
+  it('should render the current journey search action', () => {
     renderIndex();
-
-    // Get all hotel cards initially
-    const initialHotels = screen.getAllByText(/book now/i);
-    const initialCount = initialHotels.length;
-
-    // Find and click the instant booking filter button (Zap icon)
-    // Note: In a real test, we'd need to identify the button more specifically
-    // For now, we're just verifying the component renders
-    expect(initialCount).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /explore/i })).not.toHaveLength(0);
   });
 
-  it('should show all hotels when instant booking filter is off', () => {
+  it('should render the current BookOnce landing content', () => {
     renderIndex();
-
-    // Verify hotels are displayed
-    const hotelCards = screen.getAllByText(/book now/i);
-    expect(hotelCards.length).toBeGreaterThan(0);
+    expect(screen.getAllByText('BookOnce')).not.toHaveLength(0);
   });
 });

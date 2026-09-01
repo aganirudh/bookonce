@@ -259,15 +259,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
    * Listen for system theme and accessibility preference changes
    */
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
 
     const darkModeQuery = window.matchMedia(DARK_MODE_MEDIA_QUERY);
     const highContrastQuery = window.matchMedia('(prefers-contrast: high)');
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    const handleSystemThemeChange = () => {
-      const newSystemTheme = getSystemTheme();
-      setSystemTheme(newSystemTheme);
+    const handleSystemThemeChange = (event: MediaQueryListEvent) => {
+      setSystemTheme(highContrastQuery.matches ? 'high-contrast' : event.matches ? 'dark' : 'light');
     };
 
     const handleHighContrastChange = (e: MediaQueryListEvent) => {
@@ -275,7 +274,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // If user prefers high contrast and is on system theme, switch to high contrast
       if (e.matches && theme === 'system') {
         setSystemTheme('high-contrast');
-      } else if (!e.matches && systemTheme === 'high-contrast') {
+      } else if (!e.matches) {
         // Switch back to regular system theme
         setSystemTheme(darkModeQuery.matches ? 'dark' : 'light');
       }
@@ -318,7 +317,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       removeListeners(highContrastQuery, handleHighContrastChange);
       removeListeners(reducedMotionQuery, handleReducedMotionChange);
     };
-  }, [theme, systemTheme]);
+  }, [theme]);
 
   /**
    * Apply theme to document when resolved theme changes

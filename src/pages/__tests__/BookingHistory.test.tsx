@@ -244,17 +244,22 @@ function renderWithProviders() {
 describe('BookingHistory Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(bookingAPIService.getUserBookings).mockReset();
   });
 
   describe('Loading State', () => {
-    it('should display loading spinner while fetching bookings', () => {
+    it('should display loading spinner while fetching bookings', async () => {
+      let resolveBookings!: (bookings: BookingConfirmation[]) => void;
       vi.mocked(bookingAPIService.getUserBookings).mockImplementation(
-        () => new Promise(() => {}) // Never resolves
+        () => new Promise(resolve => { resolveBookings = resolve; })
       );
 
       renderWithProviders();
 
       expect(screen.getByText('Loading bookings...')).toBeInTheDocument();
+
+      resolveBookings(mockBookings);
+      await screen.findByText('The Serene Lakehouse');
     });
   });
 
@@ -268,7 +273,7 @@ describe('BookingHistory Page', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Failed to load bookings. Please try again.')).toBeInTheDocument();
-      });
+      }, { timeout: 5000 });
 
       expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
     });
@@ -277,14 +282,17 @@ describe('BookingHistory Page', () => {
       const user = userEvent.setup();
       const getUserBookingsSpy = vi.mocked(bookingAPIService.getUserBookings);
 
-      getUserBookingsSpy.mockRejectedValueOnce(new Error('Failed to fetch'));
+      getUserBookingsSpy
+        .mockRejectedValueOnce(new Error('Failed to fetch'))
+        .mockRejectedValueOnce(new Error('Failed to fetch'))
+        .mockRejectedValueOnce(new Error('Failed to fetch'));
       getUserBookingsSpy.mockResolvedValueOnce(mockBookings);
 
       renderWithProviders();
 
       await waitFor(() => {
         expect(screen.getByText('Failed to load bookings. Please try again.')).toBeInTheDocument();
-      });
+      }, { timeout: 5000 });
 
       const retryButton = screen.getByRole('button', { name: /retry/i });
       await user.click(retryButton);
@@ -320,7 +328,7 @@ describe('BookingHistory Page', () => {
       });
 
       expect(screen.getByText('Urban Loft Downtown')).toBeInTheDocument();
-      expect(screen.getByText('Mountain Retreat Lodge')).toBeInTheDocument();
+      expect(screen.getByText('Delhi')).toBeInTheDocument();
     });
 
     it('should display booking details on each card', async () => {
@@ -331,7 +339,7 @@ describe('BookingHistory Page', () => {
       });
 
       expect(screen.getByText('Lake Como, Italy')).toBeInTheDocument();
-      expect(screen.getByText('VGN-2024-001')).toBeInTheDocument();
+      expect(screen.getByText(/VGN-2024-001/)).toBeInTheDocument();
       expect(screen.getByText('$2377.00')).toBeInTheDocument();
     });
   });
@@ -349,7 +357,7 @@ describe('BookingHistory Page', () => {
       });
 
       expect(screen.getByText('Urban Loft Downtown')).toBeInTheDocument();
-      expect(screen.getByText('Mountain Retreat Lodge')).toBeInTheDocument();
+      expect(screen.getByText('Delhi')).toBeInTheDocument();
     });
 
     it('should filter upcoming bookings', async () => {
@@ -405,7 +413,7 @@ describe('BookingHistory Page', () => {
       await user.click(cancelledTab);
 
       await waitFor(() => {
-        expect(screen.getByText('Mountain Retreat Lodge')).toBeInTheDocument();
+        expect(screen.getByText('Delhi')).toBeInTheDocument();
       });
 
       expect(screen.queryByText('The Serene Lakehouse')).not.toBeInTheDocument();

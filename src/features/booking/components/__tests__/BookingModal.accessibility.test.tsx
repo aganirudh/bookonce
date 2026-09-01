@@ -8,6 +8,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BookingModal } from '../BookingModal';
 import type { Hotel } from '@/types/booking';
 
+vi.mock('react-router-dom', async importOriginal => ({
+  ...(await importOriginal<typeof import('react-router-dom')>()),
+  useNavigate: () => vi.fn(),
+}));
+
 // Mock dependencies
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -61,6 +66,7 @@ vi.mock('../../services/ErrorLoggingService', () => ({
 vi.mock('../../stores/bookingStore', () => ({
   useBookingStore: () => ({
     currentBooking: {
+      hotel: { title: 'Test Hotel' },
       step: 'dates',
       checkInDate: null,
       checkOutDate: null,

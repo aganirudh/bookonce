@@ -63,8 +63,8 @@ export interface RoomOption {
 }
 
 export interface DateRange {
-  checkIn: string;
-  checkOut: string;
+  checkInDate: string;
+  checkOutDate: string;
 }
 
 export interface AvailabilityResponse {
@@ -176,12 +176,12 @@ export interface PaymentIntent {
   amount: number;
   currency: string;
   status:
-  | 'requires_payment_method'
-  | 'requires_confirmation'
-  | 'requires_action'
-  | 'processing'
-  | 'succeeded'
-  | 'canceled';
+    | 'requires_payment_method'
+    | 'requires_confirmation'
+    | 'requires_action'
+    | 'processing'
+    | 'succeeded'
+    | 'canceled';
   clientSecret: string;
 }
 
@@ -227,6 +227,7 @@ export interface AvailabilityParams {
 }
 
 export interface BookingProviderAdapter {
+  supportsHotel(hotel: Hotel): boolean;
   checkAvailability(params: AvailabilityParams): Promise<AvailabilityResponse>;
   getHotelDetails(hotelId: string): Promise<Hotel>;
   createReservation(request: BookingRequest): Promise<BookingConfirmation>;

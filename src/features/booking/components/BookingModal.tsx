@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, X, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { useBookingStore } from '../stores/bookingStore';
 import { useAvailability } from '../hooks/useAvailability';
 import {
@@ -89,6 +90,7 @@ const STEPS: { key: BookingStep; label: string; description: string }[] = [
 // ============================================================================
 
 export function BookingModal({ hotel, isOpen, onClose, onBookingComplete }: BookingModalProps) {
+  const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const {
@@ -256,15 +258,18 @@ export function BookingModal({ hotel, isOpen, onClose, onBookingComplete }: Book
     // Check if user is authenticated
     if (!isAuthenticated) {
       // Store booking data in sessionStorage to resume after login
-      sessionStorage.setItem('pendingBooking', JSON.stringify({
-        hotelId: hotel.id,
-        hotelTitle: hotel.title,
-        guestInfo: info,
-        checkInDate: currentBooking.checkInDate,
-        checkOutDate: currentBooking.checkOutDate,
-        selectedRoom: currentBooking.selectedRoom,
-        pricing: currentBooking.pricing,
-      }));
+      sessionStorage.setItem(
+        'pendingBooking',
+        JSON.stringify({
+          hotelId: hotel.id,
+          hotelTitle: hotel.title,
+          guestInfo: info,
+          checkInDate: currentBooking.checkInDate,
+          checkOutDate: currentBooking.checkOutDate,
+          selectedRoom: currentBooking.selectedRoom,
+          pricing: currentBooking.pricing,
+        })
+      );
 
       // Redirect to login page
       toast({
@@ -283,22 +288,25 @@ export function BookingModal({ hotel, isOpen, onClose, onBookingComplete }: Book
     }
 
     // Store booking data and navigate to QR payment
-    sessionStorage.setItem('pendingBooking', JSON.stringify({
-      hotelId: hotel.id,
-      hotelTitle: hotel.title,
-      guestInfo: info,
-      checkInDate: currentBooking.checkInDate,
-      checkOutDate: currentBooking.checkOutDate,
-      selectedRoom: currentBooking.selectedRoom,
-      pricing: currentBooking.pricing,
-    }));
+    sessionStorage.setItem(
+      'pendingBooking',
+      JSON.stringify({
+        hotelId: hotel.id,
+        hotelTitle: hotel.title,
+        guestInfo: info,
+        checkInDate: currentBooking.checkInDate,
+        checkOutDate: currentBooking.checkOutDate,
+        selectedRoom: currentBooking.selectedRoom,
+        pricing: currentBooking.pricing,
+      })
+    );
 
     const params = new URLSearchParams({
       amount: currentBooking.pricing.total.toString(),
       description: `Booking at ${hotel.title}`,
       type: 'booking',
     });
-    
+
     navigate(`/qr-payment?${params.toString()}`);
     onClose();
   };
@@ -733,7 +741,8 @@ export function BookingModal({ hotel, isOpen, onClose, onBookingComplete }: Book
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Payment Gateway Opened</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Razorpay payment window has been opened. Please complete your payment securely.
+                      Razorpay payment window has been opened. Please complete your payment
+                      securely.
                     </p>
                     {hotel.instantBooking && (
                       <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
@@ -790,7 +799,8 @@ export function BookingModal({ hotel, isOpen, onClose, onBookingComplete }: Book
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Complete the payment in the Razorpay window that has opened. If the payment window didn't open, please disable your popup blocker and try again.
+                      Complete the payment in the Razorpay window that has opened. If the payment
+                      window didn't open, please disable your popup blocker and try again.
                     </AlertDescription>
                   </Alert>
                 </div>

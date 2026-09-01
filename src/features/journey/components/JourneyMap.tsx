@@ -64,7 +64,7 @@ export function JourneyMap({
       mapRef.current = L.map(mapContainerRef.current, {
         zoomControl: false, // Cleaner look
         scrollWheelZoom: false,
-        dragging: true
+        dragging: true,
       }); // Initial view set later
 
       // Add OpenStreetMap tiles (free!)
@@ -91,9 +91,10 @@ export function JourneyMap({
     }
 
     // 1. Create stylish markers
-    const createMarkerIcon = (color: string, label: string) => L.divIcon({
-      className: 'custom-marker',
-      html: `
+    const createMarkerIcon = (color: string, label: string) =>
+      L.divIcon({
+        className: 'custom-marker',
+        html: `
         <div style="
           background: ${color};
           width: 36px;
@@ -109,10 +110,10 @@ export function JourneyMap({
           <span style="transform: rotate(45deg); color: white; font-weight: bold; font-size: 14px;">${label}</span>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36],
-      popupAnchor: [0, -40]
-    });
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -40],
+      });
 
     // Add Origin & Destination
     L.marker([origin.lat, origin.lng], { icon: createMarkerIcon('#10b981', 'A') })
@@ -162,7 +163,7 @@ export function JourneyMap({
 
       movingMarkerRef.current = L.marker(coords[0], {
         icon: arrowIcon,
-        zIndexOffset: 1000
+        zIndexOffset: 1000,
       }).addTo(map);
 
       // Animation Logic
@@ -189,15 +190,23 @@ export function JourneyMap({
             movingMarkerRef.current.setLatLng([lat, lng]);
 
             // Rotate arrow (basic bearing)
-            const dLon = (coords[nextIdx][1] - coords[baseIdx][1]);
+            const dLon = coords[nextIdx][1] - coords[baseIdx][1];
             const y = Math.sin(dLon) * Math.cos(coords[nextIdx][0]);
-            const x = Math.cos(coords[baseIdx][0]) * Math.sin(coords[nextIdx][0]) - Math.sin(coords[baseIdx][0]) * Math.cos(coords[nextIdx][0]) * Math.cos(dLon);
-            let brng = Math.atan2(y, x) * 180 / Math.PI;
+            const x =
+              Math.cos(coords[baseIdx][0]) * Math.sin(coords[nextIdx][0]) -
+              Math.sin(coords[baseIdx][0]) * Math.cos(coords[nextIdx][0]) * Math.cos(dLon);
+            let brng = (Math.atan2(y, x) * 180) / Math.PI;
             brng = (brng + 360) % 360;
 
             // Update rotation logic matching the icon direction (arrow points up by default structure, so we rotate)
             // Actually simple atan2 between points is enough for screen space, but lat/lng is fine
-            const angle = Math.atan2(coords[nextIdx][0] - coords[baseIdx][0], coords[nextIdx][1] - coords[baseIdx][1]) * 180 / Math.PI;
+            const angle =
+              (Math.atan2(
+                coords[nextIdx][0] - coords[baseIdx][0],
+                coords[nextIdx][1] - coords[baseIdx][1]
+              ) *
+                180) /
+              Math.PI;
 
             // Leaflet rotation plugin is best, but we can rotate the div directly via CSS transform
             const iconDiv = movingMarkerRef.current.getElement()?.querySelector('div');
@@ -205,12 +214,12 @@ export function JourneyMap({
               // Calculate bearing simply for visual
               const dy = coords[nextIdx][0] - coords[baseIdx][0];
               const dx = coords[nextIdx][1] - coords[baseIdx][1];
-              let theta = Math.atan2(dy, dx) * 180 / Math.PI;
+              const theta = (Math.atan2(dy, dx) * 180) / Math.PI;
               // Standard angle is from X axis (East). North is +90deg.
               // CSS rotate is clockwise.
               // Let's just assume rough direction.
               // A simpler way: just rotate the parent div
-              const bearing = (Math.atan2(dx, dy) * 180 / Math.PI); // 0 is North
+              const bearing = (Math.atan2(dx, dy) * 180) / Math.PI; // 0 is North
               iconDiv.style.transform = `rotate(${bearing}deg)`;
             }
           }
@@ -232,10 +241,9 @@ export function JourneyMap({
         map.flyToBounds(bounds, {
           padding: [50, 50],
           duration: 2.5, // Slow and smooth
-          easeLinearity: 0.2
+          easeLinearity: 0.2,
         });
       }, 500);
-
     } else {
       // Fallback if no route
       // Start at Origin
@@ -243,22 +251,22 @@ export function JourneyMap({
 
       const bounds = L.latLngBounds([
         [origin.lat, origin.lng],
-        [destination.lat, destination.lng]
+        [destination.lat, destination.lng],
       ]);
 
       setTimeout(() => {
         map.flyToBounds(bounds, {
           padding: [50, 50],
           duration: 2.5,
-          easeLinearity: 0.2
+          easeLinearity: 0.2,
         });
       }, 500);
     }
 
     // Cleanup
     return () => {
-      // Don't nuke the map instance on re-render to separate concerns, 
-      // but we do want to cleanup layers. 
+      // Don't nuke the map instance on re-render to separate concerns,
+      // but we do want to cleanup layers.
       // Actually with React StrictMode double invoke, keeping mapRef might duplicate if we don't clean.
       // We will clear layers at start of useEffect instead.
       if (animationRef.current) {
@@ -275,7 +283,7 @@ export function JourneyMap({
 
     // Counter-rotate markers in 3D mode so they stand up
     const markers = document.querySelectorAll('.custom-marker, .moving-arrow');
-    markers.forEach((el) => {
+    markers.forEach(el => {
       (el as HTMLElement).style.transform = is3D
         ? `${(el as HTMLElement).style.transform} rotateX(-45deg)`
         : (el as HTMLElement).style.transform.replace(' rotateX(-45deg)', '');
@@ -291,7 +299,9 @@ export function JourneyMap({
         style={{
           height,
           width: '100%',
-          transform: is3D ? 'rotateX(45deg) scale(0.9) translateY(-10px)' : 'rotateX(0deg) scale(1)',
+          transform: is3D
+            ? 'rotateX(45deg) scale(0.9) translateY(-10px)'
+            : 'rotateX(0deg) scale(1)',
           boxShadow: is3D ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' : '',
           transformStyle: 'preserve-3d',
         }}

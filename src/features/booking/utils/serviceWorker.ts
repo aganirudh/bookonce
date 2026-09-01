@@ -7,7 +7,7 @@
  * Register the service worker for offline support
  */
 export function registerServiceWorker(): void {
-  if ('serviceWorker' in navigator) {
+  if (navigator.serviceWorker?.register) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/service-worker.js')
@@ -33,7 +33,7 @@ export function registerServiceWorker(): void {
  * Unregister the service worker
  */
 export function unregisterServiceWorker(): Promise<boolean> {
-  if ('serviceWorker' in navigator) {
+  if (navigator.serviceWorker?.getRegistration) {
     return navigator.serviceWorker
       .getRegistration()
       .then(registration => {
@@ -54,7 +54,7 @@ export function unregisterServiceWorker(): Promise<boolean> {
  * Clear all service worker caches
  */
 export function clearServiceWorkerCache(): Promise<void> {
-  if ('serviceWorker' in navigator && 'caches' in window) {
+  if (navigator.serviceWorker && window.caches?.keys) {
     return caches.keys().then(cacheNames => {
       return Promise.all(cacheNames.map(cacheName => caches.delete(cacheName))).then(() => {
         console.log('All caches cleared');

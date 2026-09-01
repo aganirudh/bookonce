@@ -184,7 +184,11 @@ export function RoomSelector({
                 }}
                 disabled={room.available === 0}
                 variant={isSelected ? 'default' : 'outline'}
-                aria-label={`${isSelected ? 'Selected' : 'Select'} ${room.name} room for ${formatPrice(room.basePrice)} per night`}
+                aria-label={
+                  room.available === 0
+                    ? `Sold out: ${room.name}`
+                    : `${isSelected ? 'Selected' : 'Select'} ${room.name} room for ${formatPrice(room.basePrice)} per night`
+                }
                 aria-pressed={isSelected}
               >
                 {isSelected ? (

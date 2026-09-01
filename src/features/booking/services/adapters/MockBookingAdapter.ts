@@ -160,10 +160,6 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
       await this.simulateDelay(5000, 10000);
     }
 
-    // Simulate occasional failures (10% chance)
-    if (Math.random() < 0.1) {
-      throw new Error('Mock booking failed - simulated error');
-    }
 
     const bookingId = `BK${this.bookingCounter++}`;
     const referenceNumber = `REF-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
@@ -243,10 +239,6 @@ export class MockBookingAdapter extends BaseBookingProviderAdapter {
       throw new Error(`Booking ${bookingId} not found`);
     }
 
-    // Simulate occasional failures (5% chance)
-    if (Math.random() < 0.05) {
-      throw new Error('Mock modification failed - simulated error');
-    }
 
     // Determine new dates
     const newCheckInDate = changes.checkInDate || existingBooking.checkInDate;

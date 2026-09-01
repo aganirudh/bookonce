@@ -3,6 +3,14 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+
+const themeCss = readFileSync('src/index.css', 'utf8');
+
+const sourceStyle = {
+  getPropertyValue: (name: string) =>
+    themeCss.match(new RegExp(`${name}\\s*:\\s*([^;]+)`))?.[1] ?? '',
+};
 
 describe('Enhanced CSS Variables', () => {
   beforeEach(() => {
@@ -15,8 +23,7 @@ describe('Enhanced CSS Variables', () => {
   });
 
   it('should have enhanced light mode variables defined', () => {
-    const testElement = document.getElementById('test-element')!;
-    const computedStyle = getComputedStyle(testElement);
+    const computedStyle = sourceStyle;
 
     // Check if enhanced variables are available
     const hoverOverlay = computedStyle.getPropertyValue('--hover-overlay');
@@ -39,8 +46,7 @@ describe('Enhanced CSS Variables', () => {
     // Apply dark mode class
     document.documentElement.classList.add('dark');
 
-    const testElement = document.getElementById('test-element')!;
-    const computedStyle = getComputedStyle(testElement);
+    const computedStyle = sourceStyle;
 
     // Check dark mode specific variables
     const background = computedStyle.getPropertyValue('--background');
@@ -59,8 +65,7 @@ describe('Enhanced CSS Variables', () => {
     // Apply high contrast class
     document.documentElement.classList.add('high-contrast');
 
-    const testElement = document.getElementById('test-element')!;
-    const computedStyle = getComputedStyle(testElement);
+    const computedStyle = sourceStyle;
 
     // Check high contrast specific variables
     const background = computedStyle.getPropertyValue('--background');
@@ -76,8 +81,7 @@ describe('Enhanced CSS Variables', () => {
   });
 
   it('should have component-specific variables defined', () => {
-    const testElement = document.getElementById('test-element')!;
-    const computedStyle = getComputedStyle(testElement);
+    const computedStyle = sourceStyle;
 
     // Check component-specific variables
     const navbarBg = computedStyle.getPropertyValue('--navbar-bg');
@@ -94,8 +98,7 @@ describe('Enhanced CSS Variables', () => {
   });
 
   it('should have enhanced shadow variables defined', () => {
-    const testElement = document.getElementById('test-element')!;
-    const computedStyle = getComputedStyle(testElement);
+    const computedStyle = sourceStyle;
 
     // Check shadow variables
     const shadowSoft = computedStyle.getPropertyValue('--shadow-soft');

@@ -1,238 +1,109 @@
-/**
- * AuthContext Tests
- * Tests for authentication context and hooks
- */
+import { act, renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { ReactNode } from 'react';
-import { AuthProvider, useAuth, getAccessToken, refreshAccessToken } from '../AuthContext';
+const authMocks = vi.hoisted(() => ({
+  authCallback: null as null | ((user: unknown) => void),
+  signOut: vi.fn().mockResolvedValue(undefined),
+  signIn: vi.fn(),
+  register: vi.fn(),
+}));
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn((_auth, callback) => {
+    authMocks.authCallback = callback;
+    callback(null);
+    return vi.fn();
+  }),
+  signInAnonymously: vi.fn(),
+}));
+vi.mock('@/lib/firebase', () => ({ auth: { signOut: authMocks.signOut } }));
+vi.mock('@/auth/googleAuth', () => ({
+  googleAuth: { signInWithPopup: vi.fn().mockResolvedValue({ success: true, message: 'ok' }) },
+}));
+vi.mock('@/auth/emailAuth', () => ({
+  emailAuth: {
+    signIn: authMocks.signIn,
+    register: authMocks.register,
+    resetPassword: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
+  },
+}));
+vi.mock('@/auth/emailOTPAuth', () => ({
+  emailOTPAuth: {
+    init: vi.fn(),
+    sendOTP: vi.fn().mockResolvedValue({ success: true, message: 'sent' }),
+    verifyOTP: vi.fn().mockReturnValue({ success: true, message: 'verified' }),
+    clearOTP: vi.fn(),
+  },
+}));
 
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
+import { AuthProvider, useAuth } from '../AuthContext';
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
-
-// Wrapper component for hooks
 const wrapper = ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>;
 
 describe('AuthContext', () => {
   beforeEach(() => {
-    localStorageMock.clear();
-    vi.clearAllTimers();
+    sessionStorage.clear();
+    authMocks.signOut.mockClear();
+    authMocks.signIn.mockResolvedValue({ success: true, message: 'signed in' });
+    authMocks.register.mockResolvedValue({ success: true, message: 'registered' });
   });
 
-  describe('useAuth hook', () => {
-    it('should throw error when used outside AuthProvider', () => {
-      // Suppress console.error for this test
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      expect(() => {
-        renderHook(() => useAuth());
-      }).toThrow('useAuth must be used within an AuthProvider');
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should provide initial unauthenticated state', () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      expect(result.current.user).toBeNull();
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('should restore user from localStorage on mount', async () => {
-      const mockUser = {
-        userId: 'user-123',
-        email: 'test@example.com',
-        firstName: 'Test',
-        lastName: 'User',
-        notificationPreferences: {
-          email: { enabled: true, types: [] },
-          push: { enabled: false, types: [] },
-        },
-      };
-
-      localStorageMock.setItem('auth_access_token', 'mock_token');
-      localStorageMock.setItem('auth_user_data', JSON.stringify(mockUser));
-
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.user).toEqual(mockUser);
-        expect(result.current.isAuthenticated).toBe(true);
-      });
-    });
+  it('rejects use outside the provider', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(() => renderHook(() => useAuth())).toThrow(
+      'useAuth must be used within an AuthProvider'
+    );
+    vi.restoreAllMocks();
   });
 
-  describe('login', () => {
-    it('should login user successfully', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await act(async () => {
-        await result.current.login('test@example.com', 'password123');
-      });
-
-      expect(result.current.user).toBeTruthy();
-      expect(result.current.user?.email).toBe('test@example.com');
-      expect(result.current.isAuthenticated).toBe(true);
-      expect(localStorageMock.getItem('auth_access_token')).toBeTruthy();
-      expect(localStorageMock.getItem('auth_refresh_token')).toBeTruthy();
-    });
-
-    it('should store user data in localStorage', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await act(async () => {
-        await result.current.login('test@example.com', 'password123');
-      });
-
-      const storedData = localStorageMock.getItem('auth_user_data');
-      expect(storedData).toBeTruthy();
-
-      const userData = JSON.parse(storedData!);
-      expect(userData.email).toBe('test@example.com');
-      expect(userData.notificationPreferences).toBeDefined();
-    });
+  it('starts unauthenticated after the auth listener resolves', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
   });
 
-  describe('register', () => {
-    it('should register new user successfully', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await act(async () => {
-        await result.current.register('newuser@example.com', 'password123', 'New', 'User');
-      });
-
-      expect(result.current.user).toBeTruthy();
-      expect(result.current.user?.email).toBe('newuser@example.com');
-      expect(result.current.user?.firstName).toBe('New');
-      expect(result.current.user?.lastName).toBe('User');
-      expect(result.current.isAuthenticated).toBe(true);
-    });
-
-    it('should create default notification preferences', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await act(async () => {
-        await result.current.register('newuser@example.com', 'password123', 'New', 'User');
-      });
-
-      expect(result.current.user?.notificationPreferences).toBeDefined();
-      expect(result.current.user?.notificationPreferences.email.enabled).toBe(true);
-      expect(result.current.user?.notificationPreferences.push.enabled).toBe(false);
-    });
+  it('maps the authenticated Firebase user', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    act(() =>
+      authMocks.authCallback?.({
+        uid: 'user-1',
+        email: 'traveler@example.com',
+        displayName: 'Traveler',
+        photoURL: null,
+        phoneNumber: null,
+        emailVerified: true,
+      })
+    );
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true));
+    expect(result.current.user?.email).toBe('traveler@example.com');
   });
 
-  describe('logout', () => {
-    it('should logout user and clear data', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      // Login first
-      await act(async () => {
-        await result.current.login('test@example.com', 'password123');
-      });
-
-      expect(result.current.isAuthenticated).toBe(true);
-
-      // Logout
-      act(() => {
-        result.current.logout();
-      });
-
-      expect(result.current.user).toBeNull();
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(localStorageMock.getItem('auth_access_token')).toBeNull();
-      expect(localStorageMock.getItem('auth_refresh_token')).toBeNull();
-      expect(localStorageMock.getItem('auth_user_data')).toBeNull();
-    });
+  it('delegates login and registration to the Firebase adapters', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(() => result.current.login('a@example.com', 'password'));
+    await act(() => result.current.register('b@example.com', 'password', 'Book', 'Once'));
+    expect(authMocks.signIn).toHaveBeenCalledWith('a@example.com', 'password');
+    expect(authMocks.register).toHaveBeenCalledWith('b@example.com', 'password', 'Book', 'Once');
   });
 
-  describe('updateProfile', () => {
-    it('should update user profile', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      // Login first
-      await act(async () => {
-        await result.current.login('test@example.com', 'password123');
-      });
-
-      // Update profile
-      await act(async () => {
-        await result.current.updateProfile({
-          firstName: 'Updated',
-          lastName: 'Name',
-        });
-      });
-
-      expect(result.current.user?.firstName).toBe('Updated');
-      expect(result.current.user?.lastName).toBe('Name');
-      expect(result.current.user?.email).toBe('test@example.com'); // Should preserve other fields
-    });
-
-    it('should throw error when updating without login', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await expect(
-        act(async () => {
-          await result.current.updateProfile({ firstName: 'Test' });
-        })
-      ).rejects.toThrow('No user logged in');
-    });
-  });
-
-  describe('token management', () => {
-    it('should get access token', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await act(async () => {
-        await result.current.login('test@example.com', 'password123');
-      });
-
-      const token = getAccessToken();
-      expect(token).toBeTruthy();
-      expect(token).toContain('mock_access_token');
-    });
-
-    it('should refresh access token', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      await act(async () => {
-        await result.current.login('test@example.com', 'password123');
-      });
-
-      const oldToken = getAccessToken();
-
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      });
-
-      const newToken = await refreshAccessToken();
-      expect(newToken).toBeTruthy();
-      expect(newToken).not.toBe(oldToken);
-    });
-
-    it('should return null when refreshing without refresh token', async () => {
-      const token = await refreshAccessToken();
-      expect(token).toBeNull();
-    });
+  it('updates an authenticated profile and logs out cleanly', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    act(() =>
+      authMocks.authCallback?.({
+        uid: 'user-1',
+        email: 'a@example.com',
+        displayName: 'Old',
+        photoURL: null,
+        phoneNumber: null,
+        emailVerified: true,
+      })
+    );
+    await act(() => result.current.updateProfile({ firstName: 'New', displayName: 'New Name' }));
+    expect(result.current.user?.firstName).toBe('New');
+    await act(() => result.current.logout());
+    expect(authMocks.signOut).toHaveBeenCalledOnce();
+    expect(result.current.user).toBeNull();
   });
 });

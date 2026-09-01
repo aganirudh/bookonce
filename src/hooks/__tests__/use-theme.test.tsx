@@ -120,7 +120,7 @@ describe('useTheme Hook', () => {
       });
 
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        'vagabond-theme-preference',
+        'bookonce-theme-preference',
         expect.stringContaining('"theme":"light"')
       );
     });
@@ -140,7 +140,7 @@ describe('useTheme Hook', () => {
       });
 
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        'vagabond-theme-preference',
+        'bookonce-theme-preference',
         expect.stringContaining('"theme":"dark"')
       );
     });
@@ -160,7 +160,7 @@ describe('useTheme Hook', () => {
       });
 
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        'vagabond-theme-preference',
+        'bookonce-theme-preference',
         expect.stringContaining('"theme":"high-contrast"')
       );
     });
@@ -280,7 +280,7 @@ describe('useTheme Hook', () => {
 
       await waitFor(() => {
         expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-          'vagabond-theme-preference',
+          'bookonce-theme-preference',
           expect.stringContaining('"theme":"dark"')
         );
       });

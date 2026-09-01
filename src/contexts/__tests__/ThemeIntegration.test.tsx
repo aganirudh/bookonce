@@ -138,13 +138,13 @@ describe('Theme Integration Tests', () => {
 
       await waitFor(() => {
         expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-          'vagabond-theme-preference',
+          'bookonce-theme-preference',
           expect.stringContaining('"theme":"dark"')
         );
       });
 
       // Verify the stored data structure
-      const storedData = JSON.parse(mockLocalStorage._storage['vagabond-theme-preference']);
+      const storedData = JSON.parse(mockLocalStorage._storage['bookonce-theme-preference']);
       expect(storedData).toHaveProperty('theme', 'dark');
       expect(storedData).toHaveProperty('timestamp');
       expect(typeof storedData.timestamp).toBe('number');
@@ -156,7 +156,7 @@ describe('Theme Integration Tests', () => {
         theme: 'dark',
         timestamp: Date.now(),
       };
-      mockLocalStorage._storage['vagabond-theme-preference'] = JSON.stringify(preference);
+      mockLocalStorage._storage['bookonce-theme-preference'] = JSON.stringify(preference);
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(preference));
 
       render(<ThemeIntegrationTest />);
@@ -201,7 +201,7 @@ describe('Theme Integration Tests', () => {
 
       // Test clearThemePreference
       clearThemePreference();
-      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('vagabond-theme-preference');
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('bookonce-theme-preference');
     });
   });
 

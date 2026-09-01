@@ -127,7 +127,7 @@ describe('BookingAPIService', () => {
       expect(booking.referenceNumber).toBeDefined();
       expect(booking.status).toBe('confirmed');
       expect(booking.hotel.id).toBe(1);
-      expect(booking.guestInfo).toEqual(request.guestInfo);
+      expect(booking.guestInfo).toMatchObject(request.guestInfo);
     });
 
     it('should validate booking request', async () => {

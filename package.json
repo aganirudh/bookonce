@@ -15,7 +15,10 @@
     "preview": "vite preview",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "typecheck": "tsc -b",
+    "server": "node server.js",
+    "eval": "node evals/run-evals.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

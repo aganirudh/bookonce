@@ -10,6 +10,14 @@ import { DateSelector } from '../DateSelector';
 import { RoomSelector } from '../RoomSelector';
 import type { Hotel, RoomOption } from '@/types/booking';
 
+vi.mock('react-router-dom', async importOriginal => ({
+  ...(await importOriginal<typeof import('react-router-dom')>()),
+  useNavigate: () => vi.fn(),
+}));
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: null, isAuthenticated: false }),
+}));
+
 // Mock hotel data
 const mockHotel: Hotel = {
   id: 1,
@@ -82,7 +90,7 @@ describe('Mobile Optimizations', () => {
       );
 
       // Check that modal renders (Dialog may not have role="dialog" in test environment)
-      expect(container.firstChild).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
     it('should render DateSelector with native input on mobile', () => {
@@ -141,7 +149,7 @@ describe('Mobile Optimizations', () => {
         );
 
         // Check that modal renders at each breakpoint
-        expect(container.firstChild).toBeInTheDocument();
+        expect(screen.getAllByRole('dialog').at(-1)).toBeInTheDocument();
       });
     });
   });
@@ -154,25 +162,33 @@ describe('Mobile Optimizations', () => {
       );
 
       // Check that modal renders
-      expect(container.firstChild).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
 
       // Find any touchable element
       const touchableElement =
-        container.querySelector('[data-radix-dialog-content]') || container.firstChild;
+        screen.getByRole('dialog');
 
       if (touchableElement) {
         // Simulate touch start
         fireEvent.touchStart(touchableElement, {
           touches: [{ clientX: 100, clientY: 100 }],
+          targetTouches: [{ clientX: 100, clientY: 100 }],
+          changedTouches: [{ clientX: 100, clientY: 100 }],
         });
 
         // Simulate touch move
         fireEvent.touchMove(touchableElement, {
           touches: [{ clientX: 200, clientY: 100 }],
+          targetTouches: [{ clientX: 200, clientY: 100 }],
+          changedTouches: [{ clientX: 200, clientY: 100 }],
         });
 
         // Simulate touch end
-        fireEvent.touchEnd(touchableElement);
+        fireEvent.touchEnd(touchableElement, {
+          touches: [],
+          targetTouches: [],
+          changedTouches: [{ clientX: 200, clientY: 100 }],
+        });
 
         // Modal should still be open (swipe not far enough)
         expect(onClose).not.toHaveBeenCalled();

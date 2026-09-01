@@ -149,7 +149,7 @@ describe('Theme Visual Regression Tests', () => {
       render(<ThemedShowcase />);
 
       // Switch to light theme explicitly
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const lightOption = screen.getByRole('menuitem', { name: /light/i });
@@ -172,7 +172,7 @@ describe('Theme Visual Regression Tests', () => {
       render(<ThemedShowcase />);
 
       // Switch to dark theme
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
@@ -195,7 +195,7 @@ describe('Theme Visual Regression Tests', () => {
       render(<ThemedShowcase />);
 
       // Switch to high contrast theme
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const highContrastOption = screen.getByRole('menuitem', { name: /high contrast/i });
@@ -235,7 +235,7 @@ describe('Theme Visual Regression Tests', () => {
       });
 
       // Switch to dark theme and verify buttons are still visible
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
@@ -268,7 +268,7 @@ describe('Theme Visual Regression Tests', () => {
       expect(screen.getByTestId('disabled-input')).toBeDisabled();
 
       // Switch to high contrast and verify inputs are still visible
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const highContrastOption = screen.getByRole('menuitem', { name: /high contrast/i });
@@ -294,7 +294,7 @@ describe('Theme Visual Regression Tests', () => {
       const themes = ['dark', 'high-contrast', 'light'];
 
       for (const themeName of themes) {
-        const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
         await user.click(themeToggle);
 
         const themeOption = screen.getByRole('menuitem', {
@@ -326,7 +326,7 @@ describe('Theme Visual Regression Tests', () => {
       });
 
       // Switch to dark theme and verify badges are still visible
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
@@ -353,7 +353,7 @@ describe('Theme Visual Regression Tests', () => {
       expect(button).toHaveFocus();
 
       // Switch themes while maintaining focus
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
@@ -380,7 +380,7 @@ describe('Theme Visual Regression Tests', () => {
       await user.hover(button);
 
       // Switch themes
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
@@ -404,7 +404,7 @@ describe('Theme Visual Regression Tests', () => {
       expect(disabledInput).toBeDisabled();
 
       // Switch to high contrast theme
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const highContrastOption = screen.getByRole('menuitem', { name: /high contrast/i });
@@ -423,7 +423,7 @@ describe('Theme Visual Regression Tests', () => {
 
       render(<ThemedShowcase />);
 
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
 
       // Rapidly switch between themes
       const themes = ['light', 'dark', 'high-contrast', 'system'];
@@ -455,7 +455,7 @@ describe('Theme Visual Regression Tests', () => {
       const initialInputs = screen.getAllByRole('textbox');
 
       // Switch theme
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });
@@ -526,7 +526,7 @@ describe('Theme Visual Regression Tests', () => {
       });
 
       // Theme switching should still work
-      const themeToggle = screen.getByTestId('theme-toggle');
+      const themeToggle = screen.getByRole('button', { name: /theme selector/i });
       await user.click(themeToggle);
 
       const darkOption = screen.getByRole('menuitem', { name: /dark/i });

@@ -72,15 +72,16 @@ describe('PaymentAPIService', () => {
         '/api/payments/create-intent',
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({
             amount: 10000,
             currency: 'usd',
             metadata: {
-              hotelId: '1',
               bookingId: 'booking_123',
+              hotelId: '1',
               userId: 'user_123',
             },
+            captureMethod: 'automatic',
           }),
         })
       );
@@ -93,7 +94,7 @@ describe('PaymentAPIService', () => {
       });
 
       await expect(service.createPaymentIntent(0, 'usd', { userId: 'user_123' })).rejects.toThrow(
-        'Invalid amount'
+        'Invalid payment amount'
       );
     });
 
