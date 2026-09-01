@@ -116,7 +116,7 @@ describe('AIJourneyPlanner', () => {
     render(<JourneyResult itinerary={{ ...itinerary, segments: [routed] }} travelStyle="urgent" />);
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Why this route?');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Only verified route currently available');
-    expect(screen.getByTestId('route-explanation')).toHaveTextContent('BookOnce optimized this route for time');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Optimized for time');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Optimization score: 100/100');
   });
 
@@ -157,8 +157,8 @@ describe('AIJourneyPlanner', () => {
     expect(recommendedButton).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByText(/Verified road duration:/).closest('p')).toHaveTextContent('15 minutes');
     expect(screen.getByText(/Verified road distance:/).closest('p')).toHaveTextContent('12 km');
-    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Least known walking distance');
-    expect(screen.getByTestId('route-explanation')).toHaveTextContent('70/100');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('5 minutes slower than the fastest option');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('0/100');
     expect(screen.getByText(/BookOnce estimated cost:/).closest('div')).toHaveTextContent('Approx. ₹275');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('5 min slower than recommended');
     expect(screen.getByTestId('route-explanation')).toHaveTextContent('Approx. ₹35 higher estimated cost than recommended');
@@ -188,7 +188,7 @@ describe('AIJourneyPlanner', () => {
     const { rerender } = render(<JourneyResult itinerary={{ ...itinerary, segments: [routed] }} />);
     expect(screen.getByRole('button', { name: /Select Lowest estimated cost/ })).toBeInTheDocument();
     rerender(<JourneyResult itinerary={{ ...itinerary, segments: [{ ...routed, routingAlternatives: [routed.routingAlternatives[0], { ...routed.routingAlternatives[1], estimatedCost: undefined }] }] }} />);
-    expect(screen.queryByText('Lowest estimated cost')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Select Lowest estimated cost/ })).not.toBeInTheDocument();
     expect(screen.queryByText('Approx. ₹0')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Select Alternative 1/ }));
     expect(screen.queryByText(/BookOnce estimated cost:/)).not.toBeInTheDocument();
@@ -207,6 +207,88 @@ describe('AIJourneyPlanner', () => {
     render(<JourneyResult itinerary={{ ...itinerary, origin: { name: 'Pune', latitude: 12, longitude: 77 }, destination: { name: 'Mumbai', latitude: 13, longitude: 78 }, segments: [routed] }} />);
     fireEvent.click(screen.getByRole('button', { name: /Select Alternative 1/ }));
     expect(screen.getByTestId('journey-map')).toHaveAttribute('data-props', expect.stringContaining('"route":[]'));
+  });
+
+  it('reranks loaded routes with centralized presets and custom weights without AI or network calls', () => {
+    const explanation = { dominantPreference: 'time' as const, advantages: [], tradeOffs: [] };
+    const fastGeometry: [number, number][] = [[77, 12], [78, 13]];
+    const cheapGeometry: [number, number][] = [[77, 12], [79, 14]];
+    const routed = {
+      ...itinerary.segments[0], routingStatus: 'routed' as const, selectedRouteCandidateId: 'fast',
+      optimizationPreferences: { timeWeight: 7, costWeight: 1, walkingWeight: 1, transfersWeight: 1 },
+      routingAlternatives: [
+        { id: 'fast', label: 'Fast', mode: 'drive' as const, distance: 10000, duration: 600, estimatedCost: 500, geometry: fastGeometry, rank: 1, score: 0.1, qualityScore: 90, explanation },
+        { id: 'cheap', label: 'Cheap', mode: 'drive' as const, distance: 12000, duration: 1200, estimatedCost: 100, geometry: cheapGeometry, rank: 2, score: 0.4, qualityScore: 60, explanation },
+      ],
+    };
+    const result = { ...itinerary, origin: { name: 'Pune', latitude: 12, longitude: 77 }, destination: { name: 'Mumbai', latitude: 13, longitude: 78 }, segments: [routed] };
+    const routingSpy = vi.spyOn(routingService, 'getRoutes');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    render(<JourneyResult itinerary={result} />);
+
+    expect(screen.getByText('Customize route priorities')).toBeInTheDocument();
+    expect(screen.getByLabelText('Walking')).toBeDisabled();
+    expect(screen.getByText('Walking comparison unavailable')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Select Recommended route, 10 minutes/ })).toHaveTextContent('Recommended');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lowest estimated cost' }));
+    expect(screen.getByRole('button', { name: 'Lowest estimated cost' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /Select Recommended route, 20 minutes/ })).toHaveTextContent('Recommended');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Preset: Lowest estimated cost');
+    expect(screen.getByTestId('journey-map').getAttribute('data-props')).toContain('[{"lat":12,"lng":77},{"lat":14,"lng":79}]');
+
+    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '10' } });
+    fireEvent.change(screen.getByLabelText('Estimated cost'), { target: { value: '0' } });
+    expect(screen.getByRole('button', { name: /Select Recommended route, 10 minutes/ })).toHaveTextContent('Recommended');
+    expect(screen.getByTestId('route-explanation')).toHaveTextContent('Optimized for Time');
+    expect(bookOnceAIService.generateItinerary).not.toHaveBeenCalled();
+    expect(routingSpy).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('resets to original preferences and preserves an explicit route selection during reranking', () => {
+    const explanation = { dominantPreference: 'time' as const, advantages: [], tradeOffs: [] };
+    const common = { mode: 'drive' as const, distance: 1000, geometry: [] as [number, number][], score: 0, qualityScore: 100, explanation };
+    const routed = {
+      ...itinerary.segments[0], routingStatus: 'routed' as const, selectedRouteCandidateId: 'fast',
+      optimizationPreferences: { timeWeight: 7, costWeight: 1, walkingWeight: 0, transfersWeight: 0 },
+      routingAlternatives: [
+        { ...common, id: 'fast', label: 'Fast', duration: 600, estimatedCost: 500, rank: 1 },
+        { ...common, id: 'cheap', label: 'Cheap', duration: 1200, estimatedCost: 100, rank: 2 },
+      ],
+    };
+    render(<JourneyResult itinerary={{ ...itinerary, segments: [routed] }} />);
+    fireEvent.click(screen.getByRole('button', { name: /Select .*20 minutes/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fastest' }));
+    expect(screen.getByRole('button', { name: /Select Recommended route, 10 minutes/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Use recommended' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Use recommended' }));
+    expect(screen.getByRole('button', { name: /Select Recommended route, 10 minutes/ })).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lowest estimated cost' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reset priorities' }));
+    expect(screen.getByRole('button', { name: /Select Recommended route, 10 minutes/ })).toHaveTextContent('Recommended');
+    expect(screen.getByLabelText('Time')).toHaveValue('7');
+    expect(screen.getByLabelText('Estimated cost')).toHaveValue('1');
+  });
+
+  it('prevents an all-zero custom weight state and never renders non-finite values', () => {
+    const explanation = { dominantPreference: 'time' as const, advantages: [], tradeOffs: [] };
+    const common = { mode: 'drive' as const, distance: 1000, geometry: [] as [number, number][], score: 0, qualityScore: 100, explanation };
+    const routed = {
+      ...itinerary.segments[0], routingStatus: 'routed' as const, selectedRouteCandidateId: 'one',
+      optimizationPreferences: { timeWeight: 1, costWeight: 1, walkingWeight: 0, transfersWeight: 0 },
+      routingAlternatives: [
+        { ...common, id: 'one', label: 'One', duration: 600, estimatedCost: 500, rank: 1 },
+        { ...common, id: 'two', label: 'Two', duration: 1200, estimatedCost: 100, rank: 2 },
+      ],
+    };
+    render(<JourneyResult itinerary={{ ...itinerary, segments: [routed] }} />);
+    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText('Estimated cost'), { target: { value: '0' } });
+    expect(screen.getByLabelText('Estimated cost')).toHaveValue('1');
+    expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Approx. ₹0')).not.toBeInTheDocument();
   });
 
   it('renders estimates when authoritative route values are absent', () => {

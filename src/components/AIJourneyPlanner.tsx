@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Loader2, MapPin, MessageSquare, Route, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,8 @@ import { proposeWeatherReplan } from '@/features/journey/replanning/ItineraryRep
 import type { WeatherActivity } from '@/features/journey/weather/types';
 import { DataProvenanceBadge } from '@/components/ui/data-provenance';
 import { routeComparisons, routeDescriptor, type RoutingAlternative } from '@/features/journey/optimization/routePresentation';
+import { useRouteWhatIfOptimization } from '@/features/journey/optimization/useRouteWhatIfOptimization';
+import type { OptimizationMetric } from '@/features/journey/optimization/types';
 
 type RequestState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -35,24 +37,38 @@ const JourneySegmentCard: React.FC<{
   segment: JourneySegment;
   index: number;
   selectedId?: string;
+  manuallySelected: boolean;
   travelStyle: 'urgent' | 'leisure';
-  onSelect: (id: string) => void;
-}> = ({ segment, index, selectedId, travelStyle, onSelect }) => {
-  const selected = selectedAlternative(segment, selectedId);
+  onSelect: (index: number, id: string, manuallySelected: boolean) => void;
+}> = ({ segment, index, selectedId, manuallySelected, travelStyle, onSelect }) => {
+  const originalPreferences = segment.optimizationPreferences ?? preferencesForTravelStyle(travelStyle);
+  const whatIf = useRouteWhatIfOptimization(segment.routingAlternatives ?? [], originalPreferences);
+  const alternatives = whatIf.rankedRoutes;
+  const recommended = alternatives.find(route => route.rank === 1);
+  const selected = alternatives.find(route => route.id === selectedId) ??
+    alternatives.find(route => route.id === segment.selectedRouteCandidateId) ?? recommended;
   const fallbackCandidate = segment.routingStatus === 'routed' ? segmentToCandidate(segment, index) : null;
   const fallbackOptimized = fallbackCandidate
     ? getBestRoute([fallbackCandidate], preferencesForTravelStyle(travelStyle))
     : undefined;
   const explanation = selected?.explanation ?? fallbackOptimized?.explanation;
   const qualityScore = selected?.qualityScore ?? fallbackOptimized?.qualityScore;
-  const alternatives = segment.routingAlternatives ?? [];
-  const recommended = alternatives.find(route => route.id === segment.selectedRouteCandidateId) ??
-    alternatives.find(route => route.rank === 1);
   const comparisons = selected ? routeComparisons(selected, recommended) : [];
   const routeDuration = selected?.duration ?? segment.routeDuration;
   const routeDistance = selected?.distance ?? segment.routeDistance;
   const routeCost = selected ? selected.estimatedCost : segment.estimatedCost;
   const routeCostSource = selected ? selected.costEstimateSource : segment.costEstimateSource;
+  const contextMetrics = (Object.entries({
+    Time: whatIf.preferences.timeWeight,
+    Cost: whatIf.preferences.costWeight,
+    Walking: whatIf.preferences.walkingWeight,
+    Transfers: whatIf.preferences.transfersWeight,
+    Comfort: whatIf.preferences.comfortWeight ?? 0,
+  }) as Array<[string, number]>).filter(([label, weight]) => weight > 0 && whatIf.availability[label.toLowerCase() as OptimizationMetric]);
+
+  useEffect(() => {
+    if (!manuallySelected && recommended && selectedId !== recommended.id) onSelect(index, recommended.id, false);
+  }, [index, manuallySelected, onSelect, recommended, selectedId]);
 
   return <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
     <CardHeader>
@@ -76,7 +92,7 @@ const JourneySegmentCard: React.FC<{
             className="h-auto min-w-0 justify-start whitespace-normal p-3 text-left"
             aria-pressed={isSelected}
             aria-label={`Select ${accessibleName}`}
-            onClick={() => onSelect(route.id)}
+            onClick={() => onSelect(index, route.id, true)}
           >
             <span className="grid gap-1">
               <span className="font-semibold">{isRecommended ? 'Recommended' : descriptor}</span>
@@ -88,6 +104,45 @@ const JourneySegmentCard: React.FC<{
           </Button>;
         })}
         </div>
+        <details className="rounded-lg border p-3">
+          <summary className="cursor-pointer font-semibold">Customize route priorities</summary>
+          <div className="mt-3 space-y-3">
+            <div className="flex flex-wrap gap-2" aria-label="Optimization presets">
+              {([
+                ['BALANCED', 'Balanced'],
+                ['FASTEST', 'Fastest'],
+                ['CHEAPEST', 'Lowest estimated cost'],
+                ['COMFORT', 'Comfort'],
+              ] as const).map(([preset, label]) => <Button
+                key={preset}
+                type="button"
+                size="sm"
+                variant={whatIf.activePreset === preset ? 'default' : 'outline'}
+                aria-pressed={whatIf.activePreset === preset}
+                onClick={() => whatIf.applyPreset(preset)}
+              >{label}</Button>)}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {([
+                ['time', 'Time'], ['cost', 'Estimated cost'], ['walking', 'Walking'],
+                ['transfers', 'Transfers'], ['comfort', 'Comfort'],
+              ] as const).map(([metric, label]) => {
+                const key = `${metric}Weight` as keyof typeof whatIf.preferences;
+                const available = whatIf.availability[metric];
+                const value = whatIf.preferences[key] ?? 0;
+                return <div key={metric}>
+                  <div className="flex justify-between"><label htmlFor={`route-${index}-${metric}`}>{label}</label><output aria-label={`${label} priority value`}>{value}</output></div>
+                  <input id={`route-${index}-${metric}`} type="range" min="0" max="10" step="1" value={value} disabled={!available} onChange={event => whatIf.setWeight(metric, Number(event.target.value))} className="w-full" />
+                  {!available && <p className="text-xs text-muted-foreground">{label} comparison unavailable</p>}
+                </div>;
+              })}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" variant="ghost" onClick={whatIf.reset}>Reset priorities</Button>
+              {manuallySelected && selected?.id !== recommended?.id && recommended && <Button type="button" size="sm" onClick={() => onSelect(index, recommended.id, true)}>Use recommended</Button>}
+            </div>
+          </div>
+        </details>
       </section>}
       {segment.routingStatus === 'routed' && alternatives.length <= 1 && <p className="sm:col-span-2 text-muted-foreground">Only one verified route is currently available.</p>}
       {segment.departureTime && <p><b>Suggested departure:</b> {segment.departureTime}</p>}
@@ -102,7 +157,9 @@ const JourneySegmentCard: React.FC<{
       {segment.instructions && <p className="sm:col-span-2"><b>Suggested instructions:</b> {segment.instructions}</p>}
       {explanation && qualityScore !== undefined && <div className="sm:col-span-2 rounded-lg border bg-muted/40 p-3" data-testid="route-explanation">
         <p className="font-semibold">Why this route?</p>
-        <p className="text-muted-foreground">BookOnce optimized this route for {segment.optimizationPreferenceLabel ?? explanation.dominantPreference}.</p>
+        <p className="text-muted-foreground">{whatIf.activePreset
+          ? `Preset: ${whatIf.activePreset === 'CHEAPEST' ? 'Lowest estimated cost' : whatIf.activePreset.charAt(0) + whatIf.activePreset.slice(1).toLowerCase()}`
+          : `Optimized for ${contextMetrics.map(([label]) => label).join(' • ') || explanation.dominantPreference}`}.</p>
         {segment.optimizationWarnings?.map(warning => <p key={warning}>⚠ {warning}</p>)}
         {explanation.advantages.map(reason => <p key={reason}>✓ {reason}</p>)}
         {explanation.tradeOffs.map(reason => <p key={reason}>⚠ {reason}</p>)}
@@ -114,9 +171,12 @@ const JourneySegmentCard: React.FC<{
 };
 
 export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urgent' | 'leisure' }> = ({ itinerary, travelStyle = 'leisure' }) => {
-  const [selectedRoutes, setSelectedRoutes] = useState<Record<number, string>>({});
+  const [selectedRoutes, setSelectedRoutes] = useState<Record<number, { id: string; manuallySelected: boolean }>>({});
+  const selectRoute = useCallback((index: number, id: string, manuallySelected: boolean) => {
+    setSelectedRoutes(previous => ({ ...previous, [index]: { id, manuallySelected } }));
+  }, []);
   const routeGeometry = itinerary.segments.flatMap((segment, index) =>
-    (selectedAlternative(segment, selectedRoutes[index])?.geometry ?? segment.routeGeometry ?? [])
+    (selectedAlternative(segment, selectedRoutes[index]?.id)?.geometry ?? segment.routeGeometry ?? [])
       .map(([lng, lat]) => ({ lat, lng }))
   );
 
@@ -151,9 +211,10 @@ export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urge
       key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}
       segment={segment}
       index={index}
-      selectedId={selectedRoutes[index]}
+      selectedId={selectedRoutes[index]?.id}
+      manuallySelected={selectedRoutes[index]?.manuallySelected ?? false}
       travelStyle={travelStyle}
-      onSelect={id => setSelectedRoutes(previous => ({ ...previous, [index]: id }))}
+      onSelect={selectRoute}
     />)}
   </div>
 };

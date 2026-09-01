@@ -79,6 +79,7 @@ class JourneyEnrichmentService {
         selectedRouteCandidateId: undefined,
         routingAlternatives: undefined,
         optimizationPreferenceLabel: undefined,
+        optimizationPreferences: undefined,
         optimizationWarnings: undefined,
       };
 
@@ -121,6 +122,7 @@ class JourneyEnrichmentService {
           costEstimateModel: selected.candidate.costEstimate?.model,
           costCurrency: selected.candidate.costEstimate?.currency,
           optimizationPreferenceLabel: preferenceLabel,
+          optimizationPreferences: preferences,
           optimizationWarnings: candidates.every(candidate => candidate.cost === undefined) &&
             (constraints.maxCost !== undefined || preferences.costWeight >= Math.max(preferences.timeWeight, preferences.walkingWeight, preferences.transfersWeight, preferences.comfortWeight ?? 0))
             ? ['Cost could not be verified for these route options.']
@@ -134,6 +136,7 @@ class JourneyEnrichmentService {
             duration: ranked.candidate.durationSeconds,
             walkingDistance: ranked.candidate.walkingDistanceMeters,
             transfers: ranked.candidate.transfers,
+            comfortScore: ranked.candidate.comfortScore,
             geometry: ranked.candidate.route!.segments.flatMap(routeSegment => routeSegment.geometry),
             rank: ranked.rank,
             score: ranked.score,

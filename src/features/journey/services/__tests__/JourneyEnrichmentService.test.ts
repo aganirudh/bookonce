@@ -103,12 +103,13 @@ describe('JourneyEnrichmentService', () => {
     const result = await journeyEnrichmentService.enrich(baseItinerary, 'urgent');
     expect(result.segments[0]).toMatchObject({
       selectedRouteCandidateId: 'fast',
+      optimizationPreferences: { timeWeight: 7, costWeight: 1, walkingWeight: 1, transfersWeight: 1 },
       routeDuration: 600,
       routeDistance: 9000,
       routeGeometry: fasterGeometry,
     });
     expect(result.segments[0].routingAlternatives).toHaveLength(2);
-    expect(result.segments[0].routingAlternatives?.[0]).toMatchObject({ id: 'fast', rank: 1 });
+    expect(result.segments[0].routingAlternatives?.[0]).toMatchObject({ id: 'fast', provider: 'osrm', walkingDistance: 9000, rank: 1 });
     expect(result.segments[0].routingAlternatives?.every(route => route.estimatedCost === 0)).toBe(true);
     expect(result.segments[0]).toMatchObject({
       estimatedCost: 0,
