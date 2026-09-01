@@ -128,9 +128,12 @@ class JourneyEnrichmentService {
           routingAlternatives: ranking.ranked.map(ranked => ({
             id: ranked.candidate.id,
             label: ranked.candidate.label,
+            provider: ranked.candidate.route?.provider,
             mode,
             distance: ranked.candidate.distanceMeters ?? ranked.candidate.route!.totalDistance,
             duration: ranked.candidate.durationSeconds,
+            walkingDistance: ranked.candidate.walkingDistanceMeters,
+            transfers: ranked.candidate.transfers,
             geometry: ranked.candidate.route!.segments.flatMap(routeSegment => routeSegment.geometry),
             rank: ranked.rank,
             score: ranked.score,

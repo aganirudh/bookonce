@@ -113,8 +113,7 @@ export const useChatStore = create<ChatStore>()(
         } catch (error: unknown) {
           // Handle errors
           const errorMessage =
-            (error instanceof Error ? error.message : '') ||
-            'Unable to connect to Groq API. Please check your internet connection or try again later.';
+            'AI assistant is temporarily unavailable. Route planning and other travel tools may still be available.';
           setError(errorMessage);
           console.error('Error sending message:', error);
         } finally {

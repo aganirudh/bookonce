@@ -306,7 +306,9 @@ describe('Chat Store', () => {
       await sendMessage('Hello');
 
       const state = useChatStore.getState();
-      expect(state.error).toBe('API error');
+      expect(state.error).toBe(
+        'AI assistant is temporarily unavailable. Route planning and other travel tools may still be available.'
+      );
       expect(state.isLoading).toBe(false);
       expect(state.messages).toHaveLength(1); // Only user message
     });
@@ -319,7 +321,7 @@ describe('Chat Store', () => {
       await sendMessage('Hello');
 
       const state = useChatStore.getState();
-      expect(state.error).toContain('Unable to connect');
+      expect(state.error).toContain('AI assistant is temporarily unavailable');
     });
 
     it('should clear loading state after error', async () => {

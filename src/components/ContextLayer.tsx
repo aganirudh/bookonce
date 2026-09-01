@@ -192,7 +192,7 @@ export const ContextLayerPanel = ({ isOpen, onClose }: ContextLayerPanelProps) =
                   </div>
                   <div>
                     <h3 className="font-semibold text-xs">Context Layer</h3>
-                    <p className="text-xs text-muted-foreground">Real-time intelligence</p>
+                    <p className="text-xs text-muted-foreground">Demo travel context</p>
                   </div>
                 </div>
                 <button
@@ -206,19 +206,14 @@ export const ContextLayerPanel = ({ isOpen, onClose }: ContextLayerPanelProps) =
 
             {/* Content */}
             <div className="p-3 space-y-3 overflow-y-auto flex-1">
-              {/* Live Status */}
+              {/* Data status */}
               <div className="p-3 rounded-xl bg-secondary/30 border border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span className="text-xs font-medium text-foreground">
-                    Live Monitoring Active
-                  </span>
+                  <Info className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs font-medium text-foreground">Travel context</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Scanning 847 data sources for disruptions, events, and opportunities.
+                  Demo alerts for interface preview. Disruption monitoring is unavailable.
                 </p>
               </div>
 

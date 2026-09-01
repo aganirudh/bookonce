@@ -40,7 +40,7 @@ export interface JourneyStep {
 interface JourneyVisualizationProps {
   steps: JourneyStep[];
   journeyType: 'outbound' | 'return';
-  onSummaryUpdate?: (summary: { duration: string; cost: number; modes: number }) => void;
+  onSummaryUpdate?: (summary: { duration: string | null; cost: number | null; modes: number }) => void;
 }
 
 const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
@@ -72,18 +72,26 @@ const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
   };
 
   const getTotalCost = () => {
+    if (selectedOptions.filter(Boolean).length !== steps.length) return null;
     return selectedOptions.reduce((total, option) => {
       if (!option) return total;
-      const cost = option.cost?.replace(/[₹$€£,]/g, '') || '0';
-      return total + (cost === 'Free' ? 0 : parseInt(cost));
+      if (!option.cost) return option.type === 'walk' ? total : Number.NaN;
+      const cost = option.cost.replace(/[₹$€£,]/g, '');
+      const parsed = cost === 'Free' ? 0 : Number.parseInt(cost, 10);
+      return total + parsed;
     }, 0);
   };
 
   const getTotalDuration = () => {
+    if (selectedOptions.filter(Boolean).length !== steps.length) return null;
     let totalMinutes = 0;
     selectedOptions.forEach(option => {
       if (!option) return;
       const duration = option.duration;
+      if (!duration) {
+        totalMinutes = Number.NaN;
+        return;
+      }
       if (duration.includes('hour') || duration.includes('h')) {
         const hours = parseInt(duration.match(/(\d+)\s*h/)?.[1] || '0');
         const minutes = parseInt(duration.match(/(\d+)\s*m/)?.[1] || '0');
@@ -93,6 +101,7 @@ const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
       }
     });
 
+    if (!Number.isFinite(totalMinutes)) return null;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
@@ -100,9 +109,10 @@ const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
 
   useEffect(() => {
     if (onSummaryUpdate) {
+      const cost = getTotalCost();
       onSummaryUpdate({
         duration: getTotalDuration(),
-        cost: getTotalCost(),
+        cost: cost !== null && Number.isFinite(cost) ? cost : null,
         modes: selectedOptions.filter(Boolean).length,
       });
     }
@@ -210,15 +220,21 @@ const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
       </div>
 
       {/* Total Summary (Compact) */}
-      {selectedOptions.length > 0 && (
+      {selectedOptions.length > 0 && (() => {
+        const duration = getTotalDuration();
+        const cost = getTotalCost();
+        return (
         <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg text-sm border border-primary/20">
           <span className="font-medium">Total Estimated</span>
           <div className="flex gap-3">
-            <span className="font-bold">{getTotalDuration()}</span>
-            <span className="font-bold text-primary">₹{getTotalCost().toLocaleString()}</span>
+            <span className="font-bold">{duration ?? 'Not calculated'}</span>
+            <span className="font-bold text-primary">
+              {cost !== null && Number.isFinite(cost) ? `₹${cost.toLocaleString()}` : 'Not calculated'}
+            </span>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

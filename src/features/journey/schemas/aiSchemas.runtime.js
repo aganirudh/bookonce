@@ -63,9 +63,12 @@ export const JourneySegmentSchema = z.object({
   routingAlternatives: z.array(z.object({
     id: z.string(),
     label: z.string(),
+    provider: z.string().optional(),
     mode: z.enum(['walk', 'drive', 'bike']),
     distance: z.number().nonnegative(),
     duration: z.number().nonnegative(),
+    walkingDistance: z.number().nonnegative().optional(),
+    transfers: z.number().int().nonnegative().optional(),
     geometry: z.array(z.tuple([z.number(), z.number()])),
     rank: z.number().int().positive(),
     score: z.number().nonnegative(),

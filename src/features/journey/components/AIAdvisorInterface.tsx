@@ -238,7 +238,7 @@ export function AIAdvisorInterface({
                     ? 'First-time visitor tips included'
                     : 'Returning visitor recommendations'}
                 </p>
-                <p>✓ Real-time updates enabled</p>
+                <p>• Live disruption monitoring unavailable</p>
                 <p>✓ Group of {travelers} - special considerations applied</p>
               </div>
             </Card>

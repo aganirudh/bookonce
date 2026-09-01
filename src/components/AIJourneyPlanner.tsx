@@ -18,12 +18,12 @@ import { weatherService } from '@/services/WeatherService';
 import { evaluateWeatherCompatibility, nearestWeatherHour } from '@/features/journey/weather/WeatherCompatibilityEngine';
 import { proposeWeatherReplan } from '@/features/journey/replanning/ItineraryReplanner';
 import type { WeatherActivity } from '@/features/journey/weather/types';
+import { DataProvenanceBadge } from '@/components/ui/data-provenance';
+import { routeComparisons, routeDescriptor, type RoutingAlternative } from '@/features/journey/optimization/routePresentation';
 
 type RequestState = 'idle' | 'loading' | 'success' | 'error';
 
 const estimate = (value: number, unit: string) => `${value.toLocaleString()} ${unit}`;
-
-type RoutingAlternative = NonNullable<JourneySegment['routingAlternatives']>[number];
 
 function selectedAlternative(segment: JourneySegment, selectedId?: string): RoutingAlternative | undefined {
   return segment.routingAlternatives?.find(route => route.id === selectedId) ??
@@ -45,14 +45,14 @@ const JourneySegmentCard: React.FC<{
     : undefined;
   const explanation = selected?.explanation ?? fallbackOptimized?.explanation;
   const qualityScore = selected?.qualityScore ?? fallbackOptimized?.qualityScore;
-  const fastestDuration = segment.routingAlternatives?.reduce(
-    (minimum, route) => Math.min(minimum, route.duration),
-    Number.POSITIVE_INFINITY
-  );
+  const alternatives = segment.routingAlternatives ?? [];
+  const recommended = alternatives.find(route => route.id === segment.selectedRouteCandidateId) ??
+    alternatives.find(route => route.rank === 1);
+  const comparisons = selected ? routeComparisons(selected, recommended) : [];
   const routeDuration = selected?.duration ?? segment.routeDuration;
   const routeDistance = selected?.distance ?? segment.routeDistance;
-  const routeCost = selected?.estimatedCost ?? segment.estimatedCost;
-  const routeCostSource = selected?.costEstimateSource ?? segment.costEstimateSource;
+  const routeCost = selected ? selected.estimatedCost : segment.estimatedCost;
+  const routeCostSource = selected ? selected.costEstimateSource : segment.costEstimateSource;
 
   return <Card key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}>
     <CardHeader>
@@ -61,17 +61,35 @@ const JourneySegmentCard: React.FC<{
       </CardTitle>
     </CardHeader>
     <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
-      {segment.routingAlternatives && segment.routingAlternatives.length > 1 && <div className="sm:col-span-2 flex flex-wrap gap-2" aria-label="Route alternatives">
-        {segment.routingAlternatives.map(route => {
+      {alternatives.length > 1 && <section className="sm:col-span-2 space-y-2" aria-labelledby={`route-options-${index}`}>
+        <h4 id={`route-options-${index}`} className="font-semibold">Route options</h4>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {alternatives.map(route => {
           const isSelected = route.id === selected?.id;
-          const label = route.rank === 1
-            ? 'Recommended'
-            : route.duration === fastestDuration ? 'Fastest' : `Alternative ${route.rank - 1}`;
-          return <Button key={route.id} type="button" size="sm" variant={isSelected ? 'default' : 'outline'} onClick={() => onSelect(route.id)}>
-            {label}
+          const isRecommended = route.id === recommended?.id;
+          const descriptor = routeDescriptor(alternatives, route);
+          const accessibleName = `${isRecommended ? 'Recommended route' : descriptor}, ${Math.round(route.duration / 60)} minutes, ${Number((route.distance / 1000).toFixed(1))} km`;
+          return <Button
+            key={route.id}
+            type="button"
+            variant={isSelected ? 'default' : 'outline'}
+            className="h-auto min-w-0 justify-start whitespace-normal p-3 text-left"
+            aria-pressed={isSelected}
+            aria-label={`Select ${accessibleName}`}
+            onClick={() => onSelect(route.id)}
+          >
+            <span className="grid gap-1">
+              <span className="font-semibold">{isRecommended ? 'Recommended' : descriptor}</span>
+              {isRecommended && !descriptor.startsWith('Alternative') && <span className="text-xs opacity-80">{descriptor}</span>}
+              <span className="text-xs opacity-80">{Math.round(route.duration / 60)} min · {Number((route.distance / 1000).toFixed(1))} km</span>
+              {route.estimatedCost !== undefined && <span className="text-xs opacity-80">Approx. ₹{route.estimatedCost.toLocaleString()}</span>}
+              {isSelected && <span className="text-xs font-semibold">Selected</span>}
+            </span>
           </Button>;
         })}
-      </div>}
+        </div>
+      </section>}
+      {segment.routingStatus === 'routed' && alternatives.length <= 1 && <p className="sm:col-span-2 text-muted-foreground">Only one verified route is currently available.</p>}
       {segment.departureTime && <p><b>Suggested departure:</b> {segment.departureTime}</p>}
       {segment.arrivalTime && <p><b>Suggested arrival:</b> {segment.arrivalTime}</p>}
       {routeDuration !== undefined
@@ -80,7 +98,7 @@ const JourneySegmentCard: React.FC<{
       {routeDistance !== undefined
         ? <p><b>Verified road distance:</b> {estimate(Number((routeDistance / 1000).toFixed(1)), 'km')}</p>
         : segment.distance !== undefined && <p><b>Estimated distance:</b> {estimate(segment.distance, 'km')}</p>}
-      {routeCost !== undefined && <p><b>{routeCostSource === 'bookonce-estimate' ? 'BookOnce estimated cost' : 'Suggested estimated cost'}:</b> Approx. ₹{routeCost.toLocaleString()}</p>}
+      {routeCost !== undefined && <div className="flex flex-wrap items-center gap-2"><span><b>{routeCostSource === 'bookonce-estimate' ? 'BookOnce estimated cost' : 'Suggested estimated cost'}:</b> Approx. ₹{routeCost.toLocaleString()}</span><DataProvenanceBadge provenance={routeCostSource === 'bookonce-estimate' ? 'bookonce-estimate' : 'ai-suggestion'} /></div>}
       {segment.instructions && <p className="sm:col-span-2"><b>Suggested instructions:</b> {segment.instructions}</p>}
       {explanation && qualityScore !== undefined && <div className="sm:col-span-2 rounded-lg border bg-muted/40 p-3" data-testid="route-explanation">
         <p className="font-semibold">Why this route?</p>
@@ -88,6 +106,7 @@ const JourneySegmentCard: React.FC<{
         {segment.optimizationWarnings?.map(warning => <p key={warning}>⚠ {warning}</p>)}
         {explanation.advantages.map(reason => <p key={reason}>✓ {reason}</p>)}
         {explanation.tradeOffs.map(reason => <p key={reason}>⚠ {reason}</p>)}
+        {comparisons.map(comparison => <p key={comparison}>↔ {comparison}</p>)}
         <p><b>Optimization score:</b> {qualityScore}/100</p>
       </div>}
     </CardContent>

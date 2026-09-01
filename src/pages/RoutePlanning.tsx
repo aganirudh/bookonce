@@ -36,6 +36,7 @@ import {
 import { endangeredPlacesService, EndangeredPlace } from '@/services/EndangeredPlacesService';
 import EndangeredPlacesInline from '@/components/EndangeredPlacesInline';
 import { useToast } from '@/hooks/use-toast';
+import { DataProvenanceBadge } from '@/components/ui/data-provenance';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import {
@@ -49,6 +50,8 @@ import { bookOnceAIService } from '@/features/journey/services/BookOnceAIService
 import JourneyVisualization from '@/components/JourneyVisualization';
 import { BookOnceAISidebar } from '@/components/BookOnceAISidebar';
 import { ContextLayerPanel } from '@/components/ContextLayer';
+import { JourneyPaymentButton } from '@/components/JourneyPaymentButton';
+import { getPayableAmount } from '@/utils/paymentAvailability';
 
 const RoutePlanning = () => {
   const navigate = useNavigate();
@@ -103,8 +106,8 @@ const RoutePlanning = () => {
 
   // Journey summary from AI visualization
   const [journeySummary, setJourneySummary] = useState<{
-    duration: string;
-    cost: number;
+    duration: string | null;
+    cost: number | null;
     modes: number;
   } | null>(null);
 
@@ -158,9 +161,11 @@ const RoutePlanning = () => {
   };
 
   const pricing = calculatePricing();
+  const payableAmount = getPayableAmount(journeySummary?.cost ?? null);
 
   // Handle confirm and pay
   const handleConfirmAndPay = async () => {
+    if (payableAmount === null) return;
     // Check if user is authenticated
     if (!isAuthenticated) {
       // Store journey data in sessionStorage to resume after login
@@ -172,7 +177,7 @@ const RoutePlanning = () => {
         guests,
         intent,
         visitor,
-        amount: journeySummary?.cost || pricing.total,
+        amount: payableAmount,
       }));
 
       toast({
@@ -185,7 +190,7 @@ const RoutePlanning = () => {
     }
 
     // User is authenticated, navigate to QR payment
-    const totalAmount = journeySummary?.cost || pricing.total;
+    const totalAmount = payableAmount;
 
     // Save pending booking to localStorage for persistence across pages
     const pendingBooking = {
@@ -598,7 +603,7 @@ const RoutePlanning = () => {
         <button
           onClick={() => setIsContextOpen(true)}
           className="fixed top-4 right-4 z-50 p-2.5 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20 shadow-md hover:shadow-lg transition-all hover:scale-110 hover:bg-primary/20"
-          title="Real-Time Updates"
+          title="Travel Context"
         >
           <Zap className="w-4 h-4 text-primary" />
           <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
@@ -848,7 +853,7 @@ const RoutePlanning = () => {
                     <span className="text-sm font-medium">Total Duration</span>
                   </div>
                   <span className="font-bold text-base">
-                    {journeySummary?.duration || '8min'}
+                    {journeySummary?.duration ?? 'Not calculated'}
                   </span>
                 </div>
 
@@ -858,8 +863,11 @@ const RoutePlanning = () => {
                     <span className="text-sm font-medium">Total Cost</span>
                   </div>
                   <span className="font-bold text-base text-primary">
-                    ₹{journeySummary?.cost?.toLocaleString() || pricing.total.toLocaleString()}
+                    {journeySummary?.cost === null || journeySummary?.cost === undefined
+                      ? 'Not calculated'
+                      : `₹${journeySummary.cost.toLocaleString()}`}
                   </span>
+                  <DataProvenanceBadge provenance={journeySummary?.cost === null || journeySummary?.cost === undefined ? 'unavailable' : 'bookonce-estimate'} />
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
@@ -873,26 +881,21 @@ const RoutePlanning = () => {
             </Card>
 
             {/* Confirm and Pay Button */}
-            <Button
-              onClick={handleConfirmAndPay}
-              className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
-            >
-              Confirm and Pay ₹{journeySummary?.cost?.toLocaleString() || pricing.total.toLocaleString()}
-            </Button>
+            <JourneyPaymentButton amount={payableAmount} onConfirm={handleConfirmAndPay} />
 
             <Card className="p-6">
               <h3 className="font-semibold flex items-center gap-2 mb-4">
                 <AlertCircle className="h-4 w-4" />
-                Real-Time Updates
+                Travel Context
               </h3>
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-2">
                   <div className="h-2 w-2 rounded-full bg-green-500 mt-1.5" />
-                  <p className="text-muted-foreground">All routes clear</p>
+                  <p className="text-muted-foreground">No verified disruption data</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="h-2 w-2 rounded-full bg-green-500 mt-1.5" />
-                  <p className="text-muted-foreground">Weather: Clear skies</p>
+                  <p className="text-muted-foreground">Weather not checked</p>
                 </div>
                 {numGuests >= 4 && (
                   <div className="flex items-start gap-2">
