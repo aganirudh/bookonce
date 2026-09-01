@@ -22,6 +22,8 @@ import { DataProvenanceBadge } from '@/components/ui/data-provenance';
 import { routeComparisons, routeDescriptor, type RoutingAlternative } from '@/features/journey/optimization/routePresentation';
 import { useRouteWhatIfOptimization } from '@/features/journey/optimization/useRouteWhatIfOptimization';
 import type { OptimizationMetric } from '@/features/journey/optimization/types';
+import { JourneyResiliencePanel } from '@/features/journey/resilience/JourneyResiliencePanel';
+import type { TravelDependencyEdge } from '@/features/journey/resilience/types';
 
 type RequestState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -170,22 +172,28 @@ const JourneySegmentCard: React.FC<{
   </Card>;
 };
 
-export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urgent' | 'leisure' }> = ({ itinerary, travelStyle = 'leisure' }) => {
+export const JourneyResult: React.FC<{
+  itinerary: Itinerary;
+  travelStyle?: 'urgent' | 'leisure';
+  resilienceDependencies?: readonly Omit<TravelDependencyEdge, 'dependencySource'>[];
+}> = ({ itinerary, travelStyle = 'leisure', resilienceDependencies = [] }) => {
+  const [displayedItinerary, setDisplayedItinerary] = useState(itinerary);
   const [selectedRoutes, setSelectedRoutes] = useState<Record<number, { id: string; manuallySelected: boolean }>>({});
+  useEffect(() => { setDisplayedItinerary(itinerary); setSelectedRoutes({}); }, [itinerary]);
   const selectRoute = useCallback((index: number, id: string, manuallySelected: boolean) => {
     setSelectedRoutes(previous => ({ ...previous, [index]: { id, manuallySelected } }));
   }, []);
-  const routeGeometry = itinerary.segments.flatMap((segment, index) =>
+  const routeGeometry = displayedItinerary.segments.flatMap((segment, index) =>
     (selectedAlternative(segment, selectedRoutes[index]?.id)?.geometry ?? segment.routeGeometry ?? [])
       .map(([lng, lat]) => ({ lat, lng }))
   );
 
   return <div className="space-y-6" data-testid="journey-result">
-    {itinerary.origin.latitude !== undefined && itinerary.origin.longitude !== undefined &&
-      itinerary.destination.latitude !== undefined && itinerary.destination.longitude !== undefined && (
+    {displayedItinerary.origin.latitude !== undefined && displayedItinerary.origin.longitude !== undefined &&
+      displayedItinerary.destination.latitude !== undefined && displayedItinerary.destination.longitude !== undefined && (
         <JourneyMap
-          origin={{ lat: itinerary.origin.latitude, lng: itinerary.origin.longitude, name: itinerary.origin.name }}
-          destination={{ lat: itinerary.destination.latitude, lng: itinerary.destination.longitude, name: itinerary.destination.name }}
+          origin={{ lat: displayedItinerary.origin.latitude, lng: displayedItinerary.origin.longitude, name: displayedItinerary.origin.name }}
+          destination={{ lat: displayedItinerary.destination.latitude, lng: displayedItinerary.destination.longitude, name: displayedItinerary.destination.name }}
           route={routeGeometry}
           height="360px"
         />
@@ -194,20 +202,32 @@ export const JourneyResult: React.FC<{ itinerary: Itinerary; travelStyle?: 'urge
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Route className="h-5 w-5" />
-          {itinerary.origin.name} → {itinerary.destination.name}
+          {displayedItinerary.origin.name} → {displayedItinerary.destination.name}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-muted-foreground">{itinerary.summary}</p>
+        <p className="text-muted-foreground">{displayedItinerary.summary}</p>
         <div className="grid gap-3 text-sm sm:grid-cols-3">
-          {itinerary.totalDuration !== undefined && <p><b>Estimated total duration:</b> {estimate(itinerary.totalDuration, 'minutes')}</p>}
-          {itinerary.totalDistance !== undefined && <p><b>Estimated total distance:</b> {estimate(itinerary.totalDistance, 'km')}</p>}
-          {itinerary.estimatedTotalCost !== undefined && <p><b>Estimated total cost:</b> ₹{itinerary.estimatedTotalCost.toLocaleString()}</p>}
+          {displayedItinerary.totalDuration !== undefined && <p><b>Estimated total duration:</b> {estimate(displayedItinerary.totalDuration, 'minutes')}</p>}
+          {displayedItinerary.totalDistance !== undefined && <p><b>Estimated total distance:</b> {estimate(displayedItinerary.totalDistance, 'km')}</p>}
+          {displayedItinerary.estimatedTotalCost !== undefined && <p><b>Estimated total cost:</b> ₹{displayedItinerary.estimatedTotalCost.toLocaleString()}</p>}
         </div>
       </CardContent>
     </Card>
 
-    {itinerary.segments.map((segment, index) => <JourneySegmentCard
+    <JourneyResiliencePanel
+      state={{ itinerary: displayedItinerary, selectedRouteIds: Object.fromEntries(Object.entries(selectedRoutes).map(([index, value]) => [index, value.id])) }}
+      explicitDependencies={resilienceDependencies}
+      onApply={next => {
+        setDisplayedItinerary(next.itinerary);
+        setSelectedRoutes(previous => {
+          const updated = { ...previous };
+          Object.entries(next.selectedRouteIds).forEach(([index, id]) => { if (id) updated[Number(index)] = { id, manuallySelected: true }; });
+          return updated;
+        });
+      }}
+    />
+    {displayedItinerary.segments.map((segment, index) => <JourneySegmentCard
       key={`${segment.mode}-${segment.from.name}-${segment.to.name}-${index}`}
       segment={segment}
       index={index}

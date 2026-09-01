@@ -72,5 +72,9 @@ describe('product truthfulness states', () => {
     expect(screen.getByText('AI suggestion')).toBeInTheDocument();
     rerender(<DataProvenanceBadge provenance="unavailable" />);
     expect(screen.getByText('Unavailable')).toBeInTheDocument();
+    rerender(<DataProvenanceBadge provenance="simulation" />);
+    expect(screen.getByText('SIMULATION')).toBeInTheDocument();
+    rerender(<DataProvenanceBadge provenance="bookonce-derived" />);
+    expect(screen.getByText('BookOnce derived')).toBeInTheDocument();
   });
 });

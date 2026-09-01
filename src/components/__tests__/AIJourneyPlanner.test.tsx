@@ -348,4 +348,29 @@ describe('AIJourneyPlanner', () => {
     expect(screen.getByTestId('weather-notice')).toHaveTextContent('Suggested weather replan applied');
     expect(screen.queryByText(/danger|Gemini.*replan/i)).not.toBeInTheDocument();
   });
+
+  it('applies a reviewed resilience route to the itinerary and map without a network request', async () => {
+    const explanation = { dominantPreference: 'time' as const, advantages: [], tradeOffs: [] };
+    const resilient = {
+      ...itinerary,
+      origin: { name: 'Origin', latitude: 1, longitude: 1 }, destination: { name: 'City', latitude: 2, longitude: 2 },
+      segments: [
+        { ...itinerary.segments[0], activityId: 'flight', mode: 'flight' as const, from: { name: 'Origin' }, to: { name: 'Airport' }, flexibility: 'fixed' as const, departureTime: '09:00', arrivalTime: '10:00' },
+        { ...itinerary.segments[0], activityId: 'transfer', mode: 'car' as const, from: { name: 'Airport' }, to: { name: 'Hotel' }, flexibility: 'flexible' as const, departureTime: '11:00', arrivalTime: '12:00', selectedRouteCandidateId: 'current', routingStatus: 'routed' as const, routeGeometry: [[1, 1]] as [number, number][], routeDuration: 3600, routeDistance: 10000, routingAlternatives: [
+          { id: 'current', label: 'Current', mode: 'drive' as const, duration: 3600, distance: 10000, estimatedCost: 300, geometry: [[1, 1]] as [number, number][], rank: 1, score: 0, qualityScore: 100, explanation },
+          { id: 'fast', label: 'Fast', mode: 'drive' as const, duration: 1800, distance: 9000, estimatedCost: 400, geometry: [[2, 2]] as [number, number][], rank: 2, score: 0.2, qualityScore: 80, explanation },
+        ] },
+        { ...itinerary.segments[0], activityId: 'museum', activityCategory: 'indoor' as const, mode: 'walk' as const, from: { name: 'Hotel' }, to: { name: 'Museum' }, flexibility: 'fixed' as const, departureTime: '15:00', arrivalTime: '16:00' },
+      ],
+    };
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    render(<JourneyResult itinerary={resilient} resilienceDependencies={[{ from: 'flight', to: 'transfer' }, { from: 'transfer', to: 'museum' }]} />);
+    expect(screen.getByTestId('journey-map').getAttribute('data-props')).toContain('[{"lat":1,"lng":1}]');
+    fireEvent.change(screen.getByLabelText('Simulation scenario'), { target: { value: 'delay-180' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Run simulation' }));
+    await screen.findByText('Recommended recovery');
+    fireEvent.click(screen.getByRole('button', { name: 'Apply recovery plan' }));
+    await waitFor(() => expect(screen.getByTestId('journey-map').getAttribute('data-props')).toContain('[{"lat":2,"lng":2}]'));
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
 });
