@@ -36,6 +36,17 @@ export const TransportModeSchema = z.enum([
   'rapido',
 ]);
 
+export const ExternalFlightIdentitySchema = z.object({
+  carrierCode: z.string().trim().min(1).max(8),
+  flightNumber: z.string().trim().min(1).max(12),
+  departureAirportCode: z.string().trim().min(2).max(8).optional(),
+  arrivalAirportCode: z.string().trim().min(2).max(8).optional(),
+  scheduledDeparture: z.string().datetime({ offset: true, local: true }).optional(),
+  scheduledArrival: z.string().datetime({ offset: true, local: true }).optional(),
+  provider: z.string().trim().min(1).max(80).optional(),
+  providerItineraryId: z.string().trim().min(1).max(160).optional(),
+}).strict();
+
 export const JourneySegmentSchema = z.object({
   mode: TransportModeSchema,
   from: LocationSchema,
@@ -49,6 +60,7 @@ export const JourneySegmentSchema = z.object({
   activityId: z.string().trim().min(1).optional(),
   activityCategory: z.enum(['indoor', 'outdoor', 'mixed', 'transport']).optional(),
   flexibility: z.enum(['fixed', 'flexible']).optional(),
+  externalFlightIdentity: ExternalFlightIdentitySchema.optional(),
   // Deterministic routing fields. Distance is meters, duration is seconds,
   // and geometry uses the routing-provider [longitude, latitude] convention.
   routeDistance: z.number().nonnegative().optional(),

@@ -77,7 +77,16 @@ class AIClient {
       throw new Error('AI returned an invalid itinerary');
     }
 
-    return parsed.data;
+    // AI suggestions are not verified flight-provider identity. Only explicit
+    // user selection from structured flight search may attach this field.
+    return {
+      ...parsed.data,
+      segments: parsed.data.segments.map(segment => {
+        const trusted = { ...segment };
+        delete trusted.externalFlightIdentity;
+        return trusted;
+      }),
+    };
   }
 }
 

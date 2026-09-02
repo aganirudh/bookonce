@@ -5,6 +5,7 @@ import {
 } from '../journeyLedger';
 import type { RecoveryApplicationState } from '../recoveryApplication';
 import type { RecoveryCandidate } from '../recoveryTypes';
+import type { DisruptionProvenance } from '../disruptionTypes';
 
 const routeCandidate: RecoveryCandidate = {
   id: 'transfer:replace_transport_route:alternate', score: 0, changedNodeIds: ['transfer'], unresolvedViolations: [],
@@ -31,7 +32,7 @@ function fixture(): RecoveryApplicationState {
   } };
 }
 
-function apply(state = fixture(), candidate = routeCandidate, provenance = simulation) {
+function apply(state = fixture(), candidate = routeCandidate, provenance: DisruptionProvenance = simulation) {
   const version = createJourneyVersion(state); const ledger = JourneyChangeLedger.empty();
   return applyRecoveryTransaction({ state, version, ledger, proposal: candidate, expectedFingerprint: itineraryFingerprint(state), expectedVersion: 0, disruptionProvenance: provenance });
 }

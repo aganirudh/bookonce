@@ -46,6 +46,13 @@ describe('AIClient', () => {
     await expect(aiClient.planItinerary('Plan it')).rejects.toThrow('AI returned an invalid itinerary');
   });
 
+  it('strips AI-supplied external flight identity at the trust boundary', async () => {
+    const data = { origin: { name: 'JFK' }, destination: { name: 'LHR' }, summary: 'AI suggestion', segments: [{ activityId: 'flight-1', mode: 'flight', from: { name: 'JFK' }, to: { name: 'LHR' }, externalFlightIdentity: { carrierCode: 'DL', flightNumber: '5923' } }] };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, data }) }));
+    const result = await aiClient.planItinerary('Plan it');
+    expect(result.segments[0].externalFlightIdentity).toBeUndefined();
+  });
+
   it('rejects non-JSON API responses safely', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockRejectedValue(new SyntaxError('private response')) }));
     await expect(aiClient.chat('Plan it')).rejects.toThrow('Malformed AI response');

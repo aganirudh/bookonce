@@ -159,4 +159,10 @@ describe('itinerary adapter', () => {
     adaptItineraryToGraph(itinerary, dependencies);
     expect(JSON.stringify({ itinerary, dependencies })).toBe(snapshot);
   });
+
+  it('preserves only provider-neutral flight identity in graph metadata', () => {
+    const externalFlightIdentity = { carrierCode: 'DL', flightNumber: '5923', departureAirportCode: 'JFK', arrivalAirportCode: 'LHR', scheduledDeparture: '2026-09-15T18:30:00' };
+    const result = adaptItineraryToGraph({ ...itinerary, segments: [{ activityId: 'flight-1', mode: 'flight', from: { name: 'JFK' }, to: { name: 'LHR' }, externalFlightIdentity }] });
+    expect(result.nodes[0].metadata).toEqual({ mode: 'flight', category: 'transport', externalFlightIdentity });
+  });
 });

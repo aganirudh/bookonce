@@ -119,7 +119,7 @@ export function applyRecoveryTransaction(input: {
   if (input.expectedVersion !== input.version.version) return { success: false, state: input.state, version: input.version, ledger: input.ledger, error: 'stale-version' };
   if (input.expectedFingerprint !== currentFingerprint) return { success: false, state: input.state, version: input.version, ledger: input.ledger, error: 'stale-plan' };
   const applied = applyRecoveryCandidate(input.state, input.proposal, '', input.expectedFingerprint);
-  if (!applied.applied) return { success: false, state: input.state, version: input.version, ledger: input.ledger, error: applied.reason };
+  if (applied.applied === false) return { success: false, state: input.state, version: input.version, ledger: input.ledger, error: applied.reason };
   const resultingVersion = input.version.version + 1;
   const resultingFingerprint = itineraryFingerprint(applied.state);
   const action = recordedAction(input.state, applied.state, input.proposal);

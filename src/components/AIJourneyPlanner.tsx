@@ -24,6 +24,13 @@ import { useRouteWhatIfOptimization } from '@/features/journey/optimization/useR
 import type { OptimizationMetric } from '@/features/journey/optimization/types';
 import { JourneyResiliencePanel } from '@/features/journey/resilience/JourneyResiliencePanel';
 import type { TravelDependencyEdge } from '@/features/journey/resilience/types';
+import { FlightSearchPanel } from '@/features/journey/components/FlightSearchPanel';
+import { WeatherReport } from '@/features/journey/components/WeatherReport';
+import { bindSelectedFlightToItinerary } from '@/features/journey/services/flightIdentityAdapter';
+import type { FlightCandidate } from '@/services/SkyscannerService';
+import type { WeatherForecast } from '@/services/WeatherService';
+import type { CompatibilityResult } from '@/features/journey/weather/types';
+import { disruptionClient } from '@/services/DisruptionClient';
 
 type RequestState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -176,10 +183,21 @@ export const JourneyResult: React.FC<{
   itinerary: Itinerary;
   travelStyle?: 'urgent' | 'leisure';
   resilienceDependencies?: readonly Omit<TravelDependencyEdge, 'dependencySource'>[];
-}> = ({ itinerary, travelStyle = 'leisure', resilienceDependencies = [] }) => {
+  weatherData?: { location: string; date: string; forecast?: WeatherForecast; activities: WeatherActivity[]; compatibility: CompatibilityResult[] };
+}> = ({ itinerary, travelStyle = 'leisure', resilienceDependencies = [], weatherData }) => {
   const [displayedItinerary, setDisplayedItinerary] = useState(itinerary);
+  const [selectedFlight, setSelectedFlight] = useState<FlightCandidate>();
+  const [statusProvider, setStatusProvider] = useState<string | null>();
   const [selectedRoutes, setSelectedRoutes] = useState<Record<number, { id: string; manuallySelected: boolean }>>({});
-  useEffect(() => { setDisplayedItinerary(itinerary); setSelectedRoutes({}); }, [itinerary]);
+  useEffect(() => { setDisplayedItinerary(itinerary); setSelectedRoutes({}); setSelectedFlight(undefined); setStatusProvider(undefined); }, [itinerary]);
+  useEffect(() => {
+    if (!selectedFlight) return;
+    let active = true;
+    disruptionClient.providers().then(providers => {
+      if (active) setStatusProvider(providers.find(provider => provider.capabilities.includes('flight_status'))?.provider ?? null);
+    }).catch(() => { if (active) setStatusProvider(null); });
+    return () => { active = false; };
+  }, [selectedFlight]);
   const selectRoute = useCallback((index: number, id: string, manuallySelected: boolean) => {
     setSelectedRoutes(previous => ({ ...previous, [index]: { id, manuallySelected } }));
   }, []);
@@ -215,9 +233,20 @@ export const JourneyResult: React.FC<{
       </CardContent>
     </Card>
 
+    <FlightSearchPanel selected={selectedFlight} canBind={displayedItinerary.segments.some(segment => segment.mode === 'flight')} onSelect={candidate => {
+      const index = displayedItinerary.segments.findIndex(segment => segment.mode === 'flight');
+      if (index < 0) return;
+      const segmentId = displayedItinerary.segments[index].activityId ?? `flight-segment-${index}`;
+      setDisplayedItinerary(current => bindSelectedFlightToItinerary(current, segmentId, candidate));
+      setSelectedFlight(candidate); setStatusProvider(undefined);
+    }} />
+
+    {weatherData && <WeatherReport {...weatherData} />}
+
     <JourneyResiliencePanel
       state={{ itinerary: displayedItinerary, selectedRouteIds: Object.fromEntries(Object.entries(selectedRoutes).map(([index, value]) => [index, value.id])) }}
       explicitDependencies={resilienceDependencies}
+      statusProvider={statusProvider}
       onApply={next => {
         setDisplayedItinerary(next.itinerary);
         setSelectedRoutes(previous => {
@@ -252,6 +281,7 @@ const AIJourneyPlanner: React.FC = () => {
   const [routeWarning, setRouteWarning] = useState('');
   const [weatherNotice, setWeatherNotice] = useState('');
   const [suggestedItinerary, setSuggestedItinerary] = useState<Itinerary | null>(null);
+  const [weatherData, setWeatherData] = useState<{ location: string; date: string; forecast?: WeatherForecast; activities: WeatherActivity[]; compatibility: CompatibilityResult[] }>();
   const [loadingLabel, setLoadingLabel] = useState('Generating Your Journey...');
   const [activeTab, setActiveTab] = useState('form');
   const [form, setForm] = useState(initialForm);
@@ -271,6 +301,7 @@ const AIJourneyPlanner: React.FC = () => {
     setRouteWarning('');
     setWeatherNotice('');
     setSuggestedItinerary(null);
+    setWeatherData(undefined);
     setItinerary(null);
     try {
       setLoadingLabel('Generating Your Journey...');
@@ -295,6 +326,7 @@ const AIJourneyPlanner: React.FC = () => {
           const forecast = await weatherService.getForecast(result.destination.latitude, result.destination.longitude, form.departureDate);
           if (forecast.status === 'unavailable-out-of-range') {
             setWeatherNotice('Weather forecast unavailable for these travel dates.');
+            setWeatherData({ location: result.destination.name, date: form.departureDate, forecast, activities: [], compatibility: [] });
           } else {
             const activities: WeatherActivity[] = result.segments.map((segment, index) => ({
               id: segment.activityId ?? `segment-${index}`,
@@ -308,6 +340,7 @@ const AIJourneyPlanner: React.FC = () => {
               activity,
               activity.timestamp ? nearestWeatherHour(activity.timestamp, forecast.hourly) : undefined
             ));
+            setWeatherData({ location: result.destination.name, date: form.departureDate, forecast, activities, compatibility });
             const unsuitable = compatibility.find(item => item.compatibility === 'unsuitable');
             if (unsuitable) setWeatherNotice('Weather may make a planned outdoor activity less suitable.');
             const replan = proposeWeatherReplan(activities, compatibility);
@@ -320,6 +353,7 @@ const AIJourneyPlanner: React.FC = () => {
           }
         } catch {
           setWeatherNotice('Weather forecast is temporarily unavailable. Your itinerary is still usable.');
+          setWeatherData({ location: result.destination.name, date: form.departureDate, activities: [], compatibility: [] });
         }
       }
       setItinerary(result);
@@ -377,8 +411,8 @@ const AIJourneyPlanner: React.FC = () => {
           </Button>
           {error && <div role="alert" className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">{error}</div>}
         </CardContent></Card></TabsContent>
-      <TabsContent value="visualization">{itinerary ? <JourneyResult itinerary={itinerary} travelStyle={form.intent} /> : empty}</TabsContent>
-      <TabsContent value="chat">{itinerary ? <JourneyResult itinerary={itinerary} travelStyle={form.intent} /> : empty}</TabsContent>
+      <TabsContent value="visualization">{itinerary ? <JourneyResult itinerary={itinerary} travelStyle={form.intent} weatherData={weatherData} /> : empty}</TabsContent>
+      <TabsContent value="chat">{itinerary ? <JourneyResult itinerary={itinerary} travelStyle={form.intent} weatherData={weatherData} /> : empty}</TabsContent>
     </Tabs>
   </div>;
 };

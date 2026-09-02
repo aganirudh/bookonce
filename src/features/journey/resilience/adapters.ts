@@ -24,7 +24,13 @@ export function adaptItineraryToGraph(
       kind: !segment.activityCategory || segment.activityCategory === 'transport' ? 'transport' : 'activity',
       flexibility: segment.flexibility ?? 'fixed',
       location: { name: segment.to.name },
-      metadata: { mode: segment.mode, category: segment.activityCategory ?? 'transport' },
+      metadata: {
+        mode: segment.mode,
+        category: segment.activityCategory ?? 'transport',
+        ...(segment.mode === 'flight' && segment.externalFlightIdentity
+          ? { externalFlightIdentity: { ...segment.externalFlightIdentity } }
+          : {}),
+      },
     };
     if (segment.departureTime) {
       if (parseTemporalValue(segment.departureTime) === undefined) limitations.push({ type: 'invalid-start-time', segmentIndex, value: segment.departureTime });

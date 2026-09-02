@@ -7,8 +7,8 @@ import { app } from '../../server.js';
 describe('GET /api/weather/forecast', () => {
   let server;
   let baseUrl;
-  beforeAll(async () => { server = app.listen(0); await new Promise(resolve => server.once('listening', resolve)); baseUrl = `http://127.0.0.1:${server.address().port}`; });
-  afterAll(async () => { await new Promise(resolve => server.close(resolve)); });
+  beforeAll(async () => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-08-31T12:00:00Z')); server = app.listen(0); await new Promise(resolve => server.once('listening', resolve)); baseUrl = `http://127.0.0.1:${server.address().port}`; });
+  afterAll(async () => { await new Promise(resolve => server.close(resolve)); vi.useRealTimers(); });
   beforeEach(() => vi.clearAllMocks());
 
   it('returns a normalized valid forecast', async () => {

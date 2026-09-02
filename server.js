@@ -14,12 +14,16 @@ import geocodingRouter from './server/routes/geocoding.js';
 import routingRouter from './server/routes/routing.js';
 import weatherRouter from './server/routes/weather.js';
 import agentRouter from './server/routes/agent.js';
+import { createDisruptionsRouter } from './server/routes/disruptions.js';
+import { createConfiguredDisruptionRegistry } from './server/disruptions/contracts.js';
+import flightsRouter from './server/routes/flights.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://127.0.0.1:8080')
   .split(',')
   .map(origin => origin.trim());
+const disruptionRegistry = await createConfiguredDisruptionRegistry();
 
 // Middleware
 app.use(
@@ -40,6 +44,8 @@ app.use('/api/geocoding', geocodingRouter);
 app.use('/api/routing', routingRouter);
 app.use('/api/weather', weatherRouter);
 app.use('/api/ai/agent', agentRouter);
+app.use('/api/disruptions', createDisruptionsRouter({ registry: disruptionRegistry }));
+app.use('/api/flights', flightsRouter);
 
 // Email sending endpoint
 app.post('/api/send-email', async (req, res) => {

@@ -13,6 +13,11 @@ describe('AI journey schemas', () => {
     expect(JourneySegmentSchema.safeParse(segment).success).toBe(true));
   it('rejects an invalid JourneySegment', () =>
     expect(JourneySegmentSchema.safeParse({ ...segment, mode: 'teleport' }).success).toBe(false));
+
+  it('accepts structured external flight identity without requiring it for other modes', () => {
+    expect(JourneySegmentSchema.safeParse({ ...segment, mode: 'flight', externalFlightIdentity: { carrierCode: 'AI', flightNumber: '202', departureAirportCode: 'BLR', arrivalAirportCode: 'DEL', scheduledDeparture: '2026-10-10T10:00:00Z' } }).success).toBe(true);
+    expect(JourneySegmentSchema.safeParse(segment).success).toBe(true);
+  });
   it('accepts a valid Itinerary', () =>
     expect(ItinerarySchema.safeParse({ origin, destination, segments: [segment], summary: 'A proposed train journey.' }).success).toBe(true));
   it('rejects an invalid Itinerary', () =>

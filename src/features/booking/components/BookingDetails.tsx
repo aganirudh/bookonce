@@ -72,7 +72,7 @@ export function BookingDetails({ booking, isOpen, onClose, onBookingUpdate }: Bo
 
     // Step 1: Detect Delay
     toast('⚠️ Flight Delay Detected', {
-      description: 'AI-202 is delayed by 4 hours. Assessing impact...',
+      description: 'Demo booking AI-202 is delayed by 4 hours. Assessing impact...',
       duration: 2000,
     });
 
@@ -290,7 +290,7 @@ export function BookingDetails({ booking, isOpen, onClose, onBookingUpdate }: Bo
                 <div className="text-center">
                   <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4 animate-bounce" />
                   <h3 className="text-xl font-bold">Disruption Detected</h3>
-                  <p className="text-muted-foreground">Flight AI-202 Delayed (4h)</p>
+                  <p className="text-muted-foreground">Demo flight AI-202 delayed (4h)</p>
                 </div>
 
                 <div className="space-y-6">
@@ -420,7 +420,7 @@ export function BookingDetails({ booking, isOpen, onClose, onBookingUpdate }: Bo
                     <Plane className="h-5 w-5 text-blue-500 mt-0.5" />
                     <div>
                       <p className="text-xs font-medium">Flight Status</p>
-                      <p className="text-sm text-green-600">On Time</p>
+                      <p className="text-sm text-green-600">Demo status: On time</p>
                       <p className="text-[10px] text-muted-foreground">AI-202 arriving 14:30</p>
                     </div>
                   </div>

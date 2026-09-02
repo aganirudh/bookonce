@@ -1,9 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 
-export type DataProvenance = 'verified' | 'simulation' | 'bookonce-derived' | 'bookonce-estimate' | 'ai-suggestion' | 'unavailable';
+export type DataProvenance = 'verified' | 'provider-search' | 'simulation' | 'bookonce-derived' | 'bookonce-estimate' | 'ai-suggestion' | 'unavailable';
 
 const labels: Record<DataProvenance, string> = {
   verified: 'Verified',
+  'provider-search': 'Provider search',
   simulation: 'SIMULATION',
   'bookonce-derived': 'BookOnce derived',
   'bookonce-estimate': 'BookOnce estimate',

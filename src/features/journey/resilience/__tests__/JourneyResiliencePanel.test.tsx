@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { JourneyResiliencePanel } from '../JourneyResiliencePanel';
 import type { RecoveryApplicationState } from '../recoveryApplication';
+import { disruptionClient } from '@/services/DisruptionClient';
 
 function fixture(): RecoveryApplicationState {
   const routeExplanation = { dominantPreference: 'time' as const, advantages: [], tradeOffs: [] };
@@ -18,14 +19,53 @@ function fixture(): RecoveryApplicationState {
     ],
   } };
 }
+function providerFixture(): RecoveryApplicationState {
+  const state = fixture();
+  state.itinerary.segments[0] = { ...state.itinerary.segments[0], externalFlightIdentity: {
+    carrierCode: 'AI', flightNumber: '202', departureAirportCode: 'BLR', arrivalAirportCode: 'DEL', scheduledDeparture: '2026-09-15T09:00:00+05:30', scheduledArrival: '2026-09-15T11:45:00+05:30', provider: 'rapidapi-skyscanner',
+  } };
+  return state;
+}
 const dependencies = [{ from: 'flight', to: 'transfer' }, { from: 'transfer', to: 'museum' }] as const;
 
 describe('JourneyResiliencePanel', () => {
   it('uses truthful normal and simulation labels without claiming live monitoring', () => {
-    render(<JourneyResiliencePanel state={fixture()} explicitDependencies={dependencies} onApply={vi.fn()} />);
+    render(<JourneyResiliencePanel state={fixture()} explicitDependencies={dependencies} onApply={vi.fn()} statusProvider={null} />);
     expect(screen.getByText('Disruption monitoring not connected.')).toBeInTheDocument();
     expect(screen.getByText('SIMULATION')).toBeInTheDocument();
     expect(screen.queryByText(/all routes clear|live monitoring active|no delays detected/i)).not.toBeInTheDocument();
+  });
+
+  it('shows a manual verified check only for configured provider plus structured identity', () => {
+    const { rerender } = render(<JourneyResiliencePanel state={providerFixture()} explicitDependencies={dependencies} onApply={vi.fn()} statusProvider="Aviationstack" />);
+    expect(screen.getByRole('button', { name: 'Check flight status' })).toBeInTheDocument();
+    rerender(<JourneyResiliencePanel state={fixture()} explicitDependencies={dependencies} onApply={vi.fn()} statusProvider="Aviationstack" />);
+    expect(screen.getByText('Flight status check unavailable for this itinerary.')).toBeInTheDocument();
+  });
+
+  it('shows scoped clear status and performs no automatic itinerary mutation', async () => {
+    const applied = vi.fn(); const check = vi.spyOn(disruptionClient, 'check').mockResolvedValue({ results: [{ status: 'verified-clear' }] });
+    render(<JourneyResiliencePanel state={providerFixture()} explicitDependencies={dependencies} onApply={applied} statusProvider="Aviationstack" />);
+    expect(check).not.toHaveBeenCalled(); expect(applied).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Check flight status' }));
+    expect(await screen.findByRole('status')).toHaveTextContent('No verified disruption found for this flight.');
+    expect(applied).not.toHaveBeenCalled(); check.mockRestore();
+  });
+
+  it.each([
+    ['transport_delay', 'Verified provider delay: 42 minutes.'],
+    ['transport_cancellation', 'Provider reports this flight as cancelled.'],
+  ])('shows %s as a verified provider update without auto-applying', async (type, message) => {
+    const applied = vi.fn();
+    const disruption = type === 'transport_delay'
+      ? { type, targetNodeId: 'flight', delayMinutes: 42, provenance: { source: 'provider', providerName: 'Aviationstack', referenceId: 'evt-1' } }
+      : { type, targetNodeId: 'flight', provenance: { source: 'provider', providerName: 'Aviationstack', referenceId: 'evt-1' } };
+    const check = vi.spyOn(disruptionClient, 'check').mockResolvedValue({ results: [{ status: 'verified', disruption }] });
+    render(<JourneyResiliencePanel state={providerFixture()} explicitDependencies={dependencies} onApply={applied} statusProvider="Aviationstack" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Check flight status' }));
+    expect(await screen.findByRole('heading', { name: 'Verified provider impact' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(message); expect(screen.getAllByText('Verified').length).toBeGreaterThan(0);
+    expect(applied).not.toHaveBeenCalled(); check.mockRestore();
   });
 
   it.each([

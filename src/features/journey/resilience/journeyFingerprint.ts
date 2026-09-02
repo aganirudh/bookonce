@@ -16,6 +16,15 @@ function canonicalSegment(segment: JourneySegment, index: number, selectedRouteI
     estimatedCost: segment.estimatedCost ?? null,
     costEstimateSource: segment.costEstimateSource ?? null,
     costEstimateModel: segment.costEstimateModel ?? null,
+    externalFlightIdentity: segment.externalFlightIdentity
+      ? {
+          carrierCode: segment.externalFlightIdentity.carrierCode,
+          flightNumber: segment.externalFlightIdentity.flightNumber,
+          departureAirportCode: segment.externalFlightIdentity.departureAirportCode ?? null,
+          arrivalAirportCode: segment.externalFlightIdentity.arrivalAirportCode ?? null,
+          scheduledDeparture: segment.externalFlightIdentity.scheduledDeparture ?? null,
+        }
+      : null,
   };
 }
 

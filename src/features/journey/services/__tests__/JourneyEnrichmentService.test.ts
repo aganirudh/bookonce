@@ -75,6 +75,12 @@ describe('JourneyEnrichmentService', () => {
     expect(result.segments[0].routeGeometry).toBeUndefined();
   });
 
+  it('preserves selected structured flight identity through enrichment', async () => {
+    const externalFlightIdentity = { carrierCode: 'DL', flightNumber: '5923', departureAirportCode: 'JFK', arrivalAirportCode: 'LHR', scheduledDeparture: '2026-09-15T18:30:00' };
+    const result = await journeyEnrichmentService.enrich({ ...baseItinerary, segments: [{ ...baseItinerary.segments[0], activityId: 'flight-1', mode: 'flight', externalFlightIdentity }] });
+    expect(result.segments[0]).toMatchObject({ routingStatus: 'unsupported', externalFlightIdentity });
+  });
+
   it('removes unverified AI coordinates when geocoding fails', async () => {
     vi.mocked(geocodingService.searchLocation).mockRejectedValue(new Error('offline'));
     const result = await journeyEnrichmentService.enrich(baseItinerary);
